@@ -31,6 +31,10 @@
       "dest": "/api/riwayat-gardu.js"
     },
     {
+      "src": "/api/setup-database",
+      "dest": "/api/setup-database.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
