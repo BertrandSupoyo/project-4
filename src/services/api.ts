@@ -1,7 +1,8 @@
 import { SubstationData } from '../types';
 
 // Konfigurasi API base URL - sesuaikan dengan endpoint database Anda
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : 'https://project-4-three-lime.vercel.app/api');
+const isProduction = window.location.hostname === 'project-4-three-lime.vercel.app';
+const API_BASE_URL = isProduction ? 'https://project-4-three-lime.vercel.app/api' : 'http://localhost:3001/api';
 
 console.log('API_BASE_URL:', API_BASE_URL);
 
