@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,13 +12,13 @@ model Substation {
   no                    Int
   ulp                   String
   noGardu               String
-  namaLokasiGardu       String   @db.Text
+  namaLokasiGardu       String
   jenis                 String
   merek                 String
   daya                  String
   tahun                 String
   phasa                 String
-  tap_trafo_max_tap String 
+  tap_trafo_max_tap     String 
   penyulang             String
   arahSequence          String
   tanggal               DateTime
@@ -88,11 +88,11 @@ model MeasurementMalam {
 }
 
 model AdminUser {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
   password_hash String
-  role         String   @default("admin")
-  created_at   DateTime @default(now())
+  role          String   @default("admin")
+  created_at    DateTime @default(now())
 
   @@map("admin_users")
 } 
