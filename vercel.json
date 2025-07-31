@@ -35,6 +35,10 @@
       "dest": "/api/setup-database.js"
     },
     {
+      "src": "/api/migrate-database",
+      "dest": "/api/migrate-database.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
