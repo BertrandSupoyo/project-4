@@ -24,6 +24,7 @@
     }
   ],
   "env": {
-    "DATABASE_URL": "@database_url"
+    "DATABASE_URL": "@database_url",
+    "VITE_API_BASE_URL": "https://project-4-three-lime.vercel.app/api"
   }
 } 
