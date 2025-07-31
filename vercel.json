@@ -13,14 +13,6 @@
       }
     }
   ],
-  "functions": {
-    "api/test.js": {
-      "maxDuration": 10
-    },
-    "api/simple.js": {
-      "maxDuration": 10
-    }
-  },
   "routes": [
     {
       "src": "/api/test",
