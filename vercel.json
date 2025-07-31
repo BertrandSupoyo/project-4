@@ -15,28 +15,12 @@
   ],
   "routes": [
     {
+      "src": "/api/test",
+      "dest": "/api/test.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
-    },
-    {
-      "src": "/api/substations/update",
-      "dest": "/api/substations/update.js"
-    },
-    {
-      "src": "/api/substations/add",
-      "dest": "/api/substations/add.js"
-    },
-    {
-      "src": "/api/riwayat-gardu",
-      "dest": "/api/riwayat-gardu.js"
-    },
-    {
-      "src": "/api/setup-database",
-      "dest": "/api/setup-database.js"
-    },
-    {
-      "src": "/api/migrate-database",
-      "dest": "/api/migrate-database.js"
     },
     {
       "src": "/(.*)",
