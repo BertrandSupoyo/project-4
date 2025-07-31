@@ -1,10 +1,12 @@
 import { SubstationData } from '../types';
 
 // Konfigurasi API base URL - sesuaikan dengan endpoint database Anda
-const isProduction = window.location.hostname === 'project-4-three-lime.vercel.app';
+const isProduction = window.location.hostname === 'project-4-three-lime.vercel.app' || window.location.hostname.includes('vercel.app');
 const API_BASE_URL = isProduction ? 'https://project-4-three-lime.vercel.app/api' : 'http://localhost:3001/api';
 
 console.log('API_BASE_URL:', API_BASE_URL);
+console.log('Hostname:', window.location.hostname);
+console.log('Is Production:', isProduction);
 
 export interface ApiResponse<T> {
   success: boolean;
