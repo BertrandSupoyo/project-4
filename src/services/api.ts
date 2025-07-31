@@ -1,7 +1,6 @@
 import { SubstationData } from '../types';
 
 // Konfigurasi API base URL - sesuaikan dengan endpoint database Anda
-// Konfigurasi API base URL - sesuaikan dengan endpoint database Anda
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 console.log('API_BASE_URL:', API_BASE_URL);

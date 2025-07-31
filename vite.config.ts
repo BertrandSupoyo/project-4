@@ -7,18 +7,6 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          ui: ['lucide-react'],
-        },
-      },
-    },
-  },
   server: {
     proxy: {
       '/api': 'http://localhost:3001',
