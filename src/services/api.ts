@@ -1,11 +1,12 @@
 import { SubstationData } from '../types';
 
 // Konfigurasi API base URL - sesuaikan dengan endpoint database Anda
-// Force production URL for now
+// Force production URL for now - v2
 const API_BASE_URL = 'https://project-4-three-lime.vercel.app/api';
 
 console.log('API_BASE_URL:', API_BASE_URL);
 console.log('Hostname:', window.location.hostname);
+console.log('Version: v2 - Force Production');
 
 export interface ApiResponse<T> {
   success: boolean;
