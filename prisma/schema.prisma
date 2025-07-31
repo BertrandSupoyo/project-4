@@ -18,15 +18,16 @@ model Substation {
   daya                  String
   tahun                 String
   phasa                 String
-  jumlahTrafoDistribusi String
-  seksiGardu            String
+  tap_trafo_max_tap String 
   penyulang             String
   arahSequence          String
-  jurusanRayaKota       String
   tanggal               DateTime
   status                String   @default("normal")
   lastUpdate            DateTime @default(now())
   is_active             Int      @default(1)
+  ugb                   Int      @default(0)
+  latitude              Float?
+  longitude             Float?
 
   measurements_siang MeasurementSiang[]
   measurements_malam MeasurementMalam[]
@@ -52,6 +53,7 @@ model MeasurementSiang {
   kva          Float?   @default(0)
   persen       Float?   @default(0)
   unbalanced   Float?   @default(0)
+  lastUpdate   DateTime @default(now())
 
   substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
 
@@ -77,6 +79,7 @@ model MeasurementMalam {
   kva          Float?   @default(0)
   persen       Float?   @default(0)
   unbalanced   Float?   @default(0)
+  lastUpdate   DateTime @default(now())
 
   substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
 
