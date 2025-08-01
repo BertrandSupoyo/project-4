@@ -13,8 +13,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "vercel-build": "prisma generate",
     "postinstall": "prisma generate",
-    "build": "prisma generate",
-    "vercel-build": "npm install && prisma generate"
+    "build": "prisma generate"
   },
   "keywords": [
     "api",
