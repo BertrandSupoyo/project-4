@@ -65,4 +65,5 @@ server/node_modules/@prisma/client
 server/node_modules/.prisma
 server/node_modules/@prisma/client/index.js
 server/node_modules/@prisma/client/runtime
-server/node_modules/@prisma/client/libquery_engine-* 
+server/node_modules/@prisma/client/libquery_engine-*
+server/node_modules/@prisma/client/runtime/library.js 
