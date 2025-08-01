@@ -1,5 +1,6 @@
 import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js'
 import { withAccelerate } from '@prisma/extension-accelerate'
+import crypto from 'crypto'
 
 let prisma;
 
@@ -54,6 +55,10 @@ export default async function handler(req, res) {
     const { username, password } = req.body;
     console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
     
+    // Hash password using SHA-256 (same as createAdmin script)
+    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+    console.log('🔐 Password hash:', passwordHash);
+    
     // Check if admin_users table exists
     try {
       const tableExists = await db.$queryRaw`
@@ -73,8 +78,9 @@ export default async function handler(req, res) {
     });
 
     console.log('👥 User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
+    console.log('🔐 Stored password hash:', user?.password_hash);
 
-    if (!user || user.password_hash !== password) {
+    if (!user || user.password_hash !== passwordHash) {
       console.log('❌ Invalid credentials');
       return res.status(401).json({
         success: false,
