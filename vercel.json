@@ -1,14 +1,11 @@
 {
   "version": 2,
   "functions": {
-    "api/index.js": {
+    "api/health.js": {
+      "maxDuration": 10
+    },
+    "api/admin/login.js": {
       "maxDuration": 30
     }
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    }
-  ]
+  }
 } 

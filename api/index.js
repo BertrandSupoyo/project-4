@@ -5,19 +5,23 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { v4: uuidv4 } = require('uuid');
 
 const app = express();
-const prisma = new PrismaClient();
+let prisma;
 
 // Initialize Prisma Client
-prisma.$connect()
-  .then(() => {
-    console.log('✅ Database connected successfully');
-  })
-  .catch((error) => {
-    console.error('❌ Database connection failed:', error);
-  });
+async function initPrisma() {
+  if (!prisma) {
+    prisma = new PrismaClient();
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected successfully');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+    }
+  }
+  return prisma;
+}
 
 // Security middleware
 app.use(helmet({
@@ -68,23 +72,40 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan('combined'));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    const db = await initPrisma();
+    await db.$queryRaw`SELECT 1`;
+    
+    res.json({
+      success: true,
+      message: 'Server is running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
 });
 
 // Admin login endpoint
 app.post('/api/admin/login', async (req, res) => {
   try {
+    const db = await initPrisma();
     const { username, password } = req.body;
     
-    const user = await prisma.adminUser.findUnique({
+    console.log('Login attempt:', { username, password: password ? '***' : 'undefined' });
+    
+    const user = await db.adminUser.findUnique({
       where: { username },
     });
+
+    console.log('User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
 
     if (!user || user.password_hash !== password) {
       return res.status(401).json({
@@ -110,6 +131,7 @@ app.post('/api/admin/login', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error',
+      details: err.message
     });
   }
 });
@@ -117,6 +139,7 @@ app.post('/api/admin/login', async (req, res) => {
 // Substations endpoints
 app.get('/api/substations', async (req, res) => {
   try {
+    const db = await initPrisma();
     const { limit = 100, page = 1, search, status, ulp, jenis } = req.query;
     
     const where = {};
@@ -131,7 +154,7 @@ app.get('/api/substations', async (req, res) => {
     if (ulp) where.ulp = ulp;
     if (jenis) where.jenis = jenis;
 
-    const substations = await prisma.substation.findMany({
+    const substations = await db.substation.findMany({
       where,
       take: parseInt(limit),
       skip: (parseInt(page) - 1) * parseInt(limit),
@@ -154,11 +177,12 @@ app.get('/api/substations', async (req, res) => {
 // Dashboard stats endpoint
 app.get('/api/dashboard/stats', async (req, res) => {
   try {
-    const totalSubstations = await prisma.substation.count();
-    const activeSubstations = await prisma.substation.count({
+    const db = await initPrisma();
+    const totalSubstations = await db.substation.count();
+    const activeSubstations = await db.substation.count({
       where: { is_active: 1 }
     });
-    const ugbActive = await prisma.substation.count({
+    const ugbActive = await db.substation.count({
       where: { ugb: 1 }
     });
 
@@ -169,7 +193,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
         activeSubstations,
         inactiveSubstations: totalSubstations - activeSubstations,
         ugbActive,
-        criticalIssues: 0, // Calculate based on measurements
+        criticalIssues: 0,
         monthlyMeasurements: 0
       }
     });
