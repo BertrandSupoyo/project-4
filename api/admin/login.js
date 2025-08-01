@@ -4,12 +4,19 @@ let prisma;
 
 async function initPrisma() {
   if (!prisma) {
-    prisma = new PrismaClient();
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL
+        }
+      }
+    });
     try {
       await prisma.$connect();
       console.log('✅ Database connected successfully');
     } catch (error) {
       console.error('❌ Database connection failed:', error);
+      throw error;
     }
   }
   return prisma;
@@ -36,24 +43,30 @@ module.exports = async (req, res) => {
   }
 
   try {
+    console.log('🔍 Starting login process...');
+    console.log('📊 Environment:', process.env.NODE_ENV);
+    console.log('🔗 Database URL exists:', !!process.env.DATABASE_URL);
+    
     const db = await initPrisma();
     const { username, password } = req.body;
     
-    console.log('Login attempt:', { username, password: password ? '***' : 'undefined' });
+    console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
     
     const user = await db.adminUser.findUnique({
       where: { username },
     });
 
-    console.log('User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
+    console.log('👥 User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
 
     if (!user || user.password_hash !== password) {
+      console.log('❌ Invalid credentials');
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials',
       });
     }
 
+    console.log('✅ Login successful');
     res.json({
       success: true,
       data: {
@@ -67,7 +80,7 @@ module.exports = async (req, res) => {
       message: 'Login successful',
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('💥 Login error:', err);
     res.status(500).json({
       success: false,
       error: 'Internal server error',
