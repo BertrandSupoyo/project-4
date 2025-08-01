@@ -12,6 +12,12 @@
     "api/simple-login.js": {
       "maxDuration": 30
     },
+    "api/substations-simple.js": {
+      "maxDuration": 30
+    },
+    "api/dashboard/stats-simple.js": {
+      "maxDuration": 30
+    },
     "api/test-db.js": {
       "maxDuration": 30
     },
