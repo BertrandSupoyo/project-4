@@ -47,45 +47,47 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       let malam = substation.measurements_malam || [];
       const rowNames = ['induk', '1', '2', '3', '4'];
 
-      // SIANG
-      Promise.all(rowNames.map(async (rowName) => {
+      // SIANG - Gunakan data yang sudah ada, jangan buat baru
+      const siangResults = rowNames.map(rowName => {
         let m = siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
         if (!m) {
-          try {
-            m = await createMeasurementSiang(substation.id, { row_name: rowName });
-          } catch (err) {
-            console.warn('Gagal membuat measurement siang untuk', rowName, err);
-            m = undefined;
-          }
+          // Buat dummy measurement jika tidak ada
+          m = {
+            id: undefined,
+            substationId: substation.id,
+            row_name: rowName,
+            month: new Date(substation.tanggal).toISOString().slice(0, 7),
+            r: 0, s: 0, t: 0, n: 0,
+            rn: 0, sn: 0, tn: 0,
+            pp: 0, pn: 0,
+            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+            lastUpdate: new Date()
+          } as any;
         }
         return m;
-      })).then(results => {
-        const filtered = results.filter(m => m && typeof m.id === 'number' && !isNaN(m.id));
-        if (filtered.length < rowNames.length) {
-          console.warn('Ada measurement siang yang gagal dibuat atau tidak valid:', results);
-        }
-        setSiangMeasurements(filtered);
       });
+      setSiangMeasurements(siangResults);
 
-      // MALAM
-      Promise.all(rowNames.map(async (rowName) => {
+      // MALAM - Gunakan data yang sudah ada, jangan buat baru
+      const malamResults = rowNames.map(rowName => {
         let m = malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
         if (!m) {
-          try {
-            m = await createMeasurementMalam({ substationId: substation.id, row_name: rowName }); // sudah benar, hanya 1 argumen
-          } catch (err) {
-            console.warn('Gagal membuat measurement malam untuk', rowName, err);
-            m = undefined;
-          }
+          // Buat dummy measurement jika tidak ada
+          m = {
+            id: undefined,
+            substationId: substation.id,
+            row_name: rowName,
+            month: new Date(substation.tanggal).toISOString().slice(0, 7),
+            r: 0, s: 0, t: 0, n: 0,
+            rn: 0, sn: 0, tn: 0,
+            pp: 0, pn: 0,
+            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+            lastUpdate: new Date()
+          } as any;
         }
         return m;
-      })).then(results => {
-        const filtered = results.filter(m => m && typeof m.id === 'number' && !isNaN(m.id));
-        if (filtered.length < rowNames.length) {
-          console.warn('Ada measurement malam yang gagal dibuat atau tidak valid:', results);
-        }
-        setMalamMeasurements(filtered);
       });
+      setMalamMeasurements(malamResults);
 
     } else {
       setSiangMeasurements([]);
