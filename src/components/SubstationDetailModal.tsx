@@ -57,7 +57,9 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       const malamResults = rowNames.map(rowName => {
         return malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id)) || null;
       }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
-      console.log('MALAM measurements:', malamResults); // Debug
+      console.log('Substation ID:', substation.id);
+      console.log('Raw malam data:', malam);
+      console.log('Processed malam measurements:', malamResults);
       setMalamMeasurements(malamResults);
 
     } else {
