@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
@@ -39,52 +38,31 @@ const authenticateAdmin = (req, res, next) => {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// Serve static files from the React app (only in development)
-if (process.env.NODE_ENV !== 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
-}
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
 
-// Initialize Prisma Client with error handling
-let prisma;
-try {
-  prisma = new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-  });
-} catch (error) {
-  console.error('❌ Failed to initialize Prisma Client:', error);
-  console.error('This usually means Prisma Client was not generated properly.');
-  console.error('Please ensure prisma generate is run during build.');
-  
-  // Try to regenerate Prisma Client
-  const { execSync } = require('child_process');
-  try {
-    console.log('🔄 Attempting to regenerate Prisma Client...');
-    execSync('npx prisma generate', { stdio: 'inherit', cwd: __dirname });
-    prisma = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-    });
-  } catch (regenerateError) {
-    console.error('❌ Failed to regenerate Prisma Client:', regenerateError);
-    console.error('Please check your DATABASE_URL and schema.prisma configuration.');
-    console.error('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-    process.exit(1);
-  }
-}
+// Initialize Prisma Client
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
 
 // Test database connection with better error handling
-let isDatabaseConnected = false;
 prisma.$connect()
   .then(() => {
     console.log('✅ Database connected successfully');
-    isDatabaseConnected = true;
   })
   .catch((error) => {
     console.error('❌ Database connection failed:', error);
-    console.error('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-    isDatabaseConnected = false;
     // Don't exit, let the app continue with fallback handling
+  });
+
+// Add connection status tracking
+let isDatabaseConnected = false;
+prisma.$connect()
+  .then(() => {
+    isDatabaseConnected = true;
+  })
+  .catch(() => {
+    isDatabaseConnected = false;
   });
 
 // Security middleware
@@ -113,26 +91,8 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173', 
-  'http://localhost:5174', 
-  'http://localhost:5175', 
-  'http://localhost:3000',
-  'https://project-4-vyl4.vercel.app', // Update dengan domain Vercel kamu
-  'https://*.vercel.app'                // Allow all Vercel subdomains
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -1449,56 +1409,6 @@ app.post('/api/admin/login', async (req, res, next) => {
 
 // Apply error handler
 app.use(errorHandler);
-
-// Serve React app for any non-API routes
-app.get('*', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Substation Monitoring System</title>
-        <style>
-            body { 
-                font-family: Arial, sans-serif; 
-                text-align: center; 
-                padding: 50px; 
-                background: #f5f5f5; 
-            }
-            .container { 
-                background: white; 
-                padding: 30px; 
-                border-radius: 10px; 
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-            }
-            h1 { color: #333; }
-            p { color: #666; }
-            .api-link { 
-                color: #007bff; 
-                text-decoration: none; 
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🚀 Substation Monitoring System</h1>
-            <p>Backend API is running successfully!</p>
-            <p>API Endpoints:</p>
-            <ul style="text-align: left; display: inline-block;">
-                <li><a href="/api/health" class="api-link">/api/health</a> - Health check</li>
-                <li><a href="/api/substations" class="api-link">/api/substations</a> - Get all substations</li>
-                <li><a href="/api/dashboard/stats" class="api-link">/api/dashboard/stats</a> - Dashboard stats</li>
-            </ul>
-            <p style="margin-top: 20px;">
-                <strong>Note:</strong> This is the backend API. For the full application, 
-                you need to deploy the frontend separately or build it with the backend.
-            </p>
-        </div>
-    </body>
-    </html>
-  `);
-});
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
