@@ -1,4 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '../prisma/app/generated/prisma-client/index.js'
+import { withAccelerate } from '@prisma/extension-accelerate'
 
 let prisma;
 
@@ -8,13 +9,7 @@ async function initPrisma() {
     console.log('📊 Environment:', process.env.NODE_ENV);
     console.log('🔗 Database URL exists:', !!process.env.DATABASE_URL);
     
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
+    prisma = new PrismaClient().$extends(withAccelerate());
     
     try {
       await prisma.$connect();
@@ -27,7 +22,7 @@ async function initPrisma() {
   return prisma;
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -50,10 +45,29 @@ module.exports = async (req, res) => {
   try {
     console.log('🔍 Starting login process...');
     
+    // Test database connection first
     const db = await initPrisma();
-    const { username, password } = req.body;
     
+    // Test query
+    const testQuery = await db.$queryRaw`SELECT 1 as test`;
+    console.log('✅ Database test query successful:', testQuery);
+    
+    const { username, password } = req.body;
     console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
+    
+    // Check if admin_users table exists
+    try {
+      const tableExists = await db.$queryRaw`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'admin_users'
+        ) as exists
+      `;
+      console.log('📋 Admin users table exists:', tableExists[0]?.exists);
+    } catch (tableError) {
+      console.error('❌ Error checking table:', tableError);
+    }
     
     const user = await db.adminUser.findUnique({
       where: { username },
@@ -87,7 +101,8 @@ module.exports = async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: err.message
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
-}; 
+} 

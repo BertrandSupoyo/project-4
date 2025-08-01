@@ -44,7 +44,7 @@ export class ApiService {
 
   // Mengambil semua data gardu distribusi
   static async getSubstations(): Promise<SubstationData[]> {
-    const response = await this.request<SubstationData[]>('/substations-simple');
+    const response = await this.request<SubstationData[]>('/substations?limit=10000');
     return response.data;
   }
 
@@ -93,7 +93,7 @@ export class ApiService {
       criticalIssues: number;
       monthlyMeasurements: number;
       ugbActive: number;
-    }>('/dashboard/stats-simple');
+    }>('/dashboard/stats');
     return response.data;
   }
 

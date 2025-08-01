@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "chmod +x vercel-build.sh && ./vercel-build.sh",
   "outputDirectory": "dist",
   "functions": {
     "api/health.js": {
@@ -9,22 +9,7 @@
     "api/admin/login.js": {
       "maxDuration": 30
     },
-    "api/simple-login.js": {
-      "maxDuration": 30
-    },
-    "api/substations-simple.js": {
-      "maxDuration": 30
-    },
-    "api/dashboard/stats-simple.js": {
-      "maxDuration": 30
-    },
     "api/test-db.js": {
-      "maxDuration": 30
-    },
-    "api/substations.js": {
-      "maxDuration": 30
-    },
-    "api/dashboard/stats.js": {
       "maxDuration": 30
     }
   }

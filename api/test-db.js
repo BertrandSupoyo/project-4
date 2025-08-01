@@ -1,4 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '../prisma/app/generated/prisma-client/index.js'
+import { withAccelerate } from '@prisma/extension-accelerate'
 
 let prisma;
 
@@ -8,14 +9,7 @@ async function initPrisma() {
     console.log('📊 Environment:', process.env.NODE_ENV);
     console.log('🔗 Database URL exists:', !!process.env.DATABASE_URL);
     
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      },
-      log: ['query', 'info', 'warn', 'error']
-    });
+    prisma = new PrismaClient().$extends(withAccelerate());
     
     try {
       await prisma.$connect();
@@ -28,7 +22,7 @@ async function initPrisma() {
   return prisma;
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -103,4 +97,4 @@ module.exports = async (req, res) => {
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
-}; 
+} 
