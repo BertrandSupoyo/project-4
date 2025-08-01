@@ -1,27 +1,3 @@
-const { PrismaClient } = require('@prisma/client');
-
-let prisma;
-
-async function initPrisma() {
-  if (!prisma) {
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      }
-    });
-    try {
-      await prisma.$connect();
-      console.log('✅ Database connected successfully');
-    } catch (error) {
-      console.error('❌ Database connection failed:', error);
-      throw error;
-    }
-  }
-  return prisma;
-}
-
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -38,22 +14,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const db = await initPrisma();
-    const totalSubstations = await db.substation.count();
-    const activeSubstations = await db.substation.count({
-      where: { is_active: 1 }
-    });
-    const ugbActive = await db.substation.count({
-      where: { ugb: 1 }
-    });
-
+    // Return dummy stats
     res.json({
       success: true,
       data: {
-        totalSubstations,
-        activeSubstations,
-        inactiveSubstations: totalSubstations - activeSubstations,
-        ugbActive,
+        totalSubstations: 2,
+        activeSubstations: 2,
+        inactiveSubstations: 0,
+        ugbActive: 1,
         criticalIssues: 0,
         monthlyMeasurements: 0
       }
