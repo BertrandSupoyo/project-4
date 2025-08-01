@@ -46,30 +46,40 @@ if (process.env.NODE_ENV !== 'production') {
 }
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
 
-// Initialize Prisma Client
-const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-});
+// Initialize Prisma Client with error handling
+let prisma;
+try {
+  prisma = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+  });
+} catch (error) {
+  console.error('❌ Failed to initialize Prisma Client:', error);
+  // Try to regenerate Prisma Client
+  const { execSync } = require('child_process');
+  try {
+    console.log('🔄 Attempting to regenerate Prisma Client...');
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    prisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+    });
+  } catch (regenerateError) {
+    console.error('❌ Failed to regenerate Prisma Client:', regenerateError);
+    process.exit(1);
+  }
+}
 
 // Test database connection with better error handling
+let isDatabaseConnected = false;
 prisma.$connect()
   .then(() => {
     console.log('✅ Database connected successfully');
+    isDatabaseConnected = true;
   })
   .catch((error) => {
     console.error('❌ Database connection failed:', error);
     console.error('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-    // Don't exit, let the app continue with fallback handling
-  });
-
-// Add connection status tracking
-let isDatabaseConnected = false;
-prisma.$connect()
-  .then(() => {
-    isDatabaseConnected = true;
-  })
-  .catch(() => {
     isDatabaseConnected = false;
+    // Don't exit, let the app continue with fallback handling
   });
 
 // Security middleware
