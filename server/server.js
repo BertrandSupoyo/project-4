@@ -100,8 +100,8 @@ const allowedOrigins = [
   'http://localhost:5174', 
   'http://localhost:5175', 
   'http://localhost:3000',
-  'https://*.vercel.app',              // Semua subdomain Vercel
-  'https://*.vercel.com'               // Semua domain Vercel
+  'https://your-app-name.vercel.app', // Ganti dengan domain Vercel kamu
+  'https://your-custom-domain.com'     // Jika punya custom domain
 ];
 
 app.use(cors({

@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "Substation Monitoring System",
   "scripts": {
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "cd . && npm install && npm run build",
-    "build:backend": "cd server && npm install && npx prisma generate",
+    "build": "cd server && npm install && npm run build",
     "start": "cd server && npm start",
     "dev": "cd server && npm run dev"
   },
