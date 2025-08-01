@@ -63,4 +63,5 @@ jspm_packages/
 # Prisma generated files (will be regenerated)
 server/node_modules/@prisma/client
 server/node_modules/.prisma
-server/node_modules/@prisma/client/index.js 
+server/node_modules/@prisma/client/index.js
+server/node_modules/@prisma/client/runtime 

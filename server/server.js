@@ -68,6 +68,7 @@ try {
   } catch (regenerateError) {
     console.error('❌ Failed to regenerate Prisma Client:', regenerateError);
     console.error('Please check your DATABASE_URL and schema.prisma configuration.');
+    console.error('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
     process.exit(1);
   }
 }
