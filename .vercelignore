@@ -61,4 +61,5 @@ jspm_packages/
 .env
 
 # Prisma generated files (will be regenerated)
-server/node_modules/@prisma/client 
+server/node_modules/@prisma/client
+server/node_modules/.prisma 

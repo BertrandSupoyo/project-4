@@ -8,9 +8,10 @@
     "build:backend": "cd server && npm install && npm run prisma:generate",
     "start": "cd server && npm start",
     "dev": "cd server && npm run dev",
-    "vercel-build": "cd server && npm install && npm run prisma:generate",
+    "vercel-build": "cd server && npm install && npx prisma generate",
     "postinstall": "cd server && npm install && npx prisma generate",
-    "vercel-build": "cd server && npm install && npx prisma generate"
+    "vercel-build": "cd server && npm install && npx prisma generate",
+    "build": "cd server && npm install && npx prisma generate"
   },
   "engines": {
     "node": ">=18.0.0"
