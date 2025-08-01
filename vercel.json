@@ -11,6 +11,12 @@
     },
     "api/test-db.js": {
       "maxDuration": 30
+    },
+    "api/substations.js": {
+      "maxDuration": 30
+    },
+    "api/dashboard/stats.js": {
+      "maxDuration": 30
     }
   }
 } 
