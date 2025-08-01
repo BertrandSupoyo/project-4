@@ -75,8 +75,46 @@ export default async function handler(req, res) {
           }
         });
 
+        // Auto-generate measurements untuk gardu yang diimport
+        const month = new Date(data.tanggal).toISOString().slice(0, 7); // Format: YYYY-MM
+        const rowNames = ['induk', '1', '2', '3', '4'];
+        
+        // Buat measurements siang
+        const siangMeasurements = rowNames.map(rowName => ({
+          substationId: newSubstation.id,
+          row_name: rowName,
+          month: month,
+          r: 0, s: 0, t: 0, n: 0,
+          rn: 0, sn: 0, tn: 0,
+          pp: 0, pn: 0,
+          rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+          lastUpdate: new Date()
+        }));
+
+        // Buat measurements malam
+        const malamMeasurements = rowNames.map(rowName => ({
+          substationId: newSubstation.id,
+          row_name: rowName,
+          month: month,
+          r: 0, s: 0, t: 0, n: 0,
+          rn: 0, sn: 0, tn: 0,
+          pp: 0, pn: 0,
+          rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+          lastUpdate: new Date()
+        }));
+
+        // Insert measurements siang dan malam
+        await Promise.all([
+          db.measurementSiang.createMany({
+            data: siangMeasurements
+          }),
+          db.measurementMalam.createMany({
+            data: malamMeasurements
+          })
+        ]);
+
         createdSubstations.push(newSubstation);
-        console.log(`✅ Created substation ${i + 1}/${substationsData.length}:`, newSubstation.id);
+        console.log(`✅ Created substation ${i + 1}/${substationsData.length} with measurements:`, newSubstation.id);
       } catch (error) {
         console.error(`❌ Error creating substation ${i + 1}:`, error);
         errors.push({
