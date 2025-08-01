@@ -61,12 +61,10 @@ export default async function handler(req, res) {
         orderBy: { no: 'asc' },
         include: {
           measurements_siang: {
-            orderBy: { lastUpdate: 'desc' },
-            take: 1
+            orderBy: { row_name: 'asc' }
           },
           measurements_malam: {
-            orderBy: { lastUpdate: 'desc' },
-            take: 1
+            orderBy: { row_name: 'asc' }
           }
         }
       });
