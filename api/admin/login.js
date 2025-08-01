@@ -13,8 +13,7 @@ async function initPrisma() {
         db: {
           url: process.env.DATABASE_URL
         }
-      },
-      log: ['query', 'info', 'warn', 'error']
+      }
     });
     
     try {
@@ -51,29 +50,10 @@ module.exports = async (req, res) => {
   try {
     console.log('🔍 Starting login process...');
     
-    // Test database connection first
     const db = await initPrisma();
-    
-    // Test query
-    const testQuery = await db.$queryRaw`SELECT 1 as test`;
-    console.log('✅ Database test query successful:', testQuery);
-    
     const { username, password } = req.body;
-    console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
     
-    // Check if admin_users table exists
-    try {
-      const tableExists = await db.$queryRaw`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public' 
-          AND table_name = 'admin_users'
-        ) as exists
-      `;
-      console.log('📋 Admin users table exists:', tableExists[0]?.exists);
-    } catch (tableError) {
-      console.error('❌ Error checking table:', tableError);
-    }
+    console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
     
     const user = await db.adminUser.findUnique({
       where: { username },
@@ -107,8 +87,7 @@ module.exports = async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: err.message,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      details: err.message
     });
   }
 }; 

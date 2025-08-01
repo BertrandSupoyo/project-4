@@ -9,6 +9,9 @@
     "api/admin/login.js": {
       "maxDuration": 30
     },
+    "api/simple-login.js": {
+      "maxDuration": 30
+    },
     "api/test-db.js": {
       "maxDuration": 30
     },
