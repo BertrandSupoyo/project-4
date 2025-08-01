@@ -14,7 +14,8 @@
     "vercel-build": "prisma generate",
     "postinstall": "prisma generate",
     "build": "prisma generate",
-    "vercel-build": "npm install && prisma generate"
+    "vercel-build": "npm install && prisma generate",
+    "build": "npm install && prisma generate"
   },
   "keywords": [
     "api",
