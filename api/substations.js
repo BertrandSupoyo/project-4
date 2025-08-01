@@ -1,3 +1,27 @@
+const { PrismaClient } = require('@prisma/client');
+
+let prisma;
+
+async function initPrisma() {
+  if (!prisma) {
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL
+        }
+      }
+    });
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected successfully');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+      throw error;
+    }
+  }
+  return prisma;
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -14,53 +38,27 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Return dummy data for now
-    const substations = [
-      {
-        id: "1",
-        no: 1,
-        ulp: "ULP A",
-        noGardu: "G001",
-        namaLokasiGardu: "Gardu Distribusi A",
-        jenis: "Portal",
-        merek: "ABB",
-        daya: "100 kVA",
-        tahun: "2020",
-        phasa: "3",
-        tap_trafo_max_tap: "5",
-        penyulang: "P1",
-        arahSequence: "RST",
-        tanggal: "2025-08-01T00:00:00.000Z",
-        status: "normal",
-        lastUpdate: "2025-08-01T00:00:00.000Z",
-        is_active: 1,
-        ugb: 0,
-        latitude: -6.2088,
-        longitude: 106.8456
-      },
-      {
-        id: "2",
-        no: 2,
-        ulp: "ULP B",
-        noGardu: "G002",
-        namaLokasiGardu: "Gardu Distribusi B",
-        jenis: "Cantol",
-        merek: "Siemens",
-        daya: "200 kVA",
-        tahun: "2021",
-        phasa: "3",
-        tap_trafo_max_tap: "5",
-        penyulang: "P2",
-        arahSequence: "RST",
-        tanggal: "2025-08-01T00:00:00.000Z",
-        status: "normal",
-        lastUpdate: "2025-08-01T00:00:00.000Z",
-        is_active: 1,
-        ugb: 1,
-        latitude: -6.2088,
-        longitude: 106.8456
-      }
-    ];
+    const db = await initPrisma();
+    const { limit = 100, page = 1, search, status, ulp, jenis } = req.query;
+    
+    const where = {};
+    if (search) {
+      where.OR = [
+        { namaLokasiGardu: { contains: search, mode: 'insensitive' } },
+        { ulp: { contains: search, mode: 'insensitive' } },
+        { noGardu: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    if (status) where.status = status;
+    if (ulp) where.ulp = ulp;
+    if (jenis) where.jenis = jenis;
+
+    const substations = await db.substation.findMany({
+      where,
+      take: parseInt(limit),
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      orderBy: { no: 'asc' }
+    });
 
     res.json({
       success: true,

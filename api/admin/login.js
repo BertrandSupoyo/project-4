@@ -1,3 +1,27 @@
+const { PrismaClient } = require('@prisma/client');
+
+let prisma;
+
+async function initPrisma() {
+  if (!prisma) {
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL
+        }
+      }
+    });
+    try {
+      await prisma.$connect();
+      console.log('✅ Database connected successfully');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+      throw error;
+    }
+  }
+  return prisma;
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -19,32 +43,38 @@ module.exports = async (req, res) => {
   }
 
   try {
+    const db = await initPrisma();
     const { username, password } = req.body;
     
     console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
+    
+    const user = await db.adminUser.findUnique({
+      where: { username },
+    });
 
-    // Simple login check
-    if (username === 'admin' && password === 'admin123') {
-      console.log('✅ Login successful');
-      res.json({
-        success: true,
-        data: {
-          user: {
-            id: 1,
-            username: 'admin',
-            role: 'admin',
-          },
-          token: 'admin_token',
-        },
-        message: 'Login successful',
-      });
-    } else {
+    console.log('👥 User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
+
+    if (!user || user.password_hash !== password) {
       console.log('❌ Invalid credentials');
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         error: 'Invalid credentials',
       });
     }
+
+    console.log('✅ Login successful');
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+        },
+        token: 'admin_token',
+      },
+      message: 'Login successful',
+    });
   } catch (err) {
     console.error('💥 Login error:', err);
     res.status(500).json({
