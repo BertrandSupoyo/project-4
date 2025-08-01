@@ -20,6 +20,12 @@
     },
     "api/substations/import.js": {
       "maxDuration": 60
+    },
+    "api/measurements_siang/bulk.js": {
+      "maxDuration": 60
+    },
+    "api/measurements_malam/bulk.js": {
+      "maxDuration": 60
     }
   }
 } 
