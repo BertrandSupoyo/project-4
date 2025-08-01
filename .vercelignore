@@ -58,4 +58,7 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env 
+.env
+
+# Prisma generated files (will be regenerated)
+server/node_modules/@prisma/client 

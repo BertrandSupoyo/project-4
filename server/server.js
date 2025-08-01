@@ -54,16 +54,20 @@ try {
   });
 } catch (error) {
   console.error('❌ Failed to initialize Prisma Client:', error);
+  console.error('This usually means Prisma Client was not generated properly.');
+  console.error('Please ensure prisma generate is run during build.');
+  
   // Try to regenerate Prisma Client
   const { execSync } = require('child_process');
   try {
     console.log('🔄 Attempting to regenerate Prisma Client...');
-    execSync('npx prisma generate', { stdio: 'inherit' });
+    execSync('npx prisma generate', { stdio: 'inherit', cwd: __dirname });
     prisma = new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
     });
   } catch (regenerateError) {
     console.error('❌ Failed to regenerate Prisma Client:', regenerateError);
+    console.error('Please check your DATABASE_URL and schema.prisma configuration.');
     process.exit(1);
   }
 }
