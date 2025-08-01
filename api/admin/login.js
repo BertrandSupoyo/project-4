@@ -1,4 +1,4 @@
-import { PrismaClient } from '../prisma/app/generated/prisma-client/index.js'
+import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js'
 import { withAccelerate } from '@prisma/extension-accelerate'
 
 let prisma;
@@ -9,9 +9,8 @@ async function initPrisma() {
     console.log('📊 Environment:', process.env.NODE_ENV);
     console.log('🔗 Database URL exists:', !!process.env.DATABASE_URL);
     
-    prisma = new PrismaClient().$extends(withAccelerate());
-    
     try {
+      prisma = new PrismaClient().$extends(withAccelerate());
       await prisma.$connect();
       console.log('✅ Database connected successfully');
     } catch (error) {

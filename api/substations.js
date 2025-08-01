@@ -6,8 +6,8 @@ let prisma;
 async function initPrisma() {
   if (!prisma) {
     console.log('🔧 Initializing Prisma Client...');
-    prisma = new PrismaClient().$extends(withAccelerate());
     try {
+      prisma = new PrismaClient().$extends(withAccelerate());
       await prisma.$connect();
       console.log('✅ Database connected successfully');
     } catch (error) {
