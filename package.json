@@ -1,48 +1,28 @@
 {
-  "name": "vite-react-typescript-starter",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "substation-monitoring-app",
+  "version": "1.0.0",
+  "description": "Substation Monitoring System",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "cd server && npm install && npm run build",
+    "start": "cd server && npm start",
+    "dev": "cd server && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
-    "@googlemaps/js-api-loader": "^1.16.10",
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@types/file-saver": "^2.0.7",
-    "bcryptjs": "^3.0.2",
-    "dayjs": "^1.11.13",
-    "exceljs": "^4.4.0",
-    "file-saver": "^2.0.5",
-    "jsonwebtoken": "^9.0.2",
-    "leaflet": "^1.9.4",
-    "lodash": "^4.17.21",
-    "lucide-react": "^0.344.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-leaflet": "^4.2.1",
-    "react-router-dom": "^7.7.0",
-    "xlsx": "^0.18.5"
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.0",
+    "dotenv": "^16.0.3",
+    "@prisma/client": "^6.11.1",
+    "express-rate-limit": "^6.7.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.1",
-    "@types/lodash": "^4.17.20",
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "@types/react-router-dom": "^5.3.3",
-    "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.18",
-    "eslint": "^9.9.1",
-    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
-    "eslint-plugin-react-refresh": "^0.4.11",
-    "globals": "^15.9.0",
-    "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2"
+    "prisma": "^6.11.1",
+    "nodemon": "^3.0.1"
   }
 }

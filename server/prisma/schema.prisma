@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -18,7 +18,7 @@ model Substation {
   daya                  String
   tahun                 String
   phasa                 String
-  tap_trafo_max_tap String 
+  tap_trafo_max_tap     String 
   penyulang             String
   arahSequence          String
   tanggal               DateTime
