@@ -1432,6 +1432,56 @@ app.post('/api/admin/login', async (req, res, next) => {
 // Apply error handler
 app.use(errorHandler);
 
+// Serve React app for any non-API routes
+app.get('*', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Substation Monitoring System</title>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                text-align: center; 
+                padding: 50px; 
+                background: #f5f5f5; 
+            }
+            .container { 
+                background: white; 
+                padding: 30px; 
+                border-radius: 10px; 
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            }
+            h1 { color: #333; }
+            p { color: #666; }
+            .api-link { 
+                color: #007bff; 
+                text-decoration: none; 
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 Substation Monitoring System</h1>
+            <p>Backend API is running successfully!</p>
+            <p>API Endpoints:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li><a href="/api/health" class="api-link">/api/health</a> - Health check</li>
+                <li><a href="/api/substations" class="api-link">/api/substations</a> - Get all substations</li>
+                <li><a href="/api/dashboard/stats" class="api-link">/api/dashboard/stats</a> - Dashboard stats</li>
+            </ul>
+            <p style="margin-top: 20px;">
+                <strong>Note:</strong> This is the backend API. For the full application, 
+                you need to deploy the frontend separately or build it with the backend.
+            </p>
+        </div>
+    </body>
+    </html>
+  `);
+});
+
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
