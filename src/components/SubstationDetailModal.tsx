@@ -47,46 +47,16 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       let malam = substation.measurements_malam || [];
       const rowNames = ['induk', '1', '2', '3', '4'];
 
-      // SIANG - Gunakan data yang sudah ada, jangan buat baru
+      // SIANG - Gunakan data yang sebenarnya dari database
       const siangResults = rowNames.map(rowName => {
-        let m = siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
-        if (!m) {
-          // Buat dummy measurement jika tidak ada
-          m = {
-            id: undefined,
-            substationId: substation.id,
-            row_name: rowName,
-            month: new Date(substation.tanggal).toISOString().slice(0, 7),
-            r: 0, s: 0, t: 0, n: 0,
-            rn: 0, sn: 0, tn: 0,
-            pp: 0, pn: 0,
-            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-            lastUpdate: new Date()
-          } as any;
-        }
-        return m;
-      });
+        return siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id)) || null;
+      }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
       setSiangMeasurements(siangResults);
 
-      // MALAM - Gunakan data yang sudah ada, jangan buat baru
+      // MALAM - Gunakan data yang sebenarnya dari database
       const malamResults = rowNames.map(rowName => {
-        let m = malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
-        if (!m) {
-          // Buat dummy measurement jika tidak ada
-          m = {
-            id: undefined,
-            substationId: substation.id,
-            row_name: rowName,
-            month: new Date(substation.tanggal).toISOString().slice(0, 7),
-            r: 0, s: 0, t: 0, n: 0,
-            rn: 0, sn: 0, tn: 0,
-            pp: 0, pn: 0,
-            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-            lastUpdate: new Date()
-          } as any;
-        }
-        return m;
-      });
+        return malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id)) || null;
+      }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
       setMalamMeasurements(malamResults);
 
     } else {
