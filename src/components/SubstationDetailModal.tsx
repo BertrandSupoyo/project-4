@@ -47,47 +47,91 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       let malam = substation.measurements_malam || [];
       const rowNames = ['induk', '1', '2', '3', '4'];
 
-      // SIANG - Tampilkan semua 5 baris, gunakan data yang ada atau buat dummy
-      const siangResults = rowNames.map(rowName => {
+      // SIANG - Pastikan ada 5 measurements, buat yang belum ada
+      Promise.all(rowNames.map(async (rowName) => {
         let m = siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
         if (!m) {
-          // Buat dummy measurement jika tidak ada di database
-          m = {
-            id: undefined,
-            substationId: substation.id,
-            row_name: rowName,
-            month: new Date(substation.tanggal).toISOString().slice(0, 7),
-            r: 0, s: 0, t: 0, n: 0,
-            rn: 0, sn: 0, tn: 0,
-            pp: 0, pn: 0,
-            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-            lastUpdate: new Date()
-          } as any;
+          // Buat measurement baru di database jika belum ada
+          try {
+            const month = new Date(substation.tanggal).toISOString().slice(0, 7);
+            const newMeasurement = {
+              substationId: substation.id,
+              row_name: rowName,
+              month: month,
+              r: 0, s: 0, t: 0, n: 0,
+              rn: 0, sn: 0, tn: 0,
+              pp: 0, pn: 0,
+              rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+              lastUpdate: new Date()
+            };
+            
+            // Gunakan API untuk membuat measurement baru
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/measurements_siang/bulk`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify([newMeasurement])
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              m = result.data?.[0] || newMeasurement;
+            } else {
+              console.warn('Gagal membuat measurement siang untuk', rowName);
+              m = newMeasurement;
+            }
+          } catch (err) {
+            console.warn('Gagal membuat measurement siang untuk', rowName, err);
+            m = undefined;
+          }
         }
         return m;
+      })).then(results => {
+        const validResults = results.filter(m => m);
+        setSiangMeasurements(validResults);
       });
-      setSiangMeasurements(siangResults);
 
-      // MALAM - Tampilkan semua 5 baris, gunakan data yang ada atau buat dummy
-      const malamResults = rowNames.map(rowName => {
+      // MALAM - Pastikan ada 5 measurements, buat yang belum ada
+      Promise.all(rowNames.map(async (rowName) => {
         let m = malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
         if (!m) {
-          // Buat dummy measurement jika tidak ada di database
-          m = {
-            id: undefined,
-            substationId: substation.id,
-            row_name: rowName,
-            month: new Date(substation.tanggal).toISOString().slice(0, 7),
-            r: 0, s: 0, t: 0, n: 0,
-            rn: 0, sn: 0, tn: 0,
-            pp: 0, pn: 0,
-            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-            lastUpdate: new Date()
-          } as any;
+          // Buat measurement baru di database jika belum ada
+          try {
+            const month = new Date(substation.tanggal).toISOString().slice(0, 7);
+            const newMeasurement = {
+              substationId: substation.id,
+              row_name: rowName,
+              month: month,
+              r: 0, s: 0, t: 0, n: 0,
+              rn: 0, sn: 0, tn: 0,
+              pp: 0, pn: 0,
+              rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+              lastUpdate: new Date()
+            };
+            
+            // Gunakan API untuk membuat measurement baru
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/measurements_malam/bulk`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify([newMeasurement])
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              m = result.data?.[0] || newMeasurement;
+            } else {
+              console.warn('Gagal membuat measurement malam untuk', rowName);
+              m = newMeasurement;
+            }
+          } catch (err) {
+            console.warn('Gagal membuat measurement malam untuk', rowName, err);
+            m = undefined;
+          }
         }
         return m;
+      })).then(results => {
+        const validResults = results.filter(m => m);
+        setMalamMeasurements(validResults);
       });
-      setMalamMeasurements(malamResults);
 
     } else {
       setSiangMeasurements([]);
