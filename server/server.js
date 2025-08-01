@@ -40,13 +40,15 @@ const authenticateAdmin = (req, res, next) => {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../dist')));
+// Serve static files from the React app (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key';
 
 // Initialize Prisma Client
 const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
 // Test database connection with better error handling
@@ -56,6 +58,7 @@ prisma.$connect()
   })
   .catch((error) => {
     console.error('❌ Database connection failed:', error);
+    console.error('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
     // Don't exit, let the app continue with fallback handling
   });
 
@@ -100,8 +103,8 @@ const allowedOrigins = [
   'http://localhost:5174', 
   'http://localhost:5175', 
   'http://localhost:3000',
-  'https://your-app-name.vercel.app', // Ganti dengan domain Vercel kamu
-  'https://your-custom-domain.com'     // Jika punya custom domain
+  'https://project-4-vyl4.vercel.app', // Update dengan domain Vercel kamu
+  'https://*.vercel.app'                // Allow all Vercel subdomains
 ];
 
 app.use(cors({
