@@ -380,9 +380,12 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleExportExcel = async () => {
     if (!substation?.id) return;
     try {
-      // Gunakan endpoint riwayat sebagai alternatif untuk export individual substation
-      const response = await fetch(`/api/export/riwayat`);
+      console.log('📊 Exporting substation detail:', substation.id, substation.noGardu);
+      
+      // Gunakan endpoint baru untuk export individual substation
+      const response = await fetch(`/api/export/substation-detail?id=${substation.id}`);
       if (!response.ok) throw new Error('Gagal mengunduh file Excel');
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -392,7 +395,10 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      
+      console.log('✅ Successfully exported substation detail');
     } catch (err) {
+      console.error('❌ Export failed:', err);
       window.alert('Gagal mengunduh file Excel!');
     }
   };

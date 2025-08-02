@@ -51,10 +51,13 @@ function App() {
   const handleUpdateSubstation = async (updatedSubstation: Partial<SubstationData>) => {
     try {
       if (!updatedSubstation.id) return;
+      console.log('🔄 Updating substation in App.tsx:', updatedSubstation.id, updatedSubstation);
       await updateSubstation(updatedSubstation as SubstationData);
+      console.log('✅ Substation updated, refreshing data...');
       await refreshData();
+      console.log('✅ Data refreshed successfully');
     } catch (error) {
-      console.error('Failed to update substation:', error);
+      console.error('❌ Failed to update substation:', error);
     }
   };
 

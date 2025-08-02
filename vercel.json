@@ -24,6 +24,9 @@
     "api/export/riwayat.js": {
       "maxDuration": 60
     },
+    "api/export/substation-detail.js": {
+      "maxDuration": 60
+    },
     "api/fix-measurements-data.js": {
       "maxDuration": 120
     }

@@ -93,7 +93,13 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
         const updated = { ...updatedSubstation, is_active: isActive };
         await onUpdateSubstation(updated);
         setSelectedSubstation(updated);
+        
+        // Update local state immediately for better UX
+        const updatedData = data.map(s => s.id === id ? { ...s, is_active: isActive } : s);
+        // Note: We can't directly update the data prop, but the parent should refresh
+        
         console.log('✅ Successfully updated is_active');
+        window.alert(`Status aktif gardu ${updatedSubstation.noGardu} berhasil diubah!`);
       } else {
         console.error('❌ Substation not found:', id);
         window.alert('Gardu tidak ditemukan!');
@@ -113,7 +119,13 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
         const updated = { ...updatedSubstation, ugb: ugb };
         await onUpdateSubstation(updated);
         setSelectedSubstation(updated);
+        
+        // Update local state immediately for better UX
+        const updatedData = data.map(s => s.id === id ? { ...s, ugb: ugb } : s);
+        // Note: We can't directly update the data prop, but the parent should refresh
+        
         console.log('✅ Successfully updated UGB');
+        window.alert(`Status UGB gardu ${updatedSubstation.noGardu} berhasil diubah!`);
       } else {
         console.error('❌ Substation not found:', id);
         window.alert('Gardu tidak ditemukan!');
