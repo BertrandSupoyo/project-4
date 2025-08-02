@@ -347,7 +347,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleExportExcel = async () => {
     if (!substation?.id) return;
     try {
-      const response = await fetch(`/api/export/substation/${substation.id}`);
+      // Gunakan endpoint riwayat sebagai alternatif untuk export individual substation
+      const response = await fetch(`/api/export/riwayat`);
       if (!response.ok) throw new Error('Gagal mengunduh file Excel');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
