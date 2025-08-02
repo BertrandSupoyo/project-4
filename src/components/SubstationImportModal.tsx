@@ -85,12 +85,13 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
           });
           // Ambil tanggal
           let rawTanggal = getField(rowObj0, ['tanggal']);
-          let tanggalVal: string | undefined = undefined;
+          let tanggalVal: string = new Date().toISOString(); // Default to current date
           if (rawTanggal) {
             const d = new Date(rawTanggal);
             if (!isNaN(d.getTime())) {
               tanggalVal = d.toISOString();
             }
+            // If date is invalid, tanggalVal remains as current date
           }
           // Ambil measurements siang & malam dari kelima baris
           const measurements_siang = group.map((rowArr, _) => {

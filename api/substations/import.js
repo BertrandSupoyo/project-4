@@ -109,7 +109,17 @@ export default async function handler(req, res) {
           })(),
           penyulang: String(data.penyulang || '').trim(),
           arahSequence: String(data.arahSequence || '').trim(),
-          tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),
+          tanggal: (() => {
+            // Handle tanggal validation and default to current date if invalid
+            if (data.tanggal) {
+              const d = new Date(data.tanggal);
+              if (!isNaN(d.getTime())) {
+                return d;
+              }
+            }
+            // Return current date as default
+            return new Date();
+          })(),
           status: data.status || 'normal',
           is_active: data.is_active || 1,
           ugb: data.ugb || 0,
