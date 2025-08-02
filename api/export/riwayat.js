@@ -67,6 +67,17 @@ export default async function handler(req, res) {
       
       console.log('🔍 Filtering for month-year:', monthYear);
       
+      // Filter substations based on tanggal field
+      const startDate = new Date(`${yearStr}-${monthStr}-01`);
+      const endDate = new Date(`${yearStr}-${monthStr}-31`);
+      
+      query.where = {
+        tanggal: {
+          gte: startDate,
+          lte: endDate
+        }
+      };
+      
       query.include.measurements_siang.where = { month: monthYear };
       query.include.measurements_malam.where = { month: monthYear };
     }
@@ -75,6 +86,18 @@ export default async function handler(req, res) {
     const substations = await db.substation.findMany(query);
     
     console.log(`✅ Found ${substations.length} substations with measurements`);
+    console.log('🔍 Query details:', JSON.stringify(query, null, 2));
+    
+    // Log sample data for debugging
+    if (substations.length > 0) {
+      console.log('📊 Sample substation:', {
+        id: substations[0].id,
+        namaLokasiGardu: substations[0].namaLokasiGardu,
+        tanggal: substations[0].tanggal,
+        siangCount: substations[0].measurements_siang?.length || 0,
+        malamCount: substations[0].measurements_malam?.length || 0
+      });
+    }
 
     // Transform data to match generateRiwayatExcel format
     const data = substations.map(sub => ({
