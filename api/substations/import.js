@@ -18,6 +18,32 @@ async function initPrisma() {
   return prisma;
 }
 
+// Helper function to parse JSON body
+function parseJsonBody(req) {
+  if (req.body) {
+    return req.body;
+  }
+  
+  // If body is not parsed, try to parse it manually
+  if (req.headers['content-type']?.includes('application/json')) {
+    try {
+      // In Vercel, sometimes the body comes as a string
+      if (typeof req.body === 'string') {
+        return JSON.parse(req.body);
+      }
+      // Or it might be in a different property
+      if (req.body && typeof req.body === 'object') {
+        return req.body;
+      }
+    } catch (error) {
+      console.error('Failed to parse JSON body:', error);
+      throw new Error('Invalid JSON format');
+    }
+  }
+  
+  return null;
+}
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -39,12 +65,24 @@ export default async function handler(req, res) {
 
   try {
     console.log('📥 Importing substations...');
+    console.log('📊 Request headers:', req.headers);
+    console.log('📊 Request body type:', typeof req.body);
+    console.log('📊 Request body:', JSON.stringify(req.body, null, 2));
     
     const db = await initPrisma();
-    const substationsData = req.body;
     
-    console.log('📊 Received data type:', typeof substationsData);
-    console.log('📊 Received data length:', Array.isArray(substationsData) ? substationsData.length : 'not array');
+    // Parse the request body
+    const substationsData = parseJsonBody(req);
+    
+    if (!substationsData) {
+      return res.status(400).json({
+        success: false,
+        error: 'Request body is empty or could not be parsed'
+      });
+    }
+    
+    console.log('📊 Parsed data type:', typeof substationsData);
+    console.log('📊 Parsed data length:', Array.isArray(substationsData) ? substationsData.length : 'not array');
     
     if (!Array.isArray(substationsData)) {
       return res.status(400).json({
