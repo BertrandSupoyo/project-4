@@ -83,9 +83,30 @@ export default async function handler(req, res) {
           jenis: String(data.jenis || '').trim(),
           merek: String(data.merek || '').trim(),
           daya: String(data.daya || '').trim(),
-          tahun: String(data.tahun || '').trim(), // Frontend mengirim string
+          tahun: (() => {
+            const tahunValue = String(data.tahun || '').trim();
+            // Handle truncated or corrupted tahun values
+            if (!tahunValue || tahunValue.length === 0) return '0';
+            // If tahun is truncated (less than 4 digits), return '0'
+            if (tahunValue.length < 4) return '0';
+            // If tahun is valid (4 digits), return it
+            if (/^\d{4}$/.test(tahunValue)) return tahunValue;
+            // If tahun is longer than 4 digits, take first 4
+            if (tahunValue.length > 4) return tahunValue.substring(0, 4);
+            // Default fallback
+            return '0';
+          })(),
           phasa: String(data.phasa || '').trim(),
-          tap_trafo_max_tap: String(data.tap_trafo_max_tap || '').trim(), // Frontend mengirim string
+          tap_trafo_max_tap: (() => {
+            const tapValue = String(data.tap_trafo_max_tap || '').trim();
+            // Handle truncated or corrupted tap values
+            if (!tapValue || tapValue.length === 0) return '0';
+            // If it's a valid number, return it
+            if (/^\d+$/.test(tapValue)) return tapValue;
+            // If it's truncated, try to extract valid part
+            const validPart = tapValue.match(/^\d+/);
+            return validPart ? validPart[0] : '0';
+          })(),
           penyulang: String(data.penyulang || '').trim(),
           arahSequence: String(data.arahSequence || '').trim(),
           tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),

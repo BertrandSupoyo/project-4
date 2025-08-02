@@ -141,9 +141,30 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
             jenis: String(getField(rowObj0, ['jenis'])),
             merek: String(getField(rowObj0, ['merk', 'merek'])),
             daya: String(getField(rowObj0, ['daya'])),
-            tahun: /^\d+$/.test(String(getField(rowObj0, ['tahun']))) ? String(getField(rowObj0, ['tahun'])) : '0',
+            tahun: (() => {
+              const tahunValue = String(getField(rowObj0, ['tahun'])).trim();
+              // Handle truncated or corrupted tahun values
+              if (!tahunValue || tahunValue.length === 0) return '0';
+              // If tahun is truncated (less than 4 digits), return '0'
+              if (tahunValue.length < 4) return '0';
+              // If tahun is valid (4 digits), return it
+              if (/^\d{4}$/.test(tahunValue)) return tahunValue;
+              // If tahun is longer than 4 digits, take first 4
+              if (tahunValue.length > 4) return tahunValue.substring(0, 4);
+              // Default fallback
+              return '0';
+            })(),
             phasa: String(getField(rowObj0, ['phasa'])),
-            tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim() !== '' ? String(getField(rowObj0, ['taptrafomaxtap'])) : '0',
+            tap_trafo_max_tap: (() => {
+              const tapValue = String(getField(rowObj0, ['taptrafomaxtap'])).trim();
+              // Handle truncated or corrupted tap values
+              if (!tapValue || tapValue.length === 0) return '0';
+              // If it's a valid number, return it
+              if (/^\d+$/.test(tapValue)) return tapValue;
+              // If it's truncated, try to extract valid part
+              const validPart = tapValue.match(/^\d+/);
+              return validPart ? validPart[0] : '0';
+            })(),
             penyulang: String(getField(rowObj0, ['penyulang'])),
             arahSequence: String(getField(rowObj0, ['arahsequence', 'arah_sequence'])),
             tanggal: tanggalVal,
