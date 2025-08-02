@@ -43,7 +43,17 @@ export default async function handler(req, res) {
     const db = await initPrisma();
     const substationsData = req.body;
     
+    // Validate request body
+    if (!substationsData) {
+      return res.status(400).json({
+        success: false,
+        error: 'Request body is empty or invalid.'
+      });
+    }
+    
     if (!Array.isArray(substationsData)) {
+      console.error('❌ Invalid data format received:', typeof substationsData);
+      console.error('❌ Data sample:', JSON.stringify(substationsData).substring(0, 500));
       return res.status(400).json({
         success: false,
         error: 'Invalid data format. Expected array of substations.'
@@ -51,7 +61,25 @@ export default async function handler(req, res) {
     }
     
     console.log(`📝 Importing ${substationsData.length} substations`);
-    console.log('📊 Sample data structure:', JSON.stringify(substationsData[0], null, 2));
+    
+    // Validate first item structure
+    if (substationsData.length > 0) {
+      const firstItem = substationsData[0];
+      console.log('📊 Sample data structure:', JSON.stringify(firstItem, null, 2));
+      
+      // Check for required fields in first item
+      if (!firstItem.namaLokasiGardu || !firstItem.noGardu || !firstItem.ulp) {
+        console.error('❌ Missing required fields in first item:', {
+          namaLokasiGardu: !!firstItem.namaLokasiGardu,
+          noGardu: !!firstItem.noGardu,
+          ulp: !!firstItem.ulp
+        });
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields in data structure.'
+        });
+      }
+    }
 
     const createdSubstations = [];
     const errors = [];

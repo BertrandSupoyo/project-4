@@ -218,6 +218,19 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
           return;
         }
         console.log('SENDING TO BACKEND:', JSON.stringify(filteredData, null, 2));
+        
+        // Validate JSON before sending
+        try {
+          const jsonString = JSON.stringify(filteredData);
+          JSON.parse(jsonString); // Test if JSON is valid
+          console.log('✅ JSON validation passed');
+        } catch (jsonError) {
+          console.error('❌ JSON validation failed:', jsonError);
+          setError('Data tidak valid untuk dikirim ke server. Silakan cek file Excel Anda.');
+          setIsProcessing(false);
+          return;
+        }
+        
         await onImport(filteredData);
         onClose();
       } catch (err) {
