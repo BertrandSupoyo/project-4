@@ -37,6 +37,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Debug request details
+  console.log('🔍 Request details:');
+  console.log('🔍 Method:', req.method);
+  console.log('🔍 Content-Type:', req.headers['content-type']);
+  console.log('🔍 Body type:', typeof req.body);
+  console.log('🔍 Body length:', req.body ? JSON.stringify(req.body).length : 'null');
+  console.log('🔍 Body preview:', req.body ? JSON.stringify(req.body).substring(0, 500) : 'null');
+
   try {
     console.log('📥 Importing substations...');
     
@@ -45,6 +53,7 @@ export default async function handler(req, res) {
     
     // Validate request body
     if (!substationsData) {
+      console.error('❌ Request body is null or undefined');
       return res.status(400).json({
         success: false,
         error: 'Request body is empty or invalid.'
