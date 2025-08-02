@@ -170,20 +170,11 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
               // Handle any invalid data by defaulting to '0'
               if (!tahunValue || tahunValue.length === 0) return '0';
               
-              // If tahun contains non-numeric characters or is invalid, return '0'
+              // If tahun contains non-numeric characters, return '0'
               if (!/^\d+$/.test(tahunValue)) return '0';
               
-              // If tahun is less than 4 digits, return '0'
-              if (tahunValue.length < 4) return '0';
-              
-              // If tahun is valid (4 digits), return it as string
-              if (tahunValue.length === 4) return tahunValue;
-              
-              // If tahun is longer than 4 digits, take first 4
-              if (tahunValue.length > 4) return tahunValue.substring(0, 4);
-              
-              // Default fallback
-              return '0';
+              // Return the value as is (pure text, no length validation)
+              return tahunValue;
             })(),
             phasa: String(getField(rowObj0, ['phasa'])).trim() || '0',
             tap_trafo_max_tap: (() => {
@@ -270,7 +261,7 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
         
         // Additional validation: check for truncated or invalid data
         const finalData = filteredData.filter(item => {
-          // Check if tahun is not empty (should be a string, can be '0' or valid year)
+          // Check if tahun is not empty (should be a string, can be '0' or any valid text)
           const tahunValue = String(item.tahun || '').trim();
           if (!tahunValue) {
             console.warn(`⚠️ Skipping item with empty tahun`);
