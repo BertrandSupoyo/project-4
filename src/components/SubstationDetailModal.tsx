@@ -249,6 +249,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
     const siangData: any[] = [];
     const malamData: any[] = [];
 
+    console.log('🔄 Reading data from UI...');
+
     // Baca data SIANG dari input fields
     ['induk', '1', '2', '3', '4'].forEach((rowName) => {
       const rowData: any = {
@@ -257,21 +259,24 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
         month: substation?.tanggal ? new Date(substation.tanggal).toISOString().slice(0, 7) : '',
       };
 
-      // Ambil nilai dari input fields berdasarkan row dan field
-      const getInputValue = (field: string) => {
-        const input = document.querySelector(`input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement;
-        return input ? Number(input.value) || 0 : 0;
+      // Ambil nilai dari input fields SIANG berdasarkan row dan field
+      const getInputValueSiang = (field: string) => {
+        // Gunakan selector yang lebih spesifik untuk tabel SIANG
+        const input = document.querySelector(`.siang-input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement;
+        const value = input ? Number(input.value) || 0 : 0;
+        console.log(`📊 Siang ${rowName}.${field}: ${value}`);
+        return value;
       };
 
-      rowData.r = getInputValue('r');
-      rowData.s = getInputValue('s');
-      rowData.t = getInputValue('t');
-      rowData.n = getInputValue('n');
-      rowData.rn = getInputValue('rn');
-      rowData.sn = getInputValue('sn');
-      rowData.tn = getInputValue('tn');
-      rowData.pp = getInputValue('pp');
-      rowData.pn = getInputValue('pn');
+      rowData.r = getInputValueSiang('r');
+      rowData.s = getInputValueSiang('s');
+      rowData.t = getInputValueSiang('t');
+      rowData.n = getInputValueSiang('n');
+      rowData.rn = getInputValueSiang('rn');
+      rowData.sn = getInputValueSiang('sn');
+      rowData.tn = getInputValueSiang('tn');
+      rowData.pp = getInputValueSiang('pp');
+      rowData.pn = getInputValueSiang('pn');
 
       siangData.push(rowData);
     });
@@ -284,24 +289,30 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
         month: substation?.tanggal ? new Date(substation.tanggal).toISOString().slice(0, 7) : '',
       };
 
-      // Ambil nilai dari input fields berdasarkan row dan field
-      const getInputValue = (field: string) => {
-        const input = document.querySelector(`input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement;
-        return input ? Number(input.value) || 0 : 0;
+      // Ambil nilai dari input fields MALAM berdasarkan row dan field
+      const getInputValueMalam = (field: string) => {
+        // Gunakan selector yang lebih spesifik untuk tabel MALAM
+        const input = document.querySelector(`.malam-input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement;
+        const value = input ? Number(input.value) || 0 : 0;
+        console.log(`📊 Malam ${rowName}.${field}: ${value}`);
+        return value;
       };
 
-      rowData.r = getInputValue('r');
-      rowData.s = getInputValue('s');
-      rowData.t = getInputValue('t');
-      rowData.n = getInputValue('n');
-      rowData.rn = getInputValue('rn');
-      rowData.sn = getInputValue('sn');
-      rowData.tn = getInputValue('tn');
-      rowData.pp = getInputValue('pp');
-      rowData.pn = getInputValue('pn');
+      rowData.r = getInputValueMalam('r');
+      rowData.s = getInputValueMalam('s');
+      rowData.t = getInputValueMalam('t');
+      rowData.n = getInputValueMalam('n');
+      rowData.rn = getInputValueMalam('rn');
+      rowData.sn = getInputValueMalam('sn');
+      rowData.tn = getInputValueMalam('tn');
+      rowData.pp = getInputValueMalam('pp');
+      rowData.pn = getInputValueMalam('pn');
 
       malamData.push(rowData);
     });
+
+    console.log('✅ Siang data:', siangData);
+    console.log('✅ Malam data:', malamData);
 
     return { siangData, malamData };
   };
@@ -661,18 +672,18 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                         <tr key={rowName}>
                           <td className={rowName === 'induk' ? "bg-green-100 border border-green-300 font-semibold" : "bg-green-50 border border-green-200"}>{rowName.toUpperCase()}</td>
                           {/* ARUS */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.r ?? ''} onChange={e => handleCellChangeSiang(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.s ?? ''} onChange={e => handleCellChangeSiang(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.t ?? ''} onChange={e => handleCellChangeSiang(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.n ?? ''} onChange={e => handleCellChangeSiang(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.r ?? ''} onChange={e => handleCellChangeSiang(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.s ?? ''} onChange={e => handleCellChangeSiang(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.t ?? ''} onChange={e => handleCellChangeSiang(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.n ?? ''} onChange={e => handleCellChangeSiang(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" data-type="siang" /></td>
                           {/* P-N */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" data-type="siang" /></td>
                           {/* P-P */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" data-type="siang" /></td>
                           {/* UJUNG (P=N) */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" /></td>
+                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" data-type="siang" /></td>
                         </tr>
                       );
                     })}
@@ -749,18 +760,18 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                         <tr key={rowName}>
                           <td className={rowName === 'induk' ? "bg-green-100 border border-green-300 font-semibold" : "bg-green-50 border border-green-200"}>{rowName.toUpperCase()}</td>
                           {/* ARUS */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.r ?? ''} onChange={e => handleCellChangeMalam(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.s ?? ''} onChange={e => handleCellChangeMalam(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.t ?? ''} onChange={e => handleCellChangeMalam(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.n ?? ''} onChange={e => handleCellChangeMalam(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.r ?? ''} onChange={e => handleCellChangeMalam(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.s ?? ''} onChange={e => handleCellChangeMalam(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.t ?? ''} onChange={e => handleCellChangeMalam(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.n ?? ''} onChange={e => handleCellChangeMalam(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" data-type="malam" /></td>
                           {/* P-N */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" data-type="malam" /></td>
                           {/* P-P */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" data-type="malam" /></td>
                           {/* UJUNG (P=N) */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" /></td>
+                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" data-type="malam" /></td>
                         </tr>
                       );
                     })}
