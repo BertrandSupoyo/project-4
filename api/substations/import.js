@@ -44,6 +44,7 @@ export default async function handler(req, res) {
     const substationsData = req.body;
     
     console.log(`📝 Importing ${substationsData.length} substations`);
+    console.log('📊 Sample data structure:', JSON.stringify(substationsData[0], null, 2));
 
     const createdSubstations = [];
     const errors = [];
@@ -52,6 +53,7 @@ export default async function handler(req, res) {
       try {
         const data = substationsData[i];
         
+        // Create substation
         const newSubstation = await db.substation.create({
           data: {
             no: data.no,
@@ -66,7 +68,7 @@ export default async function handler(req, res) {
             tap_trafo_max_tap: data.tap_trafo_max_tap,
             penyulang: data.penyulang,
             arahSequence: data.arahSequence,
-            tanggal: new Date(data.tanggal),
+            tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),
             status: data.status || 'normal',
             is_active: data.is_active || 1,
             ugb: data.ugb || 0,
@@ -75,46 +77,112 @@ export default async function handler(req, res) {
           }
         });
 
-        // Auto-generate measurements untuk gardu yang diimport
-        const month = new Date(data.tanggal).toISOString().slice(0, 7); // Format: YYYY-MM
-        const rowNames = ['induk', '1', '2', '3', '4'];
+        console.log(`✅ Created substation: ${newSubstation.id} - ${newSubstation.namaLokasiGardu}`);
+
+        // Process measurements if provided
+        const month = new Date(data.tanggal || new Date()).toISOString().slice(0, 7); // Format: YYYY-MM
         
-        // Buat measurements siang
-        const siangMeasurements = rowNames.map(rowName => ({
-          substationId: newSubstation.id,
-          row_name: rowName,
-          month: month,
-          r: 0, s: 0, t: 0, n: 0,
-          rn: 0, sn: 0, tn: 0,
-          pp: 0, pn: 0,
-          rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-          lastUpdate: new Date()
-        }));
+        // Process siang measurements
+        if (data.measurements_siang && Array.isArray(data.measurements_siang)) {
+          const siangMeasurements = data.measurements_siang.map(measurement => ({
+            substationId: newSubstation.id,
+            row_name: measurement.row_name,
+            month: month,
+            r: measurement.r || 0,
+            s: measurement.s || 0,
+            t: measurement.t || 0,
+            n: measurement.n || 0,
+            rn: measurement.rn || 0,
+            sn: measurement.sn || 0,
+            tn: measurement.tn || 0,
+            pp: measurement.pp || 0,
+            pn: measurement.pn || 0,
+            rata2: measurement.rata2 || 0,
+            kva: measurement.kva || 0,
+            persen: measurement.persen || 0,
+            unbalanced: measurement.unbalanced || 0,
+            lastUpdate: new Date()
+          }));
 
-        // Buat measurements malam
-        const malamMeasurements = rowNames.map(rowName => ({
-          substationId: newSubstation.id,
-          row_name: rowName,
-          month: month,
-          r: 0, s: 0, t: 0, n: 0,
-          rn: 0, sn: 0, tn: 0,
-          pp: 0, pn: 0,
-          rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-          lastUpdate: new Date()
-        }));
-
-        // Insert measurements siang dan malam
-        await Promise.all([
-          db.measurementSiang.createMany({
+          await db.measurementSiang.createMany({
             data: siangMeasurements
-          }),
-          db.measurementMalam.createMany({
+          });
+
+          console.log(`✅ Created ${siangMeasurements.length} siang measurements for substation ${newSubstation.id}`);
+        }
+
+        // Process malam measurements
+        if (data.measurements_malam && Array.isArray(data.measurements_malam)) {
+          const malamMeasurements = data.measurements_malam.map(measurement => ({
+            substationId: newSubstation.id,
+            row_name: measurement.row_name,
+            month: month,
+            r: measurement.r || 0,
+            s: measurement.s || 0,
+            t: measurement.t || 0,
+            n: measurement.n || 0,
+            rn: measurement.rn || 0,
+            sn: measurement.sn || 0,
+            tn: measurement.tn || 0,
+            pp: measurement.pp || 0,
+            pn: measurement.pn || 0,
+            rata2: measurement.rata2 || 0,
+            kva: measurement.kva || 0,
+            persen: measurement.persen || 0,
+            unbalanced: measurement.unbalanced || 0,
+            lastUpdate: new Date()
+          }));
+
+          await db.measurementMalam.createMany({
             data: malamMeasurements
-          })
-        ]);
+          });
+
+          console.log(`✅ Created ${malamMeasurements.length} malam measurements for substation ${newSubstation.id}`);
+        }
+
+        // If no measurements provided, create default empty measurements
+        if ((!data.measurements_siang || data.measurements_siang.length === 0) && 
+            (!data.measurements_malam || data.measurements_malam.length === 0)) {
+          const rowNames = ['induk', '1', '2', '3', '4'];
+          
+          // Create default siang measurements
+          const defaultSiangMeasurements = rowNames.map(rowName => ({
+            substationId: newSubstation.id,
+            row_name: rowName,
+            month: month,
+            r: 0, s: 0, t: 0, n: 0,
+            rn: 0, sn: 0, tn: 0,
+            pp: 0, pn: 0,
+            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+            lastUpdate: new Date()
+          }));
+
+          // Create default malam measurements
+          const defaultMalamMeasurements = rowNames.map(rowName => ({
+            substationId: newSubstation.id,
+            row_name: rowName,
+            month: month,
+            r: 0, s: 0, t: 0, n: 0,
+            rn: 0, sn: 0, tn: 0,
+            pp: 0, pn: 0,
+            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
+            lastUpdate: new Date()
+          }));
+
+          await Promise.all([
+            db.measurementSiang.createMany({
+              data: defaultSiangMeasurements
+            }),
+            db.measurementMalam.createMany({
+              data: defaultMalamMeasurements
+            })
+          ]);
+
+          console.log(`✅ Created default measurements for substation ${newSubstation.id}`);
+        }
 
         createdSubstations.push(newSubstation);
-        console.log(`✅ Created substation ${i + 1}/${substationsData.length} with measurements:`, newSubstation.id);
+        console.log(`✅ Completed substation ${i + 1}/${substationsData.length}:`, newSubstation.id);
       } catch (error) {
         console.error(`❌ Error creating substation ${i + 1}:`, error);
         errors.push({
