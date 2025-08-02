@@ -85,32 +85,42 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   };
 
   const handleUpdateIsActive = async (id: string, isActive: number) => {
-    console.log('Toggle is_active:', id, isActive); // DEBUG LOG
+    console.log('🔄 Toggle is_active:', id, isActive); // DEBUG LOG
     try {
       const updatedSubstation = data.find(s => s.id === id);
       if (updatedSubstation) {
+        console.log('📝 Updating substation:', updatedSubstation.noGardu, 'is_active from', updatedSubstation.is_active, 'to', isActive);
         const updated = { ...updatedSubstation, is_active: isActive };
         await onUpdateSubstation(updated);
         setSelectedSubstation(updated);
+        console.log('✅ Successfully updated is_active');
+      } else {
+        console.error('❌ Substation not found:', id);
+        window.alert('Gardu tidak ditemukan!');
       }
     } catch (error) {
-      console.error('Failed to update is_active:', error);
-      window.alert('Gagal mengupdate status aktif gardu!');
+      console.error('❌ Failed to update is_active:', error);
+      window.alert('Gagal mengupdate status aktif gardu! Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
   const handleUpdateUGB = async (id: string, ugb: number) => {
-    console.log('Toggle UGB:', id, ugb); // DEBUG LOG
+    console.log('🔄 Toggle UGB:', id, ugb); // DEBUG LOG
     try {
       const updatedSubstation = data.find(s => s.id === id);
       if (updatedSubstation) {
+        console.log('📝 Updating substation:', updatedSubstation.noGardu, 'ugb from', updatedSubstation.ugb, 'to', ugb);
         const updated = { ...updatedSubstation, ugb: ugb };
         await onUpdateSubstation(updated);
         setSelectedSubstation(updated);
+        console.log('✅ Successfully updated UGB');
+      } else {
+        console.error('❌ Substation not found:', id);
+        window.alert('Gardu tidak ditemukan!');
       }
     } catch (error) {
-      console.error('Failed to update UGB:', error);
-      window.alert('Gagal mengupdate status UGB gardu!');
+      console.error('❌ Failed to update UGB:', error);
+      window.alert('Gagal mengupdate status UGB gardu! Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 

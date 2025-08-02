@@ -43,26 +43,39 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   // Ganti useEffect untuk sinkronisasi measurement
   useEffect(() => {
     if (substation) {
+      console.log('🔄 Loading measurements for substation:', substation.id, substation.noGardu);
+      
       let siang = substation.measurements_siang || [];
       let malam = substation.measurements_malam || [];
       const rowNames = ['induk', '1', '2', '3', '4'];
 
+      console.log('📊 Raw siang data count:', siang.length);
+      console.log('📊 Raw malam data count:', malam.length);
+      console.log('📊 Raw siang data:', siang);
+      console.log('📊 Raw malam data:', malam);
+
       // SIANG - Gunakan data yang sebenarnya dari database
       const siangResults = rowNames.map(rowName => {
-        return siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id)) || null;
+        const found = siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
+        console.log(`🔍 Looking for siang row "${rowName}":`, found ? 'Found' : 'Not found');
+        return found || null;
       }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
+      
+      console.log('✅ Processed siang measurements:', siangResults);
       setSiangMeasurements(siangResults);
 
       // MALAM - Gunakan data yang sebenarnya dari database
       const malamResults = rowNames.map(rowName => {
-        return malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id)) || null;
+        const found = malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
+        console.log(`🔍 Looking for malam row "${rowName}":`, found ? 'Found' : 'Not found');
+        return found || null;
       }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
-      console.log('Substation ID:', substation.id);
-      console.log('Raw malam data:', malam);
-      console.log('Processed malam measurements:', malamResults);
+      
+      console.log('✅ Processed malam measurements:', malamResults);
       setMalamMeasurements(malamResults);
 
     } else {
+      console.log('❌ No substation data, clearing measurements');
       setSiangMeasurements([]);
       setMalamMeasurements([]);
     }
@@ -182,11 +195,20 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
 
   // Helper untuk mengambil data pengukuran sesuai baris dan kolom, berdasarkan row_name dan substationId
   const getMeasurementByRow = (measurements: any[], substationId: string, rowName: string) => {
-    return (
-      measurements.find(
-        m => m.row_name?.toLowerCase() === rowName.toString().toLowerCase() && String(m.substationId) === String(substationId)
-      ) || { id: null, r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '', rata2: undefined, kva: undefined, persen: undefined, unbalanced: undefined }
+    console.log(`🔍 getMeasurementByRow - Looking for row "${rowName}" in substation ${substationId}`);
+    console.log(`🔍 Available measurements:`, measurements.map(m => ({ row_name: m.row_name, substationId: m.substationId })));
+    
+    const found = measurements.find(
+      m => m.row_name?.toLowerCase() === rowName.toString().toLowerCase() && String(m.substationId) === String(substationId)
     );
+    
+    if (found) {
+      console.log(`✅ Found measurement for row "${rowName}":`, found);
+    } else {
+      console.log(`❌ No measurement found for row "${rowName}"`);
+    }
+    
+    return found || { id: null, r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '', rata2: undefined, kva: undefined, persen: undefined, unbalanced: undefined };
   };
 
   // Handler untuk perubahan input hanya update state lokal (TIDAK auto-save ke backend)

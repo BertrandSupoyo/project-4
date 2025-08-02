@@ -20,11 +20,25 @@ export const useSubstations = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🔄 Loading substations from API...');
       const data = await ApiService.getSubstations();
+      console.log('📊 Received substations data:', data.length, 'substations');
+      
+      // Debug: Log measurements data for first few substations
+      data.slice(0, 3).forEach((sub, index) => {
+        console.log(`📋 Substation ${index + 1} (${sub.noGardu}):`, {
+          id: sub.id,
+          siang_count: sub.measurements_siang?.length || 0,
+          malam_count: sub.measurements_malam?.length || 0,
+          siang_data: sub.measurements_siang?.slice(0, 2) || [],
+          malam_data: sub.measurements_malam?.slice(0, 2) || []
+        });
+      });
+      
       setSubstations(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal memuat data gardu');
-      console.error('Error loading substations:', err);
+      console.error('❌ Error loading substations:', err);
     } finally {
       setLoading(false);
     }
