@@ -176,8 +176,7 @@ export default async function handler(req, res) {
   // PATCH - Update substation
   else if (req.method === 'PATCH') {
     try {
-      console.log('🏭 Updating substation...');
-      
+      console.log('🏭 PATCH update request:', req.body);
       const { id } = req.query;
       const updateData = req.body;
       
