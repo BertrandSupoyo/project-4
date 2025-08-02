@@ -60,56 +60,71 @@ export default async function handler(req, res) {
     for (let i = 0; i < substationsData.length; i++) {
       try {
         const data = substationsData[i];
+        
+        // Validate required fields
+        if (!data.namaLokasiGardu || !data.noGardu || !data.ulp) {
+          console.warn(`⚠️ Skipping substation ${i + 1}: Missing required fields`);
+          errors.push({
+            index: i,
+            data: data,
+            error: 'Missing required fields: namaLokasiGardu, noGardu, or ulp'
+          });
+          continue;
+        }
+        
         console.log(`🔄 Processing substation ${i + 1}/${substationsData.length}: ${data.namaLokasiGardu}`);
+        
+        // Clean and validate data - sesuai dengan format dari SubstationImportModal
+        const cleanData = {
+          no: parseInt(data.no) || i + 1,
+          ulp: String(data.ulp || '').trim(),
+          noGardu: String(data.noGardu || '').trim(),
+          namaLokasiGardu: String(data.namaLokasiGardu || '').trim(),
+          jenis: String(data.jenis || '').trim(),
+          merek: String(data.merek || '').trim(),
+          daya: String(data.daya || '').trim(),
+          tahun: String(data.tahun || '').trim(), // Frontend mengirim string
+          phasa: String(data.phasa || '').trim(),
+          tap_trafo_max_tap: String(data.tap_trafo_max_tap || '').trim(), // Frontend mengirim string
+          penyulang: String(data.penyulang || '').trim(),
+          arahSequence: String(data.arahSequence || '').trim(),
+          tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),
+          status: data.status || 'normal',
+          is_active: data.is_active || 1,
+          ugb: data.ugb || 0,
+          latitude: data.latitude ? parseFloat(data.latitude) : null,
+          longitude: data.longitude ? parseFloat(data.longitude) : null
+        };
         
         // Create substation
         const newSubstation = await db.substation.create({
-          data: {
-            no: data.no || i + 1,
-            ulp: data.ulp || '',
-            noGardu: data.noGardu || '',
-            namaLokasiGardu: data.namaLokasiGardu || '',
-            jenis: data.jenis || '',
-            merek: data.merek || '',
-            daya: data.daya || '',
-            tahun: data.tahun || '',
-            phasa: data.phasa || '',
-            tap_trafo_max_tap: data.tap_trafo_max_tap || '',
-            penyulang: data.penyulang || '',
-            arahSequence: data.arahSequence || '',
-            tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),
-            status: data.status || 'normal',
-            is_active: data.is_active || 1,
-            ugb: data.ugb || 0,
-            latitude: data.latitude || null,
-            longitude: data.longitude || null
-          }
+          data: cleanData
         });
 
         console.log(`✅ Created substation: ${newSubstation.id} - ${newSubstation.namaLokasiGardu}`);
 
-        // Process measurements if provided
-        const month = new Date(data.tanggal || new Date()).toISOString().slice(0, 7); // Format: YYYY-MM
+        // Process measurements if provided - sesuai dengan format dari SubstationImportModal
+        const month = new Date(cleanData.tanggal).toISOString().slice(0, 7); // Format: YYYY-MM
         
-        // Process siang measurements
+        // Process siang measurements - frontend sudah mengirim array lengkap dengan 5 measurements
         if (data.measurements_siang && Array.isArray(data.measurements_siang) && data.measurements_siang.length > 0) {
           const siangMeasurements = data.measurements_siang.map(measurement => ({
             substationId: newSubstation.id,
-            row_name: measurement.row_name || 'induk',
+            row_name: String(measurement.row_name || 'induk').toLowerCase(),
             month: month,
-            r: measurement.r || 0,
-            s: measurement.s || 0,
-            t: measurement.t || 0,
-            n: measurement.n || 0,
-            rn: measurement.rn || 0,
-            sn: measurement.sn || 0,
-            tn: measurement.tn || 0,
-            pp: measurement.pp || 0,
-            pn: measurement.pn || 0,
-            rata2: measurement.rata2 || 0,
-            kva: measurement.kva || 0,
-            persen: measurement.persen || 0,
-            unbalanced: measurement.unbalanced || 0,
+            r: parseFloat(measurement.r) || 0,
+            s: parseFloat(measurement.s) || 0,
+            t: parseFloat(measurement.t) || 0,
+            n: parseFloat(measurement.n) || 0,
+            rn: parseFloat(measurement.rn) || 0,
+            sn: parseFloat(measurement.sn) || 0,
+            tn: parseFloat(measurement.tn) || 0,
+            pp: parseFloat(measurement.pp) || 0,
+            pn: parseFloat(measurement.pn) || 0,
+            rata2: parseFloat(measurement.rata2) || 0,
+            kva: parseFloat(measurement.kva) || 0,
+            persen: parseFloat(measurement.persen) || 0,
+            unbalanced: parseFloat(measurement.unbalanced) || 0,
             lastUpdate: new Date()
           }));
 
@@ -120,25 +135,25 @@ export default async function handler(req, res) {
           console.log(`✅ Created ${siangMeasurements.length} siang measurements for substation ${newSubstation.id}`);
         }
 
-        // Process malam measurements
+        // Process malam measurements - frontend sudah mengirim array lengkap dengan 5 measurements
         if (data.measurements_malam && Array.isArray(data.measurements_malam) && data.measurements_malam.length > 0) {
           const malamMeasurements = data.measurements_malam.map(measurement => ({
             substationId: newSubstation.id,
-            row_name: measurement.row_name || 'induk',
+            row_name: String(measurement.row_name || 'induk').toLowerCase(),
             month: month,
-            r: measurement.r || 0,
-            s: measurement.s || 0,
-            t: measurement.t || 0,
-            n: measurement.n || 0,
-            rn: measurement.rn || 0,
-            sn: measurement.sn || 0,
-            tn: measurement.tn || 0,
-            pp: measurement.pp || 0,
-            pn: measurement.pn || 0,
-            rata2: measurement.rata2 || 0,
-            kva: measurement.kva || 0,
-            persen: measurement.persen || 0,
-            unbalanced: measurement.unbalanced || 0,
+            r: parseFloat(measurement.r) || 0,
+            s: parseFloat(measurement.s) || 0,
+            t: parseFloat(measurement.t) || 0,
+            n: parseFloat(measurement.n) || 0,
+            rn: parseFloat(measurement.rn) || 0,
+            sn: parseFloat(measurement.sn) || 0,
+            tn: parseFloat(measurement.tn) || 0,
+            pp: parseFloat(measurement.pp) || 0,
+            pn: parseFloat(measurement.pn) || 0,
+            rata2: parseFloat(measurement.rata2) || 0,
+            kva: parseFloat(measurement.kva) || 0,
+            persen: parseFloat(measurement.persen) || 0,
+            unbalanced: parseFloat(measurement.unbalanced) || 0,
             lastUpdate: new Date()
           }));
 
@@ -149,7 +164,7 @@ export default async function handler(req, res) {
           console.log(`✅ Created ${malamMeasurements.length} malam measurements for substation ${newSubstation.id}`);
         }
 
-        // If no measurements provided, create default empty measurements
+        // Jika tidak ada measurements dari frontend, buat default (seharusnya tidak terjadi karena frontend selalu mengirim)
         if ((!data.measurements_siang || data.measurements_siang.length === 0) && 
             (!data.measurements_malam || data.measurements_malam.length === 0)) {
           const rowNames = ['induk', '1', '2', '3', '4'];
