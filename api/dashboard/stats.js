@@ -50,6 +50,11 @@ export default async function handler(req, res) {
       where: { ugb: 1 }
     });
 
+    console.log('📊 Dashboard stats calculated:');
+    console.log('  - Total substations:', totalSubstations);
+    console.log('  - Active substations (is_active: 1):', activeSubstations);
+    console.log('  - UGB active (ugb: 1):', ugbActive);
+
     // Calculate critical issues (unbalanced > 80%)
     const criticalSubstations = await db.substation.findMany({
       include: {

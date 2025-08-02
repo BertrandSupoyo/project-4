@@ -189,6 +189,8 @@ export default async function handler(req, res) {
       });
 
       console.log('✅ Substation updated:', updatedSubstation.id);
+      console.log('📝 Updated fields:', updateData);
+      console.log('📊 New values - is_active:', updatedSubstation.is_active, 'ugb:', updatedSubstation.ugb);
 
       res.json({
         success: true,
