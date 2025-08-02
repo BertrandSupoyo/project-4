@@ -98,14 +98,11 @@ export const RiwayatGarduTable: React.FC = () => {
     setData(filtered);
   }, [selectedMonth, selectedYear, allData]);
 
-  // Handle export Excel (hanya data yang tampil di tabel)
+  // Handle export Excel menggunakan endpoint riwayat dengan template yang sama
   const handleExportRiwayat = async () => {
-    if (!data || data.length === 0) return;
     try {
-      const response = await fetch('/api/export/riwayat/custom', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+      const response = await fetch('/api/export/riwayat', {
+        method: 'GET'
       });
       if (!response.ok) throw new Error('Gagal mengunduh file Excel');
       const blob = await response.blob();
@@ -113,7 +110,7 @@ export const RiwayatGarduTable: React.FC = () => {
       const a = document.createElement('a');
       a.href = url;
       const monthName = selectedMonth ? new Date(`2000-${selectedMonth}-01`).toLocaleString('id-ID', { month: 'long' }) : '';
-      a.download = `Riwayat_Filtered_${selectedYear || ''}_${monthName || ''}.xlsx`;
+      a.download = `Riwayat_Pengukuran_${selectedYear || ''}_${monthName || ''}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();

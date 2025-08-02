@@ -318,8 +318,8 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
                               if (window.confirm('Yakin ingin menghapus gardu ini beserta seluruh data pengukurannya?')) {
                                 try {
                                   await ApiService.deleteSubstation(substation.id);
-                                  window.alert('Gardu berhasil dihapus!');
-                                  window.location.reload();
+                                    window.alert('Gardu berhasil dihapus!');
+                                    window.location.reload();
                                 } catch (e) {
                                   console.error('Error deleting substation:', e);
                                   window.alert('Gagal menghapus gardu!');
