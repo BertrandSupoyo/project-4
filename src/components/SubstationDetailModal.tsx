@@ -132,11 +132,12 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleUpdateCoordinates = async (latitude: number, longitude: number) => {
     if (!substation) return;
     try {
-      const update = { id: substation.id, latitude, longitude };
-      console.log('🌍 PATCH koordinat ke API:', update);
-      await onUpdateSubstation(update);
+      console.log('🌍 Updating coordinates:', { id: substation.id, latitude, longitude });
+      await ApiService.updateSubstationCoordinates(substation.id, latitude, longitude);
+      console.log('✅ Coordinates updated successfully');
       window.alert('Koordinat berhasil diupdate!');
     } catch (err) {
+      console.error('❌ Failed to update coordinates:', err);
       window.alert('Gagal mengupdate koordinat lokasi!');
     }
   };

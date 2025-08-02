@@ -15,6 +15,9 @@
     "api/substations/[id].js": {
       "maxDuration": 30
     },
+    "api/substations/[id]/coordinates.js": {
+      "maxDuration": 30
+    },
     "api/substations/import.js": {
       "maxDuration": 60
     },

@@ -146,6 +146,37 @@ export class ApiService {
     return response.data;
   }
 
+  // Mengupdate koordinat gardu
+  static async updateSubstationCoordinates(id: string, latitude: number, longitude: number): Promise<SubstationData> {
+    console.log('🌍 ApiService.updateSubstationCoordinates called with:', { id, latitude, longitude });
+    
+    const response = await this.request<SubstationData>(`/substations/${id}/coordinates`, {
+      method: 'PATCH',
+      body: JSON.stringify({ latitude, longitude }),
+    });
+    
+    console.log('✅ ApiService.updateSubstationCoordinates response:', response);
+    return response.data;
+  }
+
+  // Mengambil koordinat gardu
+  static async getSubstationCoordinates(id: string): Promise<{
+    id: string;
+    noGardu: string;
+    namaLokasiGardu: string;
+    latitude: number | null;
+    longitude: number | null;
+  }> {
+    const response = await this.request<{
+      id: string;
+      noGardu: string;
+      namaLokasiGardu: string;
+      latitude: number | null;
+      longitude: number | null;
+    }>(`/substations/${id}/coordinates`);
+    return response.data;
+  }
+
   // Update measurement per baris
   static async updateMeasurement(id: number, updates: any): Promise<void> {
     await this.request(`/measurements/${id}`, {
