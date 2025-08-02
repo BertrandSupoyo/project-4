@@ -84,23 +84,33 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
     }
   };
 
-  const handleUpdateIsActive = (id: string, isActive: number) => {
+  const handleUpdateIsActive = async (id: string, isActive: number) => {
     console.log('Toggle is_active:', id, isActive); // DEBUG LOG
-    const updatedSubstation = data.find(s => s.id === id);
-    if (updatedSubstation) {
-      const updated = { ...updatedSubstation, is_active: isActive };
-      onUpdateSubstation(updated);
-      setSelectedSubstation(updated);
+    try {
+      const updatedSubstation = data.find(s => s.id === id);
+      if (updatedSubstation) {
+        const updated = { ...updatedSubstation, is_active: isActive };
+        await onUpdateSubstation(updated);
+        setSelectedSubstation(updated);
+      }
+    } catch (error) {
+      console.error('Failed to update is_active:', error);
+      window.alert('Gagal mengupdate status aktif gardu!');
     }
   };
 
-  const handleUpdateUGB = (id: string, ugb: number) => {
+  const handleUpdateUGB = async (id: string, ugb: number) => {
     console.log('Toggle UGB:', id, ugb); // DEBUG LOG
-    const updatedSubstation = data.find(s => s.id === id);
-    if (updatedSubstation) {
-      const updated = { ...updatedSubstation, ugb: ugb };
-      onUpdateSubstation(updated);
-      setSelectedSubstation(updated);
+    try {
+      const updatedSubstation = data.find(s => s.id === id);
+      if (updatedSubstation) {
+        const updated = { ...updatedSubstation, ugb: ugb };
+        await onUpdateSubstation(updated);
+        setSelectedSubstation(updated);
+      }
+    } catch (error) {
+      console.error('Failed to update UGB:', error);
+      window.alert('Gagal mengupdate status UGB gardu!');
     }
   };
 
