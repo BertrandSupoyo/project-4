@@ -23,6 +23,9 @@
     },
     "api/export/riwayat.js": {
       "maxDuration": 60
+    },
+    "api/fix-measurements-data.js": {
+      "maxDuration": 120
     }
   }
 } 
