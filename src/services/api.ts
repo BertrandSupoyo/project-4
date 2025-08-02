@@ -88,8 +88,18 @@ export class ApiService {
   }
 
   // Menghapus gardu
-  static async deleteSubstation(id: string): Promise<void> {
-    await this.request(`/substations/${id}`, {
+  static async deleteSubstation(id: string): Promise<ApiResponse<{
+    substationId: string;
+    substationName: string;
+    siangMeasurementsDeleted: number;
+    malamMeasurementsDeleted: number;
+  }>> {
+    return await this.request<{
+      substationId: string;
+      substationName: string;
+      siangMeasurementsDeleted: number;
+      malamMeasurementsDeleted: number;
+    }>(`/substations/${id}`, {
       method: 'DELETE',
     });
   }

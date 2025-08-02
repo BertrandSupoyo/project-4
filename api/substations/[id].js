@@ -129,17 +129,44 @@ export default async function handler(req, res) {
   // DELETE - Delete substation
   else if (req.method === 'DELETE') {
     try {
-      console.log('🏭 Deleting substation...');
+      console.log('🏭 Deleting substation and all related data...');
       
-      await db.substation.delete({
+      // First, delete all related measurements
+      console.log('🗑️ Deleting related measurements...');
+      
+      // Delete siang measurements
+      const deletedSiangMeasurements = await db.measurementSiang.deleteMany({
+        where: { substationId: id }
+      });
+      console.log(`🗑️ Deleted ${deletedSiangMeasurements.count} siang measurements`);
+      
+      // Delete malam measurements
+      const deletedMalamMeasurements = await db.measurementMalam.deleteMany({
+        where: { substationId: id }
+      });
+      console.log(`🗑️ Deleted ${deletedMalamMeasurements.count} malam measurements`);
+      
+      // Then delete the substation
+      const deletedSubstation = await db.substation.delete({
         where: { id }
       });
 
-      console.log('✅ Substation deleted:', id);
+      console.log('✅ Substation and all related data deleted:', {
+        substationId: id,
+        substationName: deletedSubstation.namaLokasiGardu,
+        siangMeasurementsDeleted: deletedSiangMeasurements.count,
+        malamMeasurementsDeleted: deletedMalamMeasurements.count
+      });
 
       res.json({
         success: true,
-        message: 'Substation deleted successfully'
+        message: 'Substation and all related data deleted successfully',
+        data: {
+          substationId: id,
+          substationName: deletedSubstation.namaLokasiGardu,
+          siangMeasurementsDeleted: deletedSiangMeasurements.count,
+          malamMeasurementsDeleted: deletedMalamMeasurements.count
+        }
       });
     } catch (err) {
       console.error('💥 Substation DELETE error:', err);

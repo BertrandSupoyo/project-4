@@ -325,14 +325,15 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              if (window.confirm('Yakin ingin menghapus gardu ini beserta seluruh data pengukurannya?')) {
+                              if (window.confirm(`Yakin ingin menghapus gardu "${substation.namaLokasiGardu}" (${substation.noGardu})?\n\n⚠️ PERINGATAN: Semua data pengukuran siang dan malam yang terkait juga akan dihapus secara permanen!`)) {
                                 try {
-                                  await ApiService.deleteSubstation(substation.id);
-                                    window.alert('Gardu berhasil dihapus!');
-                                    window.location.reload();
+                                  const result = await ApiService.deleteSubstation(substation.id);
+                                  console.log('🗑️ Delete result:', result);
+                                  window.alert(`✅ Gardu "${substation.namaLokasiGardu}" berhasil dihapus!\n\n📊 Data yang dihapus:\n• 1 Substation\n• ${result.data?.siangMeasurementsDeleted || 0} Pengukuran Siang\n• ${result.data?.malamMeasurementsDeleted || 0} Pengukuran Malam`);
+                                  window.location.reload();
                                 } catch (e) {
                                   console.error('Error deleting substation:', e);
-                                  window.alert('Gagal menghapus gardu!');
+                                  window.alert('❌ Gagal menghapus gardu! Silakan coba lagi.');
                                 }
                               }
                             }}
