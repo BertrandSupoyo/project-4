@@ -132,8 +132,10 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleUpdateCoordinates = async (latitude: number, longitude: number) => {
     if (!substation) return;
     try {
-      const sanitized = sanitizeSubstation({ ...substation, latitude, longitude });
-      await onUpdateSubstation(sanitized);
+      const update = { id: substation.id, latitude, longitude };
+      console.log('🌍 PATCH koordinat ke API:', update);
+      await onUpdateSubstation(update);
+      window.alert('Koordinat berhasil diupdate!');
     } catch (err) {
       window.alert('Gagal mengupdate koordinat lokasi!');
     }

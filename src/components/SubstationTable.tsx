@@ -85,56 +85,26 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   };
 
   const handleUpdateIsActive = async (id: string, isActive: number) => {
-    console.log('🔄 Toggle is_active:', id, isActive); // DEBUG LOG
+    console.log('🔥 Checkbox clicked! id:', id, 'isActive:', isActive);
     try {
-      const updatedSubstation = data.find(s => s.id === id);
-      if (updatedSubstation) {
-        console.log('📝 Updating substation:', updatedSubstation.noGardu, 'is_active from', updatedSubstation.is_active, 'to', isActive);
-        const updated = { ...updatedSubstation, is_active: isActive };
-        await onUpdateSubstation(updated);
-        setSelectedSubstation(updated);
-        
-        console.log('✅ Successfully updated is_active');
-        window.alert(`Status aktif gardu ${updatedSubstation.noGardu} berhasil diubah!`);
-        
-        // Force page reload to ensure UI is updated
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        console.error('❌ Substation not found:', id);
-        window.alert('Gardu tidak ditemukan!');
-      }
+      const updated = { id, is_active: isActive };
+      console.log('🔗 PATCH to API with:', updated);
+      await onUpdateSubstation(updated);
+      window.alert('Status aktif gardu berhasil diubah!');
     } catch (error) {
-      console.error('❌ Failed to update is_active:', error);
-      window.alert('Gagal mengupdate status aktif gardu! Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      window.alert('Gagal mengupdate status aktif gardu!');
     }
   };
 
   const handleUpdateUGB = async (id: string, ugb: number) => {
-    console.log('🔄 Toggle UGB:', id, ugb); // DEBUG LOG
+    console.log('🔥 Checkbox UGB clicked! id:', id, 'ugb:', ugb);
     try {
-      const updatedSubstation = data.find(s => s.id === id);
-      if (updatedSubstation) {
-        console.log('📝 Updating substation:', updatedSubstation.noGardu, 'ugb from', updatedSubstation.ugb, 'to', ugb);
-        const updated = { ...updatedSubstation, ugb: ugb };
-        await onUpdateSubstation(updated);
-        setSelectedSubstation(updated);
-        
-        console.log('✅ Successfully updated UGB');
-        window.alert(`Status UGB gardu ${updatedSubstation.noGardu} berhasil diubah!`);
-        
-        // Force page reload to ensure UI is updated
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        console.error('❌ Substation not found:', id);
-        window.alert('Gardu tidak ditemukan!');
-      }
+      const updated = { id, ugb };
+      console.log('🔗 PATCH to API with:', updated);
+      await onUpdateSubstation(updated);
+      window.alert('Status UGB gardu berhasil diubah!');
     } catch (error) {
-      console.error('❌ Failed to update UGB:', error);
-      window.alert('Gagal mengupdate status UGB gardu! Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      window.alert('Gagal mengupdate status UGB gardu!');
     }
   };
 
