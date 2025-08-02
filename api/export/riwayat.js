@@ -41,8 +41,13 @@ export default async function handler(req, res) {
   try {
     const db = await initPrisma();
     
-    // Get all substations with measurements
-    const substations = await db.substation.findMany({
+    // Get query parameters for filtering
+    const { month, year } = req.query;
+    
+    console.log('📊 Export riwayat with filter:', { month, year });
+
+    // Build query based on whether filter is applied
+    let query = {
       orderBy: { no: 'asc' },
       include: {
         measurements_siang: {
@@ -52,7 +57,24 @@ export default async function handler(req, res) {
           orderBy: { row_name: 'asc' }
         }
       }
-    });
+    };
+
+    // Apply filter if month and year are provided
+    if (month && year) {
+      const monthStr = String(month).padStart(2, '0');
+      const yearStr = String(year);
+      const monthYear = `${yearStr}-${monthStr}`;
+      
+      console.log('🔍 Filtering for month-year:', monthYear);
+      
+      query.include.measurements_siang.where = { month: monthYear };
+      query.include.measurements_malam.where = { month: monthYear };
+    }
+
+    // Get substations with measurements
+    const substations = await db.substation.findMany(query);
+    
+    console.log(`✅ Found ${substations.length} substations with measurements`);
 
     // Transform data to match generateRiwayatExcel format
     const data = substations.map(sub => ({
@@ -272,8 +294,22 @@ export default async function handler(req, res) {
       else if (c >= 36 && c <= 40) sheet.getColumn(c).width = 10;
       else sheet.getColumn(c).width = 10;
     }
+
+    // Generate filename based on filter
+    let filename = 'riwayat_pengukuran.xlsx';
+    if (month && year) {
+      const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      const monthStr = String(month).padStart(2, '0');
+      const monthName = monthNames[parseInt(monthStr) - 1];
+      const yearStr = String(year);
+      filename = `Riwayat_Pengukuran_${monthName}_${yearStr}.xlsx`;
+    }
+
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=riwayat_pengukuran.xlsx');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     await workbook.xlsx.write(res);
     res.end();
 

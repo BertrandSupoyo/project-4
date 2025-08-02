@@ -108,7 +108,7 @@ export const RiwayatGarduTable: React.FC = () => {
 
       console.log('📊 Exporting riwayat for:', { month: selectedMonth, year: selectedYear });
       
-      const response = await fetch(`/api/export/riwayat-filtered?month=${selectedMonth}&year=${selectedYear}`, {
+      const response = await fetch(`/api/export/riwayat?month=${selectedMonth}&year=${selectedYear}`, {
         method: 'GET'
       });
       
