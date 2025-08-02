@@ -78,11 +78,31 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
         for (let i = 0; i < dataRows.length; i += 5) {
           const group = dataRows.slice(i, i + 5);
           if (group.length < 5) continue; // skip jika kurang dari 5 baris
+          
+          // Validasi bahwa group memiliki data yang cukup
+          if (group.some(row => !row || row.length < 10)) {
+            console.warn(`⚠️ Skipping group ${i/5 + 1}: insufficient data`);
+            continue;
+          }
+          
           // Ambil identitas dari baris pertama
           const rowObj0: any = {};
           headerRow.forEach((col: string, idx: number) => {
             rowObj0[col] = group[0][idx];
           });
+          
+          // Validasi data wajib sebelum memproses
+          const requiredFields = ['ulp', 'nogardu', 'namalokasi'];
+          const hasRequiredFields = requiredFields.every(field => {
+            const value = getField(rowObj0, [field]);
+            return value && String(value).trim() !== '';
+          });
+          
+          if (!hasRequiredFields) {
+            console.warn(`⚠️ Skipping group ${i/5 + 1}: missing required fields`);
+            continue;
+          }
+          
           // Ambil tanggal
           let rawTanggal = getField(rowObj0, ['tanggal']);
           let tanggalVal: string = new Date().toISOString(); // Default to current date
@@ -93,6 +113,7 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
             }
             // If date is invalid, tanggalVal remains as current date
           }
+          
           // Ambil measurements siang & malam dari kelima baris
           const measurements_siang = group.map((rowArr, _) => {
             const rowObj: any = {};
@@ -132,16 +153,18 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
               pn: parseFloat(getField(rowObj, ['pnmalam', 'p-n(malam)', 'pn_malam'])) || 0
             };
           });
-          transformedData.push({
-            no: getField(rowObj0, ['no']) ? parseInt(getField(rowObj0, ['no'])) : i + 1,
-            ulp: String(getField(rowObj0, ['ulp'])),
-            noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])),
+          
+          // Buat object substation dengan validasi yang lebih robust
+          const substationData = {
+            no: getField(rowObj0, ['no']) ? parseInt(getField(rowObj0, ['no'])) : i/5 + 1,
+            ulp: String(getField(rowObj0, ['ulp'])).trim() || 'Unknown',
+            noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim() || 'Unknown',
             namaLokasiGardu: String(getField(rowObj0, [
               'namalokasi', 'namalokasigardu', 'nama/lokasi', 'nama_lokasi', 'lokasi', 'namalokasilokasi', 'nama/ lokasi', 'nama lokasi', 'nama/ lokasi gardu', 'nama lokasi gardu', 'nama__lokasi', 'nama__lokasi__gardu',
-            ])),
-            jenis: String(getField(rowObj0, ['jenis'])),
-            merek: String(getField(rowObj0, ['merk', 'merek'])),
-            daya: String(getField(rowObj0, ['daya'])),
+            ])).trim() || 'Unknown',
+            jenis: String(getField(rowObj0, ['jenis'])).trim() || 'Unknown',
+            merek: String(getField(rowObj0, ['merk', 'merek'])).trim() || 'Unknown',
+            daya: String(getField(rowObj0, ['daya'])).trim() || '0',
             tahun: (() => {
               const tahunValue = String(getField(rowObj0, ['tahun'])).trim();
               // Handle truncated or corrupted tahun values
@@ -155,7 +178,7 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
               // Default fallback
               return '0';
             })(),
-            phasa: String(getField(rowObj0, ['phasa'])),
+            phasa: String(getField(rowObj0, ['phasa'])).trim() || '0',
             tap_trafo_max_tap: (() => {
               const tapValue = String(getField(rowObj0, ['taptrafomaxtap'])).trim();
               // Handle truncated or corrupted tap values
@@ -166,8 +189,8 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
               const validPart = tapValue.match(/^\d+/);
               return validPart ? validPart[0] : '0';
             })(),
-            penyulang: String(getField(rowObj0, ['penyulang'])),
-            arahSequence: String(getField(rowObj0, ['arahsequence', 'arah_sequence'])),
+            penyulang: String(getField(rowObj0, ['penyulang'])).trim() || 'Unknown',
+            arahSequence: String(getField(rowObj0, ['arahsequence', 'arah_sequence'])).trim() || 'Unknown',
             tanggal: tanggalVal,
             status: getField(rowObj0, ['status']) || 'normal',
             is_active: getField(rowObj0, ['isactive', 'is_active']) !== '' ? parseInt(getField(rowObj0, ['isactive', 'is_active'])) : 1,
@@ -176,7 +199,14 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
             longitude: getField(rowObj0, ['longitude']) !== '' ? parseFloat(getField(rowObj0, ['longitude'])) : undefined,
             measurements_siang,
             measurements_malam
-          });
+          };
+          
+          // Validasi final sebelum menambahkan ke transformedData
+          if (substationData.ulp !== 'Unknown' && 
+              substationData.noGardu !== 'Unknown' && 
+              substationData.namaLokasiGardu !== 'Unknown') {
+            transformedData.push(substationData);
+          }
         }
         // Pastikan setiap substation punya 5 measurement siang & malam (induk,1,2,3,4)
         const rowNames = ['induk', '1', '2', '3', '4'];
