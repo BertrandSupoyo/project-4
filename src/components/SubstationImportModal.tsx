@@ -167,14 +167,21 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
             daya: String(getField(rowObj0, ['daya'])).trim() || '0',
             tahun: (() => {
               const tahunValue = String(getField(rowObj0, ['tahun'])).trim();
-              // Handle truncated or corrupted tahun values
+              // Handle any invalid data by defaulting to '0'
               if (!tahunValue || tahunValue.length === 0) return '0';
-              // If tahun is truncated (less than 4 digits), return '0'
+              
+              // If tahun contains non-numeric characters or is invalid, return '0'
+              if (!/^\d+$/.test(tahunValue)) return '0';
+              
+              // If tahun is less than 4 digits, return '0'
               if (tahunValue.length < 4) return '0';
-              // If tahun is valid (4 digits), return it
-              if (/^\d{4}$/.test(tahunValue)) return tahunValue;
+              
+              // If tahun is valid (4 digits), return it as string
+              if (tahunValue.length === 4) return tahunValue;
+              
               // If tahun is longer than 4 digits, take first 4
               if (tahunValue.length > 4) return tahunValue.substring(0, 4);
+              
               // Default fallback
               return '0';
             })(),
@@ -261,7 +268,39 @@ const SubstationImportModal: React.FC<SubstationImportModalProps> = ({ isOpen, o
           return;
         }
         
-        await onImport(filteredData);
+        // Additional validation: check for truncated or invalid data
+        const finalData = filteredData.filter(item => {
+          // Check if tahun is not empty (should be a string, can be '0' or valid year)
+          const tahunValue = String(item.tahun || '').trim();
+          if (!tahunValue) {
+            console.warn(`⚠️ Skipping item with empty tahun`);
+            return false;
+          }
+          
+          // Check if all required fields are present and not empty
+          if (!item.ulp || !item.noGardu || !item.namaLokasiGardu) {
+            console.warn(`⚠️ Skipping item with missing required fields`);
+            return false;
+          }
+          
+          // Check if measurements arrays are valid
+          if (!Array.isArray(item.measurements_siang) || !Array.isArray(item.measurements_malam)) {
+            console.warn(`⚠️ Skipping item with invalid measurements`);
+            return false;
+          }
+          
+          return true;
+        });
+        
+        console.log(`📊 Final data count: ${finalData.length} (filtered from ${filteredData.length})`);
+        
+        if (finalData.length === 0) {
+          setError('Tidak ada data valid untuk diimport setelah validasi. Silakan cek file Excel Anda.');
+          setIsProcessing(false);
+          return;
+        }
+        
+        await onImport(finalData);
         onClose();
       } catch (err) {
         setError('Gagal memproses file. Pastikan format file benar.');

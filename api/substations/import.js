@@ -86,12 +86,33 @@ export default async function handler(req, res) {
           daya: String(data.daya || '').trim() || '0',
           tahun: (() => {
             const tahunValue = String(data.tahun || '').trim();
-            // If empty, invalid, or not a number, return '0'
-            if (!tahunValue || tahunValue === '' || isNaN(parseInt(tahunValue))) {
+            // Handle any invalid data by defaulting to '0'
+            if (!tahunValue || tahunValue.length === 0) {
               return '0';
             }
-            // If valid number, return it
-            return tahunValue;
+            
+            // If tahun contains non-numeric characters or is invalid, return '0'
+            if (!/^\d+$/.test(tahunValue)) {
+              return '0';
+            }
+            
+            // If tahun is less than 4 digits, return '0'
+            if (tahunValue.length < 4) {
+              return '0';
+            }
+            
+            // If tahun is valid (4 digits), return it as string
+            if (tahunValue.length === 4) {
+              return tahunValue;
+            }
+            
+            // If tahun is longer than 4 digits, take first 4
+            if (tahunValue.length > 4) {
+              return tahunValue.substring(0, 4);
+            }
+            
+            // Default fallback
+            return '0';
           })(),
           phasa: String(data.phasa || '').trim() || '0',
           tap_trafo_max_tap: String(data.tap_trafo_max_tap || '').trim() || '0',
