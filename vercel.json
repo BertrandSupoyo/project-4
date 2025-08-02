@@ -26,6 +26,9 @@
     },
     "api/measurements_malam/bulk.js": {
       "maxDuration": 60
+    },
+    "api/export/riwayat.js": {
+      "maxDuration": 60
     }
   }
 } 

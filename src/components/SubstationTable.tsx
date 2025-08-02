@@ -143,7 +143,7 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   };
 
   const handleExportAllExcel = () => {
-    window.open('/api/export/riwayat', '_blank');
+    window.open(`${import.meta.env.VITE_API_BASE_URL}/export/riwayat`, '_blank');
   };
 
   if (loading) {
@@ -317,20 +317,11 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
                             onClick={async () => {
                               if (window.confirm('Yakin ingin menghapus gardu ini beserta seluruh data pengukurannya?')) {
                                 try {
-                                  const res = await fetch(`/api/substations/${substation.id}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                      'Authorization': `Bearer ${adminToken}` // pastikan adminToken tersedia di context/state
-                                    }
-                                  });
-                                  if (res.ok) {
-                                    window.alert('Gardu berhasil dihapus!');
-                                    window.location.reload();
-                                  } else {
-                                    const err = await res.json();
-                                    window.alert('Gagal menghapus gardu: ' + (err?.error || 'Unknown error'));
-                                  }
+                                  await ApiService.deleteSubstation(substation.id);
+                                  window.alert('Gardu berhasil dihapus!');
+                                  window.location.reload();
                                 } catch (e) {
+                                  console.error('Error deleting substation:', e);
                                   window.alert('Gagal menghapus gardu!');
                                 }
                               }
