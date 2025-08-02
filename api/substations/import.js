@@ -37,32 +37,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Debug request details
-  console.log('🔍 Request details:');
-  console.log('🔍 Method:', req.method);
-  console.log('🔍 Content-Type:', req.headers['content-type']);
-  console.log('🔍 Body type:', typeof req.body);
-  console.log('🔍 Body length:', req.body ? JSON.stringify(req.body).length : 'null');
-  console.log('🔍 Body preview:', req.body ? JSON.stringify(req.body).substring(0, 500) : 'null');
-
   try {
     console.log('📥 Importing substations...');
     
     const db = await initPrisma();
     const substationsData = req.body;
     
-    // Validate request body
-    if (!substationsData) {
-      console.error('❌ Request body is null or undefined');
-      return res.status(400).json({
-        success: false,
-        error: 'Request body is empty or invalid.'
-      });
-    }
+    console.log('📊 Received data type:', typeof substationsData);
+    console.log('📊 Received data length:', Array.isArray(substationsData) ? substationsData.length : 'not array');
     
     if (!Array.isArray(substationsData)) {
-      console.error('❌ Invalid data format received:', typeof substationsData);
-      console.error('❌ Data sample:', JSON.stringify(substationsData).substring(0, 500));
       return res.status(400).json({
         success: false,
         error: 'Invalid data format. Expected array of substations.'
@@ -70,82 +54,49 @@ export default async function handler(req, res) {
     }
     
     console.log(`📝 Importing ${substationsData.length} substations`);
-    
-    // Validate first item structure
-    if (substationsData.length > 0) {
-      const firstItem = substationsData[0];
-      console.log('📊 Sample data structure:', JSON.stringify(firstItem, null, 2));
-      
-      // Check for required fields in first item
-      if (!firstItem.namaLokasiGardu || !firstItem.noGardu || !firstItem.ulp) {
-        console.error('❌ Missing required fields in first item:', {
-          namaLokasiGardu: !!firstItem.namaLokasiGardu,
-          noGardu: !!firstItem.noGardu,
-          ulp: !!firstItem.ulp
-        });
-        return res.status(400).json({
-          success: false,
-          error: 'Missing required fields in data structure.'
-        });
-      }
-    }
 
     const createdSubstations = [];
     const errors = [];
 
-    // Process sequentially to avoid complexity
+    // Process sequentially
     for (let i = 0; i < substationsData.length; i++) {
       try {
         const data = substationsData[i];
         
-        // Validate required fields
+        // Basic validation
         if (!data.namaLokasiGardu || !data.noGardu || !data.ulp) {
           console.warn(`⚠️ Skipping substation ${i + 1}: Missing required fields`);
           errors.push({
             index: i,
-            data: data,
-            error: 'Missing required fields: namaLokasiGardu, noGardu, or ulp'
+            error: 'Missing required fields'
           });
           continue;
         }
         
         console.log(`🔄 Processing substation ${i + 1}/${substationsData.length}: ${data.namaLokasiGardu}`);
         
-        // Clean and validate data - sesuai dengan format dari SubstationImportModal
+        // Simple data cleaning with robust default handling
         const cleanData = {
           no: parseInt(data.no) || i + 1,
-          ulp: String(data.ulp || '').trim(),
-          noGardu: String(data.noGardu || '').trim(),
-          namaLokasiGardu: String(data.namaLokasiGardu || '').trim(),
-          jenis: String(data.jenis || '').trim(),
-          merek: String(data.merek || '').trim(),
-          daya: String(data.daya || '').trim(),
+          ulp: String(data.ulp || '').trim() || 'Unknown',
+          noGardu: String(data.noGardu || '').trim() || 'Unknown',
+          namaLokasiGardu: String(data.namaLokasiGardu || '').trim() || 'Unknown',
+          jenis: String(data.jenis || '').trim() || 'Unknown',
+          merek: String(data.merek || '').trim() || 'Unknown',
+          daya: String(data.daya || '').trim() || '0',
           tahun: (() => {
             const tahunValue = String(data.tahun || '').trim();
-            // Handle truncated or corrupted tahun values
-            if (!tahunValue || tahunValue.length === 0) return '0';
-            // If tahun is truncated (less than 4 digits), return '0'
-            if (tahunValue.length < 4) return '0';
-            // If tahun is valid (4 digits), return it
-            if (/^\d{4}$/.test(tahunValue)) return tahunValue;
-            // If tahun is longer than 4 digits, take first 4
-            if (tahunValue.length > 4) return tahunValue.substring(0, 4);
-            // Default fallback
-            return '0';
+            // If empty, invalid, or not a number, return '0'
+            if (!tahunValue || tahunValue === '' || isNaN(parseInt(tahunValue))) {
+              return '0';
+            }
+            // If valid number, return it
+            return tahunValue;
           })(),
-          phasa: String(data.phasa || '').trim(),
-          tap_trafo_max_tap: (() => {
-            const tapValue = String(data.tap_trafo_max_tap || '').trim();
-            // Handle truncated or corrupted tap values
-            if (!tapValue || tapValue.length === 0) return '0';
-            // If it's a valid number, return it
-            if (/^\d+$/.test(tapValue)) return tapValue;
-            // If it's truncated, try to extract valid part
-            const validPart = tapValue.match(/^\d+/);
-            return validPart ? validPart[0] : '0';
-          })(),
-          penyulang: String(data.penyulang || '').trim(),
-          arahSequence: String(data.arahSequence || '').trim(),
+          phasa: String(data.phasa || '').trim() || '0',
+          tap_trafo_max_tap: String(data.tap_trafo_max_tap || '').trim() || '0',
+          penyulang: String(data.penyulang || '').trim() || 'Unknown',
+          arahSequence: String(data.arahSequence || '').trim() || 'Unknown',
           tanggal: (() => {
             // Handle tanggal validation and default to current date if invalid
             if (data.tanggal) {
@@ -160,8 +111,18 @@ export default async function handler(req, res) {
           status: data.status || 'normal',
           is_active: data.is_active || 1,
           ugb: data.ugb || 0,
-          latitude: data.latitude ? parseFloat(data.latitude) : null,
-          longitude: data.longitude ? parseFloat(data.longitude) : null
+          latitude: (() => {
+            const lat = data.latitude;
+            if (lat === null || lat === undefined || lat === '') return null;
+            const parsed = parseFloat(lat);
+            return isNaN(parsed) ? null : parsed;
+          })(),
+          longitude: (() => {
+            const lng = data.longitude;
+            if (lng === null || lng === undefined || lng === '') return null;
+            const parsed = parseFloat(lng);
+            return isNaN(parsed) ? null : parsed;
+          })()
         };
         
         // Create substation
@@ -171,28 +132,67 @@ export default async function handler(req, res) {
 
         console.log(`✅ Created substation: ${newSubstation.id} - ${newSubstation.namaLokasiGardu}`);
 
-        // Process measurements if provided - sesuai dengan format dari SubstationImportModal
-        const month = new Date(cleanData.tanggal).toISOString().slice(0, 7); // Format: YYYY-MM
+        // Process measurements
+        const month = new Date(cleanData.tanggal).toISOString().slice(0, 7);
         
-        // Process siang measurements - frontend sudah mengirim array lengkap dengan 5 measurements
+        // Process siang measurements
         if (data.measurements_siang && Array.isArray(data.measurements_siang) && data.measurements_siang.length > 0) {
           const siangMeasurements = data.measurements_siang.map(measurement => ({
             substationId: newSubstation.id,
             row_name: String(measurement.row_name || 'induk').toLowerCase(),
             month: month,
-            r: parseFloat(measurement.r) || 0,
-            s: parseFloat(measurement.s) || 0,
-            t: parseFloat(measurement.t) || 0,
-            n: parseFloat(measurement.n) || 0,
-            rn: parseFloat(measurement.rn) || 0,
-            sn: parseFloat(measurement.sn) || 0,
-            tn: parseFloat(measurement.tn) || 0,
-            pp: parseFloat(measurement.pp) || 0,
-            pn: parseFloat(measurement.pn) || 0,
-            rata2: parseFloat(measurement.rata2) || 0,
-            kva: parseFloat(measurement.kva) || 0,
-            persen: parseFloat(measurement.persen) || 0,
-            unbalanced: parseFloat(measurement.unbalanced) || 0,
+            r: (() => {
+              const val = parseFloat(measurement.r);
+              return isNaN(val) ? 0 : val;
+            })(),
+            s: (() => {
+              const val = parseFloat(measurement.s);
+              return isNaN(val) ? 0 : val;
+            })(),
+            t: (() => {
+              const val = parseFloat(measurement.t);
+              return isNaN(val) ? 0 : val;
+            })(),
+            n: (() => {
+              const val = parseFloat(measurement.n);
+              return isNaN(val) ? 0 : val;
+            })(),
+            rn: (() => {
+              const val = parseFloat(measurement.rn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            sn: (() => {
+              const val = parseFloat(measurement.sn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            tn: (() => {
+              const val = parseFloat(measurement.tn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            pp: (() => {
+              const val = parseFloat(measurement.pp);
+              return isNaN(val) ? 0 : val;
+            })(),
+            pn: (() => {
+              const val = parseFloat(measurement.pn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            rata2: (() => {
+              const val = parseFloat(measurement.rata2);
+              return isNaN(val) ? 0 : val;
+            })(),
+            kva: (() => {
+              const val = parseFloat(measurement.kva);
+              return isNaN(val) ? 0 : val;
+            })(),
+            persen: (() => {
+              const val = parseFloat(measurement.persen);
+              return isNaN(val) ? 0 : val;
+            })(),
+            unbalanced: (() => {
+              const val = parseFloat(measurement.unbalanced);
+              return isNaN(val) ? 0 : val;
+            })(),
             lastUpdate: new Date()
           }));
 
@@ -200,28 +200,67 @@ export default async function handler(req, res) {
             data: siangMeasurements
           });
 
-          console.log(`✅ Created ${siangMeasurements.length} siang measurements for substation ${newSubstation.id}`);
+          console.log(`✅ Created ${siangMeasurements.length} siang measurements`);
         }
 
-        // Process malam measurements - frontend sudah mengirim array lengkap dengan 5 measurements
+        // Process malam measurements
         if (data.measurements_malam && Array.isArray(data.measurements_malam) && data.measurements_malam.length > 0) {
           const malamMeasurements = data.measurements_malam.map(measurement => ({
             substationId: newSubstation.id,
             row_name: String(measurement.row_name || 'induk').toLowerCase(),
             month: month,
-            r: parseFloat(measurement.r) || 0,
-            s: parseFloat(measurement.s) || 0,
-            t: parseFloat(measurement.t) || 0,
-            n: parseFloat(measurement.n) || 0,
-            rn: parseFloat(measurement.rn) || 0,
-            sn: parseFloat(measurement.sn) || 0,
-            tn: parseFloat(measurement.tn) || 0,
-            pp: parseFloat(measurement.pp) || 0,
-            pn: parseFloat(measurement.pn) || 0,
-            rata2: parseFloat(measurement.rata2) || 0,
-            kva: parseFloat(measurement.kva) || 0,
-            persen: parseFloat(measurement.persen) || 0,
-            unbalanced: parseFloat(measurement.unbalanced) || 0,
+            r: (() => {
+              const val = parseFloat(measurement.r);
+              return isNaN(val) ? 0 : val;
+            })(),
+            s: (() => {
+              const val = parseFloat(measurement.s);
+              return isNaN(val) ? 0 : val;
+            })(),
+            t: (() => {
+              const val = parseFloat(measurement.t);
+              return isNaN(val) ? 0 : val;
+            })(),
+            n: (() => {
+              const val = parseFloat(measurement.n);
+              return isNaN(val) ? 0 : val;
+            })(),
+            rn: (() => {
+              const val = parseFloat(measurement.rn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            sn: (() => {
+              const val = parseFloat(measurement.sn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            tn: (() => {
+              const val = parseFloat(measurement.tn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            pp: (() => {
+              const val = parseFloat(measurement.pp);
+              return isNaN(val) ? 0 : val;
+            })(),
+            pn: (() => {
+              const val = parseFloat(measurement.pn);
+              return isNaN(val) ? 0 : val;
+            })(),
+            rata2: (() => {
+              const val = parseFloat(measurement.rata2);
+              return isNaN(val) ? 0 : val;
+            })(),
+            kva: (() => {
+              const val = parseFloat(measurement.kva);
+              return isNaN(val) ? 0 : val;
+            })(),
+            persen: (() => {
+              const val = parseFloat(measurement.persen);
+              return isNaN(val) ? 0 : val;
+            })(),
+            unbalanced: (() => {
+              const val = parseFloat(measurement.unbalanced);
+              return isNaN(val) ? 0 : val;
+            })(),
             lastUpdate: new Date()
           }));
 
@@ -229,15 +268,14 @@ export default async function handler(req, res) {
             data: malamMeasurements
           });
 
-          console.log(`✅ Created ${malamMeasurements.length} malam measurements for substation ${newSubstation.id}`);
+          console.log(`✅ Created ${malamMeasurements.length} malam measurements`);
         }
 
-        // Jika tidak ada measurements dari frontend, buat default (seharusnya tidak terjadi karena frontend selalu mengirim)
+        // Create default measurements if none provided
         if ((!data.measurements_siang || data.measurements_siang.length === 0) && 
             (!data.measurements_malam || data.measurements_malam.length === 0)) {
           const rowNames = ['induk', '1', '2', '3', '4'];
           
-          // Create default siang measurements
           const defaultSiangMeasurements = rowNames.map(rowName => ({
             substationId: newSubstation.id,
             row_name: rowName,
@@ -249,7 +287,6 @@ export default async function handler(req, res) {
             lastUpdate: new Date()
           }));
 
-          // Create default malam measurements
           const defaultMalamMeasurements = rowNames.map(rowName => ({
             substationId: newSubstation.id,
             row_name: rowName,
@@ -270,16 +307,15 @@ export default async function handler(req, res) {
             })
           ]);
 
-          console.log(`✅ Created default measurements for substation ${newSubstation.id}`);
+          console.log(`✅ Created default measurements`);
         }
 
         createdSubstations.push(newSubstation);
-        console.log(`✅ Completed substation ${i + 1}/${substationsData.length}:`, newSubstation.id);
+        console.log(`✅ Completed substation ${i + 1}/${substationsData.length}`);
       } catch (error) {
         console.error(`❌ Error creating substation ${i + 1}:`, error);
         errors.push({
           index: i,
-          data: substationsData[i],
           error: error.message
         });
       }
