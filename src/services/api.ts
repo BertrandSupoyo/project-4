@@ -19,6 +19,9 @@ export class ApiService {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${API_BASE_URL}${endpoint}`;
+      console.log('🔗 Making API request to:', url);
+      console.log('🔗 Request options:', { method: options.method, body: options.body });
+      
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -27,17 +30,23 @@ export class ApiService {
         ...options,
       });
 
+      console.log('🔗 Response status:', response.status);
+      console.log('🔗 Response headers:', Object.fromEntries(response.headers.entries()));
+
       const data = await response.json().catch(() => ({}));
+      console.log('🔗 Response data:', data);
+      
       if (!response.ok) {
         // Lempar error detail dari backend
         const error = new Error(`HTTP error! status: ${response.status}`);
         (error as any).detail = data;
+        console.error('❌ API request failed with status:', response.status, 'data:', data);
         throw error;
       }
 
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('❌ API request failed:', error);
       throw error;
     }
   }
@@ -65,10 +74,16 @@ export class ApiService {
 
   // Mengupdate data gardu
   static async updateSubstation(id: string, updates: Partial<SubstationData>): Promise<SubstationData> {
+    console.log('🔗 ApiService.updateSubstation called with:', { id, updates });
+    console.log('🔗 API_BASE_URL:', API_BASE_URL);
+    console.log('🔗 Full URL:', `${API_BASE_URL}/substations/${id}`);
+    
     const response = await this.request<SubstationData>(`/substations/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(updates),
     });
+    
+    console.log('✅ ApiService.updateSubstation response:', response);
     return response.data;
   }
 
