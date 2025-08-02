@@ -19,7 +19,7 @@
       "maxDuration": 30
     },
     "api/substations/import.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     },
     "api/measurements_siang/bulk.js": {
       "maxDuration": 60
