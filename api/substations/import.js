@@ -79,9 +79,44 @@ export default async function handler(req, res) {
 
                 if (!getField(rowObj0, ['ulp']) || !getField(rowObj0, ['nogardu']) || !getField(rowObj0, ['namalokasi'])) continue;
 
-                const mainData = { /* ... (kode ekstraksi data Anda sama) ... */ };
-                const measurements_siang = [ /* ... */ ];
-                const measurements_malam = [ /* ... */ ];
+                // --- BAGIAN YANG DIPERBAIKI ---
+                const mainData = {
+                    no: parseInt(getField(rowObj0, ['no'])) || 0,
+                    ulp: String(getField(rowObj0, ['ulp'])).trim(),
+                    noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
+                    namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
+                    jenis: String(getField(rowObj0, ['jenis'])).trim(),
+                    merek: String(getField(rowObj0, ['merk', 'merek'])).trim(),
+                    daya: String(getField(rowObj0, ['daya'])).trim(),
+                    tahun: String(getField(rowObj0, ['tahun'])).trim(),
+                    phasa: String(getField(rowObj0, ['phasa'])).trim(),
+                    tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
+                    penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
+                    arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
+                    tanggal: new Date(getField(rowObj0, ['tanggal']) || Date.now()),
+                };
+
+                const extractMeasurements = (siangOrMalam) => {
+                    return group.map(rowArr => {
+                        const rowObj = {};
+                        headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
+                        return {
+                            row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
+                            r: parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0,
+                            s: parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0,
+                            t: parseFloat(getField(rowObj, [`t${siangOrMalam}`, `t(${siangOrMalam})`])) || 0,
+                            n: parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0,
+                            rn: parseFloat(getField(rowObj, [`rn${siangOrMalam}`, `r-n(${siangOrMalam})`])) || 0,
+                            sn: parseFloat(getField(rowObj, [`sn${siangOrMalam}`, `s-n(${siangOrMalam})`])) || 0,
+                            tn: parseFloat(getField(rowObj, [`tn${siangOrMalam}`, `t-n(${siangOrMalam})`])) || 0,
+                            pp: parseFloat(getField(rowObj, [`pp${siangOrMalam}`, `p-p(${siangOrMalam})`])) || 0,
+                            pn: parseFloat(getField(rowObj, [`pn${siangOrMalam}`, `p-n(${siangOrMalam})`])) || 0,
+                        };
+                    }).filter(m => m.row_name !== 'unknown');
+                };
+        
+                const measurements_siang = extractMeasurements('siang');
+                const measurements_malam = extractMeasurements('malam');
 
                 transformedData.push({ ...mainData, measurements_siang, measurements_malam });
             }
@@ -92,22 +127,10 @@ export default async function handler(req, res) {
             
             const db = await initPrisma();
             
-            // --- LOGIKA TRANSAKSI YANG DIOPTIMALKAN ---
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
                 for (const data of transformedData) {
-                    await tx.substation.create({
-                        data: {
-                            // Data gardu
-                            ulp: data.ulp,
-                            noGardu: data.noGardu,
-                            // ... semua field gardu lainnya
-                            
-                            // Data pengukuran terkait
-                            measurements_siang: { create: data.measurements_siang },
-                            measurements_malam: { create: data.measurements_malam }
-                        }
-                    });
+                    await tx.substation.create({ data }); // Disederhanakan karena nama field sudah cocok
                     createdCount++;
                 }
                 return { createdCount };
