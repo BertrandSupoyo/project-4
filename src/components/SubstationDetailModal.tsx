@@ -132,12 +132,11 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleUpdateCoordinates = async (latitude: number, longitude: number) => {
     if (!substation) return;
     try {
-      console.log('🌍 Updating coordinates:', { id: substation.id, latitude, longitude });
-      await ApiService.updateSubstationCoordinates(substation.id, latitude, longitude);
-      console.log('✅ Coordinates updated successfully');
+      const update = { id: substation.id, latitude, longitude };
+      console.log('🌍 PATCH koordinat ke API:', update);
+      await onUpdateSubstation(update);
       window.alert('Koordinat berhasil diupdate!');
     } catch (err) {
-      console.error('❌ Failed to update coordinates:', err);
       window.alert('Gagal mengupdate koordinat lokasi!');
     }
   };
@@ -202,7 +201,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
     console.log(`🔍 Available measurements:`, measurements.map(m => ({ row_name: m.row_name, substationId: m.substationId })));
     
     const found = measurements.find(
-      m => m.row_name?.toLowerCase() === rowName.toString().toLowerCase() && String(m.substationId) === String(substationId)
+        m => m.row_name?.toLowerCase() === rowName.toString().toLowerCase() && String(m.substationId) === String(substationId)
     );
     
     if (found) {

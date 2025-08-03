@@ -98,47 +98,25 @@ export const RiwayatGarduTable: React.FC = () => {
     setData(filtered);
   }, [selectedMonth, selectedYear, allData]);
 
-  // Handle export Excel menggunakan endpoint riwayat dengan filter bulan/tahun
+  // Handle export Excel menggunakan endpoint riwayat dengan template yang sama
   const handleExportRiwayat = async () => {
     try {
-      if (!selectedMonth || !selectedYear) {
-        window.alert('Pilih bulan dan tahun terlebih dahulu!');
-        return;
-      }
-
-      console.log('📊 Exporting riwayat for:', { month: selectedMonth, year: selectedYear });
-      
-      const response = await fetch(`/api/export/riwayat?month=${selectedMonth}&year=${selectedYear}`, {
+      const response = await fetch('/api/export/riwayat', {
         method: 'GET'
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Gagal mengunduh file Excel');
-      }
-      
+      if (!response.ok) throw new Error('Gagal mengunduh file Excel');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      
-      // Generate filename dengan bulan dan tahun
-      const monthNames = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-      ];
-      const monthName = monthNames[parseInt(selectedMonth) - 1];
-      a.download = `Riwayat_Pengukuran_${monthName}_${selectedYear}.xlsx`;
-      
+      const monthName = selectedMonth ? new Date(`2000-${selectedMonth}-01`).toLocaleString('id-ID', { month: 'long' }) : '';
+      a.download = `Riwayat_Pengukuran_${selectedYear || ''}_${monthName || ''}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      
-      console.log('✅ Export successful for:', `${monthName} ${selectedYear}`);
     } catch (err) {
-      console.error('❌ Export failed:', err);
-      window.alert(`Gagal mengunduh file Excel: ${err.message}`);
+      window.alert('Gagal mengunduh file Excel!');
     }
   };
 

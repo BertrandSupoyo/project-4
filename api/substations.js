@@ -173,6 +173,68 @@ export default async function handler(req, res) {
     }
   }
 
+  // PATCH - Update substation
+  else if (req.method === 'PATCH') {
+    try {
+      console.log('🏭 PATCH update request:', req.body);
+      const { id } = req.query;
+      const updateData = req.body;
+      
+      console.log('📝 Update data:', { id, updateData });
+
+      const updatedSubstation = await db.substation.update({
+        where: { id },
+        data: updateData
+      });
+
+      console.log('✅ Substation updated:', updatedSubstation.id);
+      console.log('📝 Updated fields:', updateData);
+      console.log('📊 New values - is_active:', updatedSubstation.is_active, 'ugb:', updatedSubstation.ugb);
+
+      res.json({
+        success: true,
+        data: updatedSubstation,
+        message: 'Substation updated successfully'
+      });
+    } catch (err) {
+      console.error('💥 Substation PATCH error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        details: err.message
+      });
+    }
+  }
+
+  // DELETE - Delete substation
+  else if (req.method === 'DELETE') {
+    try {
+      console.log('🏭 Deleting substation...');
+      
+      const { id } = req.query;
+      
+      await db.substation.delete({
+        where: { id }
+      });
+
+      console.log('✅ Substation deleted:', id);
+
+      res.json({
+        success: true,
+        message: 'Substation deleted successfully'
+      });
+    } catch (err) {
+      console.error('💥 Substation DELETE error:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        details: err.message
+      });
+    }
+  }
+
+  
+
   else {
     return res.status(405).json({ error: 'Method not allowed' });
   }

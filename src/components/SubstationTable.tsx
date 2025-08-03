@@ -89,12 +89,9 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
     try {
       const updated = { id, is_active: isActive };
       console.log('🔗 PATCH to API with:', updated);
-      console.log('🔗 API URL:', import.meta.env.VITE_API_BASE_URL);
       await onUpdateSubstation(updated);
-      console.log('✅ Update successful');
       window.alert('Status aktif gardu berhasil diubah!');
     } catch (error) {
-      console.error('❌ Update failed:', error);
       window.alert('Gagal mengupdate status aktif gardu!');
     }
   };
@@ -104,12 +101,9 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
     try {
       const updated = { id, ugb };
       console.log('🔗 PATCH to API with:', updated);
-      console.log('🔗 API URL:', import.meta.env.VITE_API_BASE_URL);
       await onUpdateSubstation(updated);
-      console.log('✅ UGB Update successful');
       window.alert('Status UGB gardu berhasil diubah!');
     } catch (error) {
-      console.error('❌ UGB Update failed:', error);
       window.alert('Gagal mengupdate status UGB gardu!');
     }
   };
@@ -325,15 +319,14 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              if (window.confirm(`Yakin ingin menghapus gardu "${substation.namaLokasiGardu}" (${substation.noGardu})?\n\n⚠️ PERINGATAN: Semua data pengukuran siang dan malam yang terkait juga akan dihapus secara permanen!`)) {
+                              if (window.confirm('Yakin ingin menghapus gardu ini beserta seluruh data pengukurannya?')) {
                                 try {
-                                  const result = await ApiService.deleteSubstation(substation.id);
-                                  console.log('🗑️ Delete result:', result);
-                                  window.alert(`✅ Gardu "${substation.namaLokasiGardu}" berhasil dihapus!\n\n📊 Data yang dihapus:\n• 1 Substation\n• ${result.data?.siangMeasurementsDeleted || 0} Pengukuran Siang\n• ${result.data?.malamMeasurementsDeleted || 0} Pengukuran Malam`);
-                                  window.location.reload();
+                                  await ApiService.deleteSubstation(substation.id);
+                                    window.alert('Gardu berhasil dihapus!');
+                                    window.location.reload();
                                 } catch (e) {
                                   console.error('Error deleting substation:', e);
-                                  window.alert('❌ Gagal menghapus gardu! Silakan coba lagi.');
+                                  window.alert('Gagal menghapus gardu!');
                                 }
                               }
                             }}

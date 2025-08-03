@@ -1,387 +1,208 @@
-import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js'
-import { withAccelerate } from '@prisma/extension-accelerate'
+import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js';
+import { withAccelerate } from '@prisma/extension-accelerate';
+import { IncomingForm } from 'formidable';
+import * as XLSX from 'xlsx';
+import fs from 'fs';
 
 let prisma;
 
+// Fungsi untuk menginisialisasi Prisma Client
 async function initPrisma() {
   if (!prisma) {
-    console.log('🔧 Initializing Prisma Client...');
+    console.log('🔧 Menginisialisasi Prisma Client...');
     try {
       prisma = new PrismaClient().$extends(withAccelerate());
       await prisma.$connect();
-      console.log('✅ Database connected successfully');
+      console.log('✅ Koneksi database berhasil');
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
+      console.error('❌ Koneksi database gagal:', error);
       throw error;
     }
   }
   return prisma;
 }
 
-// Helper function to parse JSON body
-function parseJsonBody(req) {
-  if (req.body) {
-    return req.body;
-  }
-  
-  // If body is not parsed, try to parse it manually
-  if (req.headers['content-type']?.includes('application/json')) {
-    try {
-      // In Vercel, sometimes the body comes as a string
-      if (typeof req.body === 'string') {
-        return JSON.parse(req.body);
-      }
-      // Or it might be in a different property
-      if (req.body && typeof req.body === 'object') {
-        return req.body;
-      }
-    } catch (error) {
-      console.error('Failed to parse JSON body:', error);
-      throw new Error('Invalid JSON format');
-    }
-  }
-  
-  return null;
-}
+// Menonaktifkan bodyParser bawaan Next.js agar formidable bisa bekerja
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
+// Handler utama untuk API
 export default async function handler(req, res) {
-  // Enable CORS
+  // Pengaturan CORS untuk mengizinkan permintaan dari domain lain
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
+  // Menangani pre-flight request dari browser
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
+  // Hanya mengizinkan metode POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Metode tidak diizinkan' });
   }
 
-  try {
-    console.log('📥 Importing substations...');
-    console.log('📊 Request headers:', req.headers);
-    console.log('📊 Request body type:', typeof req.body);
-    console.log('📊 Request body:', JSON.stringify(req.body, null, 2));
-    
-    const db = await initPrisma();
-    
-    // Parse the request body
-    const substationsData = parseJsonBody(req);
-    
-    if (!substationsData) {
-      return res.status(400).json({
-        success: false,
-        error: 'Request body is empty or could not be parsed'
-      });
-    }
-    
-    console.log('📊 Parsed data type:', typeof substationsData);
-    console.log('📊 Parsed data length:', Array.isArray(substationsData) ? substationsData.length : 'not array');
-    
-    if (!Array.isArray(substationsData)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid data format. Expected array of substations.'
-      });
-    }
-    
-    console.log(`📝 Importing ${substationsData.length} substations`);
+  const form = new IncomingForm();
 
-    const createdSubstations = [];
-    const errors = [];
+  form.parse(req, async (err, fields, files) => {
+    if (err || !files.file) {
+      console.error('❌ Gagal mem-parsing form:', err);
+      return res.status(400).json({ success: false, error: 'Gagal mengunggah file atau tidak ada file yang diunggah.' });
+    }
 
-    // Process sequentially
-    for (let i = 0; i < substationsData.length; i++) {
-      try {
-        const data = substationsData[i];
-        
-        // Basic validation
-        if (!data.namaLokasiGardu || !data.noGardu || !data.ulp) {
-          console.warn(`⚠️ Skipping substation ${i + 1}: Missing required fields`);
-          errors.push({
-            index: i,
-            error: 'Missing required fields'
-          });
-          continue;
+    try {
+      // === TAHAP 1: MEMBACA DAN MEMPROSES FILE EXCEL ===
+      console.log('📄 Mulai memproses file Excel...');
+      const fileContent = fs.readFileSync(files.file[0].filepath);
+      const workbook = XLSX.read(fileContent, { type: 'buffer' });
+
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+
+      if (allRows.length < 6) {
+        throw new Error('File tidak memiliki cukup baris data untuk diproses.');
+      }
+
+      const normalize = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      const headerRowIdx = allRows.findIndex(row =>
+        row.some((cell) => normalize(cell) === 'nogardu')
+      );
+      
+      if (headerRowIdx === -1) {
+        throw new Error('Header "nogardu" tidak dapat ditemukan di dalam file Excel. Pastikan format file benar.');
+      }
+
+      const headerRow = allRows[headerRowIdx].map(normalize);
+      const dataRows = allRows.slice(headerRowIdx + 1);
+
+      const getField = (rowObj, keys) => {
+        for (const key of keys) {
+            const val = rowObj[key];
+            if (val !== undefined && val !== null && String(val).trim() !== '') {
+                return val;
+            }
+        }
+        return '';
+      };
+
+      const transformedData = [];
+      for (let i = 0; i < dataRows.length; i += 5) {
+        const group = dataRows.slice(i, i + 5);
+        if (group.length < 5) continue;
+
+        const rowObj0 = {};
+        headerRow.forEach((col, idx) => { rowObj0[col] = group[0]?.[idx]; });
+
+        if (!getField(rowObj0, ['ulp']) || !getField(rowObj0, ['nogardu']) || !getField(rowObj0, ['namalokasi'])) {
+            continue;
         }
         
-        console.log(`🔄 Processing substation ${i + 1}/${substationsData.length}: ${data.namaLokasiGardu}`);
-        
-        // Simple data cleaning with robust default handling
-        const cleanData = {
-          no: parseInt(data.no) || i + 1,
-          ulp: String(data.ulp || '').trim() || 'Unknown',
-          noGardu: String(data.noGardu || '').trim() || 'Unknown',
-          namaLokasiGardu: String(data.namaLokasiGardu || '').trim() || 'Unknown',
-          jenis: String(data.jenis || '').trim() || 'Unknown',
-          merek: String(data.merek || '').trim() || 'Unknown',
-          daya: String(data.daya || '').trim() || '0',
-          tahun: (() => {
-            const tahunValue = String(data.tahun || '').trim();
-            // Handle any invalid data by defaulting to '0'
-            if (!tahunValue || tahunValue.length === 0) {
-              return '0';
-            }
-            
-            // If tahun contains non-numeric characters, return '0'
-            if (!/^\d+$/.test(tahunValue)) {
-              return '0';
-            }
-            
-            // Return the value as is (pure text, no length validation)
-            return tahunValue;
-          })(),
-          phasa: String(data.phasa || '').trim() || '0',
-          tap_trafo_max_tap: String(data.tap_trafo_max_tap || '').trim() || '0',
-          penyulang: String(data.penyulang || '').trim() || 'Unknown',
-          arahSequence: String(data.arahSequence || '').trim() || 'Unknown',
-          tanggal: (() => {
-            // Handle tanggal validation and default to current date if invalid
-            if (data.tanggal) {
-              const d = new Date(data.tanggal);
-              if (!isNaN(d.getTime())) {
-                return d;
-              }
-            }
-            // Return current date as default
-            return new Date();
-          })(),
-          status: data.status || 'normal',
-          is_active: data.is_active || 1,
-          ugb: data.ugb || 0,
-          latitude: (() => {
-            const lat = data.latitude;
-            if (lat === null || lat === undefined || lat === '') return null;
-            const parsed = parseFloat(lat);
-            return isNaN(parsed) ? null : parsed;
-          })(),
-          longitude: (() => {
-            const lng = data.longitude;
-            if (lng === null || lng === undefined || lng === '') return null;
-            const parsed = parseFloat(lng);
-            return isNaN(parsed) ? null : parsed;
-          })()
+        const mainData = {
+            ulp: String(getField(rowObj0, ['ulp'])).trim(),
+            noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
+            namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
+            jenis: String(getField(rowObj0, ['jenis'])).trim(),
+            merek: String(getField(rowObj0, ['merk', 'merek'])).trim(),
+            daya: String(getField(rowObj0, ['daya'])).trim(),
+            tahun: String(getField(rowObj0, ['tahun'])).trim(),
+            phasa: String(getField(rowObj0, ['phasa'])).trim(),
+            tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
+            penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
+            arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
+            tanggal: new Date(getField(rowObj0, ['tanggal']) || Date.now()),
+        };
+
+        const extractMeasurements = (siangOrMalam) => {
+            return group.map(rowArr => {
+                const rowObj = {};
+                headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
+                return {
+                    row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
+                    r: parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0,
+                    s: parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0,
+                    t: parseFloat(getField(rowObj, [`t${siangOrMalam}`, `t(${siangOrMalam})`])) || 0,
+                    n: parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0,
+                    rn: parseFloat(getField(rowObj, [`rn${siangOrMalam}`, `r-n(${siangOrMalam})`])) || 0,
+                    sn: parseFloat(getField(rowObj, [`sn${siangOrMalam}`, `s-n(${siangOrMalam})`])) || 0,
+                    tn: parseFloat(getField(rowObj, [`tn${siangOrMalam}`, `t-n(${siangOrMalam})`])) || 0,
+                    pp: parseFloat(getField(rowObj, [`pp${siangOrMalam}`, `p-p(${siangOrMalam})`])) || 0,
+                    pn: parseFloat(getField(rowObj, [`pn${siangOrMalam}`, `p-n(${siangOrMalam})`])) || 0,
+                };
+            }).filter(m => m.row_name !== 'unknown');
         };
         
-        // Create substation
-        const newSubstation = await db.substation.create({
-          data: cleanData
-        });
+        const measurements_siang = extractMeasurements('siang');
+        const measurements_malam = extractMeasurements('malam');
 
-        console.log(`✅ Created substation: ${newSubstation.id} - ${newSubstation.namaLokasiGardu}`);
-
-        // Process measurements
-        const month = new Date(cleanData.tanggal).toISOString().slice(0, 7);
-        
-        // Process siang measurements
-        if (data.measurements_siang && Array.isArray(data.measurements_siang) && data.measurements_siang.length > 0) {
-          const siangMeasurements = data.measurements_siang.map(measurement => ({
-            substationId: newSubstation.id,
-            row_name: String(measurement.row_name || 'induk').toLowerCase(),
-            month: month,
-            r: (() => {
-              const val = parseFloat(measurement.r);
-              return isNaN(val) ? 0 : val;
-            })(),
-            s: (() => {
-              const val = parseFloat(measurement.s);
-              return isNaN(val) ? 0 : val;
-            })(),
-            t: (() => {
-              const val = parseFloat(measurement.t);
-              return isNaN(val) ? 0 : val;
-            })(),
-            n: (() => {
-              const val = parseFloat(measurement.n);
-              return isNaN(val) ? 0 : val;
-            })(),
-            rn: (() => {
-              const val = parseFloat(measurement.rn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            sn: (() => {
-              const val = parseFloat(measurement.sn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            tn: (() => {
-              const val = parseFloat(measurement.tn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            pp: (() => {
-              const val = parseFloat(measurement.pp);
-              return isNaN(val) ? 0 : val;
-            })(),
-            pn: (() => {
-              const val = parseFloat(measurement.pn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            rata2: (() => {
-              const val = parseFloat(measurement.rata2);
-              return isNaN(val) ? 0 : val;
-            })(),
-            kva: (() => {
-              const val = parseFloat(measurement.kva);
-              return isNaN(val) ? 0 : val;
-            })(),
-            persen: (() => {
-              const val = parseFloat(measurement.persen);
-              return isNaN(val) ? 0 : val;
-            })(),
-            unbalanced: (() => {
-              const val = parseFloat(measurement.unbalanced);
-              return isNaN(val) ? 0 : val;
-            })(),
-            lastUpdate: new Date()
-          }));
-
-          await db.measurementSiang.createMany({
-            data: siangMeasurements
-          });
-
-          console.log(`✅ Created ${siangMeasurements.length} siang measurements`);
-        }
-
-        // Process malam measurements
-        if (data.measurements_malam && Array.isArray(data.measurements_malam) && data.measurements_malam.length > 0) {
-          const malamMeasurements = data.measurements_malam.map(measurement => ({
-            substationId: newSubstation.id,
-            row_name: String(measurement.row_name || 'induk').toLowerCase(),
-            month: month,
-            r: (() => {
-              const val = parseFloat(measurement.r);
-              return isNaN(val) ? 0 : val;
-            })(),
-            s: (() => {
-              const val = parseFloat(measurement.s);
-              return isNaN(val) ? 0 : val;
-            })(),
-            t: (() => {
-              const val = parseFloat(measurement.t);
-              return isNaN(val) ? 0 : val;
-            })(),
-            n: (() => {
-              const val = parseFloat(measurement.n);
-              return isNaN(val) ? 0 : val;
-            })(),
-            rn: (() => {
-              const val = parseFloat(measurement.rn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            sn: (() => {
-              const val = parseFloat(measurement.sn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            tn: (() => {
-              const val = parseFloat(measurement.tn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            pp: (() => {
-              const val = parseFloat(measurement.pp);
-              return isNaN(val) ? 0 : val;
-            })(),
-            pn: (() => {
-              const val = parseFloat(measurement.pn);
-              return isNaN(val) ? 0 : val;
-            })(),
-            rata2: (() => {
-              const val = parseFloat(measurement.rata2);
-              return isNaN(val) ? 0 : val;
-            })(),
-            kva: (() => {
-              const val = parseFloat(measurement.kva);
-              return isNaN(val) ? 0 : val;
-            })(),
-            persen: (() => {
-              const val = parseFloat(measurement.persen);
-              return isNaN(val) ? 0 : val;
-            })(),
-            unbalanced: (() => {
-              const val = parseFloat(measurement.unbalanced);
-              return isNaN(val) ? 0 : val;
-            })(),
-            lastUpdate: new Date()
-          }));
-
-          await db.measurementMalam.createMany({
-            data: malamMeasurements
-          });
-
-          console.log(`✅ Created ${malamMeasurements.length} malam measurements`);
-        }
-
-        // Create default measurements if none provided
-        if ((!data.measurements_siang || data.measurements_siang.length === 0) && 
-            (!data.measurements_malam || data.measurements_malam.length === 0)) {
-          const rowNames = ['induk', '1', '2', '3', '4'];
-          
-          const defaultSiangMeasurements = rowNames.map(rowName => ({
-            substationId: newSubstation.id,
-            row_name: rowName,
-            month: month,
-            r: 0, s: 0, t: 0, n: 0,
-            rn: 0, sn: 0, tn: 0,
-            pp: 0, pn: 0,
-            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-            lastUpdate: new Date()
-          }));
-
-          const defaultMalamMeasurements = rowNames.map(rowName => ({
-            substationId: newSubstation.id,
-            row_name: rowName,
-            month: month,
-            r: 0, s: 0, t: 0, n: 0,
-            rn: 0, sn: 0, tn: 0,
-            pp: 0, pn: 0,
-            rata2: 0, kva: 0, persen: 0, unbalanced: 0,
-            lastUpdate: new Date()
-          }));
-
-          await Promise.all([
-            db.measurementSiang.createMany({
-              data: defaultSiangMeasurements
-            }),
-            db.measurementMalam.createMany({
-              data: defaultMalamMeasurements
-            })
-          ]);
-
-          console.log(`✅ Created default measurements`);
-        }
-
-        createdSubstations.push(newSubstation);
-        console.log(`✅ Completed substation ${i + 1}/${substationsData.length}`);
-      } catch (error) {
-        console.error(`❌ Error creating substation ${i + 1}:`, error);
-        errors.push({
-          index: i,
-          error: error.message
-        });
+        transformedData.push({ ...mainData, measurements_siang, measurements_malam });
       }
+
+      if (transformedData.length === 0) {
+        throw new Error('Tidak ada data yang valid untuk diimpor dari file ini.');
+      }
+      
+      console.log(`📊 Ditemukan ${transformedData.length} data gardu valid untuk diimpor.`);
+
+      // === TAHAP 2: MENYIMPAN DATA KE DATABASE ===
+      const db = await initPrisma();
+      let createdCount = 0;
+      const errors = [];
+
+      for (const data of transformedData) {
+        try {
+          await db.substation.create({
+            data: {
+              // Data utama gardu
+              ulp: data.ulp,
+              noGardu: data.noGardu,
+              namaLokasiGardu: data.namaLokasiGardu,
+              jenis: data.jenis,
+              merek: data.merek,
+              daya: data.daya,
+              tahun: data.tahun,
+              phasa: data.phasa,
+              tap_trafo_max_tap: data.tap_trafo_max_tap,
+              penyulang: data.penyulang,
+              arahSequence: data.arahSequence,
+              tanggal: data.tanggal,
+              
+              // Buat data pengukuran terkait menggunakan nested write
+              measurements_siang: {
+                  create: data.measurements_siang
+              },
+              measurements_malam: {
+                  create: data.measurements_malam
+              }
+            }
+          });
+          createdCount++;
+        } catch (dbError) {
+          console.error(`❌ Gagal menyimpan No. Gardu: ${data.noGardu}`, dbError.message);
+          errors.push({ noGardu: data.noGardu, error: dbError.message });
+        }
+      }
+
+      console.log(`✅ Impor selesai. ${createdCount} gardu berhasil dibuat.`);
+      res.status(200).json({
+        success: true,
+        message: `Impor selesai. ${createdCount} gardu berhasil dibuat. ${errors.length} gagal.`,
+        data: { createdCount, errors },
+      });
+
+    } catch (procError) {
+      console.error('💥 Terjadi kesalahan saat memproses file:', procError);
+      res.status(500).json({ success: false, error: 'Gagal memproses file.', details: procError.message });
     }
-
-    console.log(`✅ Import completed: ${createdSubstations.length} created, ${errors.length} errors`);
-
-    res.json({
-      success: true,
-      data: {
-        count: createdSubstations.length,
-        created: createdSubstations,
-        errors: errors
-      },
-      message: `Imported ${createdSubstations.length} substations successfully`
-    });
-  } catch (err) {
-    console.error('💥 Import error:', err);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      details: err.message
-    });
-  }
-} 
+  });
+}
