@@ -46,7 +46,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Hanya mengizinkan metode POST
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Metode tidak diizinkan' });
   }
@@ -61,7 +60,7 @@ export default async function handler(req, res) {
 
     try {
       // === TAHAP 1: MEMBACA DAN MEMPROSES FILE EXCEL ===
-      console.log('📄 Mulai memproses file Excel...');
+      console.log('📄 Mulai memproses file Excel di backend...');
       const fileContent = fs.readFileSync(files.file[0].filepath);
       const workbook = XLSX.read(fileContent, { type: 'buffer' });
 
@@ -69,8 +68,8 @@ export default async function handler(req, res) {
       const worksheet = workbook.Sheets[sheetName];
       const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
-      if (allRows.length < 6) {
-        throw new Error('File tidak memiliki cukup baris data untuk diproses.');
+      if (allRows.length < 1) {
+        throw new Error('File Excel kosong atau tidak memiliki data.');
       }
 
       const normalize = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -80,7 +79,7 @@ export default async function handler(req, res) {
       );
       
       if (headerRowIdx === -1) {
-        throw new Error('Header "nogardu" tidak dapat ditemukan di dalam file Excel. Pastikan format file benar.');
+        throw new Error('Header "nogardu" tidak dapat ditemukan di file Excel.');
       }
 
       const headerRow = allRows[headerRowIdx].map(normalize);
@@ -89,9 +88,7 @@ export default async function handler(req, res) {
       const getField = (rowObj, keys) => {
         for (const key of keys) {
             const val = rowObj[key];
-            if (val !== undefined && val !== null && String(val).trim() !== '') {
-                return val;
-            }
+            if (val !== undefined && val !== null && String(val).trim() !== '') return val;
         }
         return '';
       };
@@ -163,27 +160,13 @@ export default async function handler(req, res) {
         try {
           await db.substation.create({
             data: {
-              // Data utama gardu
-              ulp: data.ulp,
-              noGardu: data.noGardu,
-              namaLokasiGardu: data.namaLokasiGardu,
-              jenis: data.jenis,
-              merek: data.merek,
-              daya: data.daya,
-              tahun: data.tahun,
-              phasa: data.phasa,
-              tap_trafo_max_tap: data.tap_trafo_max_tap,
-              penyulang: data.penyulang,
-              arahSequence: data.arahSequence,
-              tanggal: data.tanggal,
+              ulp: data.ulp, noGardu: data.noGardu, namaLokasiGardu: data.namaLokasiGardu,
+              jenis: data.jenis, merek: data.merek, daya: data.daya, tahun: data.tahun,
+              phasa: data.phasa, tap_trafo_max_tap: data.tap_trafo_max_tap,
+              penyulang: data.penyulang, arahSequence: data.arahSequence, tanggal: data.tanggal,
               
-              // Buat data pengukuran terkait menggunakan nested write
-              measurements_siang: {
-                  create: data.measurements_siang
-              },
-              measurements_malam: {
-                  create: data.measurements_malam
-              }
+              measurements_siang: { create: data.measurements_siang },
+              measurements_malam: { create: data.measurements_malam }
             }
           });
           createdCount++;
