@@ -68,11 +68,11 @@ export default async function handler(req, res) {
             const worksheet = workbook.Sheets[sheetName];
             const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true });
 
-            const normalize = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const headerRowIdx = allRows.findIndex(row => row.some(cell => normalize(cell) === 'nogardu'));
+            const normalizeHeader = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const headerRowIdx = allRows.findIndex(row => row.some(cell => normalizeHeader(cell) === 'nogardu'));
             if (headerRowIdx === -1) throw new Error('Header "nogardu" tidak ditemukan.');
             
-            const headerRow = allRows[headerRowIdx].map(normalize);
+            const headerRow = allRows[headerRowIdx].map(normalizeHeader);
             const dataRows = allRows.slice(headerRowIdx + 1);
 
             const getField = (rowObj, keys) => {
@@ -96,8 +96,6 @@ export default async function handler(req, res) {
                 const tanggalValue = parseSafeDate(getField(rowObj0, ['tanggal']));
                 const monthValue = tanggalValue.toISOString().slice(0, 7);
 
-                // --- BAGIAN YANG DIPERBAIKI ---
-                // Sekarang semua field dari Excel diambil dengan benar
                 const mainData = {
                     no: parseInt(getField(rowObj0, ['no'])) || 0,
                     ulp: String(getField(rowObj0, ['ulp'])).trim(),
@@ -118,19 +116,23 @@ export default async function handler(req, res) {
                     return group.map(rowArr => {
                         const rowObj = {};
                         headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
-                        return {
+
+                        const measurementData = {
                             month: monthValue,
                             row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
                             r: parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0,
                             s: parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0,
                             t: parseFloat(getField(rowObj, [`t${siangOrMalam}`, `t(${siangOrMalam})`])) || 0,
-                            n: parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0,
                             rn: parseFloat(getField(rowObj, [`rn${siangOrMalam}`, `r-n(${siangOrMalam})`])) || 0,
                             sn: parseFloat(getField(rowObj, [`sn${siangOrMalam}`, `s-n(${siangOrMalam})`])) || 0,
                             tn: parseFloat(getField(rowObj, [`tn${siangOrMalam}`, `t-n(${siangOrMalam})`])) || 0,
                             pp: parseFloat(getField(rowObj, [`pp${siangOrMalam}`, `p-p(${siangOrMalam})`])) || 0,
                             pn: parseFloat(getField(rowObj, [`pn${siangOrMalam}`, `p-n(${siangOrMalam})`])) || 0,
                         };
+
+                        measurementData.n = parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0;
+
+                        return measurementData;
                     }).filter(m => m.row_name !== 'unknown');
                 };
         
