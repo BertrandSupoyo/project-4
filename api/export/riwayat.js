@@ -40,9 +40,9 @@ export default async function handler(req, res) {
 
   try {
     const db = await initPrisma();
-    const { year, month } = req.query; // Mengambil parameter tahun dan bulan dari URL
-
-    let prismaQueryOptions = {
+    
+    // Get all substations with measurements
+    const substations = await db.substation.findMany({
       orderBy: { no: 'asc' },
       include: {
         measurements_siang: {
@@ -52,35 +52,7 @@ export default async function handler(req, res) {
           orderBy: { row_name: 'asc' }
         }
       }
-    };
-
-    let fileName = 'riwayat_pengukuran_semua.xlsx';
-
-    // --- PENAMBAHAN KODE: Logika Filter ---
-    // Jika tahun dan bulan diberikan, tambahkan kondisi 'where'
-    if (year && month) {
-      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-      const endDate = new Date(parseInt(year), parseInt(month), 1); // Awal bulan berikutnya
-      
-      console.log(`📊 Filtering data for date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
-      
-      prismaQueryOptions.where = {
-        tanggal: {
-          gte: startDate,
-          lt: endDate, // 'lt' (less than) untuk mengambil semua data hingga akhir bulan
-        }
-      };
-
-      fileName = `riwayat_pengukuran_${year}-${String(month).padStart(2, '0')}.xlsx`;
-    }
-    
-    // Get substations with measurements based on the query options
-    const substations = await db.substation.findMany(prismaQueryOptions);
-
-    if (substations.length === 0) {
-        res.status(404).send('<html><body><h1>Tidak ada data</h1><p>Tidak ada data pengukuran yang ditemukan untuk periode yang dipilih.</p></body></html>');
-        return;
-    }
+    });
 
     // Transform data to match generateRiwayatExcel format
     const data = substations.map(sub => ({
@@ -301,7 +273,7 @@ export default async function handler(req, res) {
       else sheet.getColumn(c).width = 10;
     }
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.setHeader('Content-Disposition', 'attachment; filename=riwayat_pengukuran.xlsx');
     await workbook.xlsx.write(res);
     res.end();
 
