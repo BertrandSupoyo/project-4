@@ -213,7 +213,7 @@ export default async function handler(req, res) {
         // JURUSAN (Col O / 14)
         sheet.getCell(rowIdx, 14).value = rows[r];
         // Siang Measurements (Col P-Y)
-        const mSiang = siangMeasurements ? siangMeasurements.filter(x => x.row_name?.toLowerCase() === rows[r].toLowerCase() && String(x.substationId) === String(sub.id))[0] || {} : {};
+        const mSiang = siangMeasurements ? siangMeasurements.find(x => x.row_name?.toLowerCase() === rows[r].toLowerCase()) || {} : {};
         sheet.getCell(rowIdx, 15).value = mSiang.r ?? '';
         sheet.getCell(rowIdx, 16).value = mSiang.s ?? '';
         sheet.getCell(rowIdx, 17).value = mSiang.t ?? '';
@@ -224,7 +224,7 @@ export default async function handler(req, res) {
         sheet.getCell(rowIdx, 22).value = mSiang.pp ?? '';
         sheet.getCell(rowIdx, 23).value = mSiang.pn ?? '';
         // Malam Measurements (Col Z-II)
-        const mMalam = malamMeasurements ? malamMeasurements.filter(x => x.row_name?.toLowerCase() === rows[r].toLowerCase() && String(x.substationId) === String(sub.id))[0] || {} : {};
+        const mMalam = malamMeasurements ? malamMeasurements.find(x => x.row_name?.toLowerCase() === rows[r].toLowerCase()) || {} : {};
         sheet.getCell(rowIdx, 24).value = mMalam.r ?? '';
         sheet.getCell(rowIdx, 25).value = mMalam.s ?? '';
         sheet.getCell(rowIdx, 26).value = mMalam.t ?? '';
@@ -285,4 +285,4 @@ export default async function handler(req, res) {
       details: error.message
     });
   }
-} 
+}
