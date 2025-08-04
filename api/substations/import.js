@@ -79,6 +79,9 @@ export default async function handler(req, res) {
 
                 if (!getField(rowObj0, ['ulp']) || !getField(rowObj0, ['nogardu']) || !getField(rowObj0, ['namalokasi'])) continue;
 
+                const tanggalValue = new Date(getField(rowObj0, ['tanggal']) || Date.now());
+                const monthValue = tanggalValue.toISOString().slice(0, 7); // Format: YYYY-MM
+
                 const mainData = {
                     no: parseInt(getField(rowObj0, ['no'])) || 0,
                     ulp: String(getField(rowObj0, ['ulp'])).trim(),
@@ -92,14 +95,16 @@ export default async function handler(req, res) {
                     tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
                     penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
                     arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
-                    tanggal: new Date(getField(rowObj0, ['tanggal']) || Date.now()),
+                    tanggal: tanggalValue,
                 };
-
+                
+                // --- BAGIAN YANG DIPERBAIKI ---
                 const extractMeasurements = (siangOrMalam) => {
                     return group.map(rowArr => {
                         const rowObj = {};
                         headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
                         return {
+                            month: monthValue, // Menambahkan field 'month' yang hilang
                             row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
                             r: parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0,
                             s: parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0,
@@ -129,17 +134,11 @@ export default async function handler(req, res) {
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
                 for (const data of transformedData) {
-                    // --- BAGIAN YANG DIPERBAIKI ---
-                    // Data sekarang dibungkus dengan benar sesuai format Prisma
                     await tx.substation.create({
                         data: {
-                            ...data, // Semua field utama dari mainData
-                            measurements_siang: {
-                                create: data.measurements_siang // Dibungkus dalam { create: ... }
-                            },
-                            measurements_malam: {
-                                create: data.measurements_malam // Dibungkus dalam { create: ... }
-                            }
+                            ...data, 
+                            measurements_siang: { create: data.measurements_siang },
+                            measurements_malam: { create: data.measurements_malam }
                         }
                     });
                     createdCount++;
