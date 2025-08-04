@@ -79,7 +79,6 @@ export default async function handler(req, res) {
 
                 if (!getField(rowObj0, ['ulp']) || !getField(rowObj0, ['nogardu']) || !getField(rowObj0, ['namalokasi'])) continue;
 
-                // --- BAGIAN YANG DIPERBAIKI ---
                 const mainData = {
                     no: parseInt(getField(rowObj0, ['no'])) || 0,
                     ulp: String(getField(rowObj0, ['ulp'])).trim(),
@@ -130,7 +129,19 @@ export default async function handler(req, res) {
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
                 for (const data of transformedData) {
-                    await tx.substation.create({ data }); // Disederhanakan karena nama field sudah cocok
+                    // --- BAGIAN YANG DIPERBAIKI ---
+                    // Data sekarang dibungkus dengan benar sesuai format Prisma
+                    await tx.substation.create({
+                        data: {
+                            ...data, // Semua field utama dari mainData
+                            measurements_siang: {
+                                create: data.measurements_siang // Dibungkus dalam { create: ... }
+                            },
+                            measurements_malam: {
+                                create: data.measurements_malam // Dibungkus dalam { create: ... }
+                            }
+                        }
+                    });
                     createdCount++;
                 }
                 return { createdCount };
