@@ -21,28 +21,19 @@ async function initPrisma() {
     return prisma;
 }
 
-/**
- * Fungsi baru untuk memperbaiki format tanggal yang ambigu.
- * Mengubah DD/MM/YYYY menjadi YYYY-MM-DD yang aman.
- */
 function parseSafeDate(dateInput) {
-    if (!dateInput) return new Date(); // Jika kosong, gunakan tanggal sekarang
-    if (dateInput instanceof Date && !isNaN(dateInput)) return dateInput; // Jika sudah benar, langsung kembalikan
-
+    if (!dateInput) return new Date();
+    if (dateInput instanceof Date && !isNaN(dateInput)) return dateInput;
     if (typeof dateInput === 'string') {
         const parts = dateInput.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
         if (parts) {
-            // parts[1] = hari, parts[2] = bulan, parts[3] = tahun
-            // Format YYYY-MM-DD aman untuk semua sistem
             const isoDateStr = `${parts[3]}-${String(parts[2]).padStart(2, '0')}-${String(parts[1]).padStart(2, '0')}`;
             return new Date(isoDateStr);
         }
     }
-    // Fallback jika formatnya sudah benar (misal: YYYY-MM-DD atau hasil dari Excel)
     const date = new Date(dateInput);
     return isNaN(date) ? new Date() : date;
 }
-
 
 export const config = {
     api: {
@@ -52,7 +43,9 @@ export const config = {
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', true);
-    // ... (sisa kode CORS Anda tetap sama)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -73,7 +66,6 @@ export default async function handler(req, res) {
             const workbook = XLSX.read(fileContent, { type: 'buffer' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            // Menggunakan cellDates: true untuk membantu parsing tanggal dari Excel
             const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true });
 
             const normalize = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -101,17 +93,24 @@ export default async function handler(req, res) {
 
                 if (!getField(rowObj0, ['ulp', 'nogardu', 'namalokasi'])) continue;
 
-                // --- BAGIAN YANG DIPERBAIKI ---
-                // Menggunakan fungsi parseSafeDate untuk menghindari error
                 const tanggalValue = parseSafeDate(getField(rowObj0, ['tanggal']));
                 const monthValue = tanggalValue.toISOString().slice(0, 7);
 
+                // --- BAGIAN YANG DIPERBAIKI ---
+                // Sekarang semua field dari Excel diambil dengan benar
                 const mainData = {
                     no: parseInt(getField(rowObj0, ['no'])) || 0,
                     ulp: String(getField(rowObj0, ['ulp'])).trim(),
                     noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
                     namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
-                    // ...field lainnya
+                    jenis: String(getField(rowObj0, ['jenis'])).trim(),
+                    merek: String(getField(rowObj0, ['merk', 'merek'])).trim(),
+                    daya: String(getField(rowObj0, ['daya'])).trim(),
+                    tahun: String(getField(rowObj0, ['tahun'])).trim(),
+                    phasa: String(getField(rowObj0, ['phasa'])).trim(),
+                    tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
+                    penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
+                    arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
                     tanggal: tanggalValue,
                 };
                 
@@ -123,7 +122,14 @@ export default async function handler(req, res) {
                             month: monthValue,
                             row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
                             r: parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0,
-                            // ...field pengukuran lainnya
+                            s: parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0,
+                            t: parseFloat(getField(rowObj, [`t${siangOrMalam}`, `t(${siangOrMalam})`])) || 0,
+                            n: parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0,
+                            rn: parseFloat(getField(rowObj, [`rn${siangOrMalam}`, `r-n(${siangOrMalam})`])) || 0,
+                            sn: parseFloat(getField(rowObj, [`sn${siangOrMalam}`, `s-n(${siangOrMalam})`])) || 0,
+                            tn: parseFloat(getField(rowObj, [`tn${siangOrMalam}`, `t-n(${siangOrMalam})`])) || 0,
+                            pp: parseFloat(getField(rowObj, [`pp${siangOrMalam}`, `p-p(${siangOrMalam})`])) || 0,
+                            pn: parseFloat(getField(rowObj, [`pn${siangOrMalam}`, `p-n(${siangOrMalam})`])) || 0,
                         };
                     }).filter(m => m.row_name !== 'unknown');
                 };
