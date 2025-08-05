@@ -41,8 +41,32 @@ export default async function handler(req, res) {
   try {
     const db = await initPrisma();
     
-    // Get all substations with measurements
+    // 🔥 PERBAIKAN: Ambil parameter filter dari query
+    const { month, year } = req.query;
+    
+    console.log('📅 Filter parameters:', { month, year });
+    
+    // 🔥 PERBAIKAN: Buat kondisi filter untuk tanggal
+    let dateFilter = {};
+    
+    if (month && year) {
+      const startDate = new Date(`${year}-${month}-01`);
+      const endDate = new Date(year, parseInt(month), 0); // Last day of the month
+      endDate.setHours(23, 59, 59, 999); // Set to end of day
+      
+      dateFilter = {
+        tanggal: {
+          gte: startDate,
+          lte: endDate
+        }
+      };
+      
+      console.log('📅 Date filter applied:', { startDate, endDate });
+    }
+    
+    // 🔥 PERBAIKAN: Apply filter ke query
     const substations = await db.substation.findMany({
+      where: dateFilter, // Apply date filter here
       orderBy: { no: 'asc' },
       include: {
         measurements_siang: {
@@ -53,6 +77,16 @@ export default async function handler(req, res) {
         }
       }
     });
+
+    console.log(`📊 Found ${substations.length} substations matching filter`);
+
+    // 🔥 PERBAIKAN: Validasi jika tidak ada data
+    if (substations.length === 0) {
+      return res.status(404).json({ 
+        error: 'No data found', 
+        message: `Tidak ada data untuk ${month ? `bulan ${month}` : ''} ${year ? `tahun ${year}` : ''}` 
+      });
+    }
 
     // Transform data to match generateRiwayatExcel format
     const data = substations.map(sub => ({
@@ -175,7 +209,7 @@ export default async function handler(req, res) {
 
     // --- DATA ROWS ---
     let currentRow = 6;
-    let noUrut = 1; // Tambah variabel untuk nomor urut otomatis
+    let noUrut = 1;
     data.forEach((item) => {
       const sub = item.substation;
       const siangMeasurements = item.siang;
@@ -185,7 +219,7 @@ export default async function handler(req, res) {
         sheet.mergeCells(currentRow, c, currentRow + rows.length - 1, c);
       }
       // Isi data identitas hanya di baris pertama blok
-      sheet.getCell(currentRow, 1).value = noUrut; // Gunakan noUrut otomatis, bukan sub.no
+      sheet.getCell(currentRow, 1).value = noUrut;
       sheet.getCell(currentRow, 2).value = sub.ulp;
       sheet.getCell(currentRow, 3).value = sub.noGardu;
       sheet.getCell(currentRow, 4).value = sub.namaLokasiGardu;
@@ -246,7 +280,7 @@ export default async function handler(req, res) {
         sheet.getCell(rowIdx, 40).value = mMalam?.unbalanced !== undefined ? `${Number(mMalam.unbalanced).toFixed(1)}%` : '';
       }
       currentRow += rows.length;
-      noUrut++; // Increment nomor urut untuk substation berikutnya
+      noUrut++;
     });
 
     // Style all cells
@@ -272,10 +306,21 @@ export default async function handler(req, res) {
       else if (c >= 36 && c <= 40) sheet.getColumn(c).width = 10;
       else sheet.getColumn(c).width = 10;
     }
+
+    // 🔥 PERBAIKAN: Nama file dengan filter
+    let filename = 'riwayat_pengukuran';
+    if (month && year) {
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      filename = `riwayat_pengukuran_${monthNames[parseInt(month)]}_${year}`;
+    }
+    
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=riwayat_pengukuran.xlsx');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}.xlsx`);
     await workbook.xlsx.write(res);
     res.end();
+
+    console.log(`✅ Excel exported successfully: ${filename}.xlsx`);
 
   } catch (error) {
     console.error('💥 Export error:', error);
@@ -284,5 +329,10 @@ export default async function handler(req, res) {
       error: 'Failed to export data',
       details: error.message
     });
+  } finally {
+    // 🔥 PERBAIKAN: Tutup koneksi database
+    if (prisma) {
+      await prisma.$disconnect();
+    }
   }
 }
