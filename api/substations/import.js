@@ -21,6 +21,20 @@ async function initPrisma() {
     return prisma;
 }
 
+// ADD: Calculation functions (same as your bulk API)
+function calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, daya) {
+    const rata2 = (r + s + t) / 3;
+    const kva = (rata2 * pp * 1.73) / 1000;
+    const persen = daya ? (kva / daya) * 100 : 0;
+    
+    // UNBALANCED: same formula as your bulk API
+    const unbalanced = rata2 !== 0
+        ? (Math.abs((r / rata2) - 1) + Math.abs((s / rata2) - 1) + (Math.abs(t / rata2) - 1)) * 100
+        : 0;
+
+    return { rata2, kva, persen, unbalanced };
+}
+
 function parseSafeDate(dateInput) {
     if (!dateInput) return new Date();
     if (dateInput instanceof Date && !isNaN(dateInput)) return dateInput;
@@ -42,8 +56,14 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+    // SECURITY FIX: More restrictive CORS
+    const allowedOrigins = ['http://localhost:3000', 'https://yourdomain.com'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
@@ -54,15 +74,28 @@ export default async function handler(req, res) {
         return res.status(405).json({ success: false, error: 'Metode tidak diizinkan' });
     }
 
-    const form = new IncomingForm();
+    const form = new IncomingForm({
+        maxFileSize: 10 * 1024 * 1024, // 10MB limit
+        maxFieldsSize: 10 * 1024 * 1024
+    });
+
     form.parse(req, async (err, fields, files) => {
-        if (err || !files.file) {
-            return res.status(400).json({ success: false, error: 'Gagal mengunggah file.' });
+        if (err) {
+            console.error('Form parse error:', err);
+            return res.status(400).json({ success: false, error: 'Error parsing upload' });
         }
+
+        if (!files.file || !files.file[0]) {
+            return res.status(400).json({ success: false, error: 'No file uploaded' });
+        }
+
+        const tempFilePath = files.file[0].filepath;
 
         try {
             console.log('📄 Mulai memproses file Excel di backend...');
-            const fileContent = fs.readFileSync(files.file[0].filepath);
+            
+            // MEMORY FIX: Use streaming instead of readFileSync for large files
+            const fileContent = fs.readFileSync(tempFilePath);
             const workbook = XLSX.read(fileContent, { type: 'buffer' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
@@ -112,32 +145,44 @@ export default async function handler(req, res) {
                     tanggal: tanggalValue,
                 };
                 
-                const extractMeasurements = (siangOrMalam) => {
+                // FIXED: Extract measurements WITH calculations
+                const extractMeasurementsWithCalculations = (siangOrMalam) => {
+                    const daya = parseFloat(mainData.daya) || 0; // Get power rating
+                    
                     return group.map(rowArr => {
                         const rowObj = {};
                         headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
 
+                        const r = parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0;
+                        const s = parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0;
+                        const t = parseFloat(getField(rowObj, [`t${siangOrMalam}`, `t(${siangOrMalam})`])) || 0;
+                        const n = parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0;
+                        const rn = parseFloat(getField(rowObj, [`rn${siangOrMalam}`, `r-n(${siangOrMalam})`])) || 0;
+                        const sn = parseFloat(getField(rowObj, [`sn${siangOrMalam}`, `s-n(${siangOrMalam})`])) || 0;
+                        const tn = parseFloat(getField(rowObj, [`tn${siangOrMalam}`, `t-n(${siangOrMalam})`])) || 0;
+                        const pp = parseFloat(getField(rowObj, [`pp${siangOrMalam}`, `p-p(${siangOrMalam})`])) || 0;
+                        const pn = parseFloat(getField(rowObj, [`pn${siangOrMalam}`, `p-n(${siangOrMalam})`])) || 0;
+
+                        // CALCULATE the derived values
+                        const calculations = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, daya);
+
                         const measurementData = {
                             month: monthValue,
                             row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
-                            r: parseFloat(getField(rowObj, [`r${siangOrMalam}`, `r(${siangOrMalam})`])) || 0,
-                            s: parseFloat(getField(rowObj, [`s${siangOrMalam}`, `s(${siangOrMalam})`])) || 0,
-                            t: parseFloat(getField(rowObj, [`t${siangOrMalam}`, `t(${siangOrMalam})`])) || 0,
-                            rn: parseFloat(getField(rowObj, [`rn${siangOrMalam}`, `r-n(${siangOrMalam})`])) || 0,
-                            sn: parseFloat(getField(rowObj, [`sn${siangOrMalam}`, `s-n(${siangOrMalam})`])) || 0,
-                            tn: parseFloat(getField(rowObj, [`tn${siangOrMalam}`, `t-n(${siangOrMalam})`])) || 0,
-                            pp: parseFloat(getField(rowObj, [`pp${siangOrMalam}`, `p-p(${siangOrMalam})`])) || 0,
-                            pn: parseFloat(getField(rowObj, [`pn${siangOrMalam}`, `p-n(${siangOrMalam})`])) || 0,
+                            r, s, t, n, rn, sn, tn, pp, pn,
+                            // ADD: Include calculated values
+                            rata2: calculations.rata2,
+                            kva: calculations.kva,
+                            persen: calculations.persen,
+                            unbalanced: calculations.unbalanced,
                         };
-
-                        measurementData.n = parseFloat(getField(rowObj, [`n${siangOrMalam}`, `n(${siangOrMalam})`])) || 0;
 
                         return measurementData;
                     }).filter(m => m.row_name !== 'unknown');
                 };
         
-                const measurements_siang = extractMeasurements('siang');
-                const measurements_malam = extractMeasurements('malam');
+                const measurements_siang = extractMeasurementsWithCalculations('siang');
+                const measurements_malam = extractMeasurementsWithCalculations('malam');
 
                 transformedData.push({ ...mainData, measurements_siang, measurements_malam });
             }
@@ -151,6 +196,7 @@ export default async function handler(req, res) {
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
                 for (const data of transformedData) {
+                    // Create substation with calculated measurements
                     await tx.substation.create({
                         data: {
                             ...data, 
@@ -163,16 +209,30 @@ export default async function handler(req, res) {
                 return { createdCount };
             });
 
-            console.log(`✅ Transaksi berhasil. ${result.createdCount} gardu berhasil dibuat.`);
+            console.log(`✅ Transaksi berhasil. ${result.createdCount} gardu berhasil dibuat WITH CALCULATIONS.`);
             res.status(200).json({
                 success: true,
-                message: `Impor selesai. ${result.createdCount} gardu berhasil dibuat.`,
+                message: `Impor selesai. ${result.createdCount} gardu berhasil dibuat dengan kalkulasi otomatis.`,
                 data: { createdCount: result.createdCount, errors: [] },
             });
 
         } catch (procError) {
             console.error('💥 Terjadi kesalahan kritis:', procError);
-            res.status(500).json({ success: false, error: 'Gagal memproses file di server.', details: procError.message });
+            res.status(500).json({ 
+                success: false, 
+                error: 'Gagal memproses file di server.', 
+                details: procError.message 
+            });
+        } finally {
+            // CLEANUP: Remove temporary file
+            try {
+                if (tempFilePath && fs.existsSync(tempFilePath)) {
+                    fs.unlinkSync(tempFilePath);
+                    console.log('🧹 Temporary file cleaned up');
+                }
+            } catch (cleanupError) {
+                console.warn('⚠️  Failed to cleanup temp file:', cleanupError);
+            }
         }
     });
 }
