@@ -21,15 +21,15 @@ async function initPrisma() {
     return prisma;
 }
 
-// FIX: Renamed variables to avoid conflicts
+// FIXED: Corrected unbalanced formula to match measurementSiang/measurementMalam APIs
 function calculateMeasurements(voltR, voltS, voltT, voltN, voltRN, voltSN, voltTN, currentPP, currentPN, powerRating) {
     const average = (voltR + voltS + voltT) / 3;
     const kvaValue = (average * currentPP * 1.73) / 1000;
     const percentage = powerRating ? (kvaValue / powerRating) * 100 : 0;
     
-    // FIX: More robust unbalanced calculation
+    // FIXED: Use the same correct formula as in measurementSiang/measurementMalam
     const unbalancedValue = average !== 0
-        ? ((Math.abs(voltR - average) + Math.abs(voltS - average) + Math.abs(voltT - average)) / average) * 100
+        ? (Math.abs((voltR / average) - 1) + Math.abs((voltS / average) - 1) + Math.abs((voltT / average) - 1)) * 100
         : 0;
 
     return { 
@@ -148,7 +148,7 @@ export default async function handler(req, res) {
                     tanggal: tanggalValue,
                 };
                 
-                // FIX: Better extraction function with debugging
+                // Extract measurements with corrected calculations
                 const extractMeasurementsWithCalculations = (timeOfDay) => {
                     const powerRating = parseFloat(mainData.daya) || 0;
                     
@@ -158,7 +158,7 @@ export default async function handler(req, res) {
                         const rowObj = {};
                         headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
 
-                        // FIX: More specific field matching for malam/siang
+                        // Extract values for the specific time of day
                         const voltR = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
                         const voltS = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
                         const voltT = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
@@ -172,7 +172,7 @@ export default async function handler(req, res) {
                         // DEBUG: Log the extracted values
                         console.log(`Row ${rowIndex} ${timeOfDay}:`, { voltR, voltS, voltT, voltN, currentPP, currentPN });
 
-                        // FIX: Calculate using renamed variables
+                        // Calculate using the CORRECTED formula
                         const calculations = calculateMeasurements(voltR, voltS, voltT, voltN, voltRN, voltSN, voltTN, currentPP, currentPN, powerRating);
 
                         const measurementData = {
@@ -228,10 +228,10 @@ export default async function handler(req, res) {
                 return { createdCount };
             });
 
-            console.log(`✅ Transaksi berhasil. ${result.createdCount} gardu berhasil dibuat WITH CALCULATIONS.`);
+            console.log(`✅ Transaksi berhasil. ${result.createdCount} gardu berhasil dibuat WITH CORRECTED CALCULATIONS.`);
             res.status(200).json({
                 success: true,
-                message: `Impor selesai. ${result.createdCount} gardu berhasil dibuat dengan kalkulasi otomatis.`,
+                message: `Impor selesai. ${result.createdCount} gardu berhasil dibuat dengan kalkulasi otomatis yang benar.`,
                 data: { createdCount: result.createdCount, errors: [] },
             });
 
