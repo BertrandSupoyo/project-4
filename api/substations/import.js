@@ -21,22 +21,22 @@ async function initPrisma() {
     return prisma;
 }
 
-// FIXED: Corrected unbalanced formula to match measurementSiang/measurementMalam APIs
-function calculateMeasurements(voltR, voltS, voltT, voltN, voltRN, voltSN, voltTN, currentPP, currentPN, powerRating) {
-    const average = (voltR + voltS + voltT) / 3;
-    const kvaValue = (average * currentPP * 1.73) / 1000;
-    const percentage = powerRating ? (kvaValue / powerRating) * 100 : 0;
+// FIXED: Corrected formula to exactly match measurementSiang/measurementMalam APIs
+function calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, daya) {
+    const rata2 = (r + s + t) / 3;
+    const kva = (rata2 * pp * 1.73) / 1000;
+    const persen = daya ? (kva / daya) * 100 : 0;
     
-    // FIXED: Use the same correct formula as in measurementSiang/measurementMalam
-    const unbalancedValue = average !== 0
-        ? (Math.abs((voltR / average) - 1) + Math.abs((voltS / average) - 1) + Math.abs((voltT / average) - 1)) * 100
+    // UNBALANCED: sesuai rumus Excel user - EXACT same formula as measurementSiang/measurementMalam
+    const unbalanced = rata2 !== 0
+        ? (Math.abs((r / rata2) - 1) + Math.abs((s / rata2) - 1) + Math.abs((t / rata2) - 1)) * 100
         : 0;
 
     return { 
-        rata2: Number(average.toFixed(2)), 
-        kva: Number(kvaValue.toFixed(2)), 
-        persen: Number(percentage.toFixed(2)), 
-        unbalanced: Number(unbalancedValue.toFixed(2)) 
+        rata2: Number(rata2.toFixed(2)), 
+        kva: Number(kva.toFixed(2)), 
+        persen: Number(persen.toFixed(2)), 
+        unbalanced: Number(unbalanced.toFixed(2)) 
     };
 }
 
@@ -159,34 +159,34 @@ export default async function handler(req, res) {
                         headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
 
                         // Extract values for the specific time of day
-                        const voltR = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
-                        const voltS = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
-                        const voltT = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
-                        const voltN = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
-                        const voltRN = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
-                        const voltSN = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
-                        const voltTN = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
-                        const currentPP = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
-                        const currentPN = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
+                        const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
+                        const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
+                        const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
+                        const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
+                        const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
+                        const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
+                        const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
+                        const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
+                        const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
 
                         // DEBUG: Log the extracted values
-                        console.log(`Row ${rowIndex} ${timeOfDay}:`, { voltR, voltS, voltT, voltN, currentPP, currentPN });
+                        console.log(`Row ${rowIndex} ${timeOfDay}:`, { r, s, t, n, pp, pn });
 
-                        // Calculate using the CORRECTED formula
-                        const calculations = calculateMeasurements(voltR, voltS, voltT, voltN, voltRN, voltSN, voltTN, currentPP, currentPN, powerRating);
+                        // Calculate using the EXACT same formula as measurementSiang/measurementMalam
+                        const calculations = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
 
                         const measurementData = {
                             month: monthValue,
                             row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
-                            r: voltR,
-                            s: voltS,
-                            t: voltT,
-                            n: voltN,
-                            rn: voltRN,
-                            sn: voltSN,
-                            tn: voltTN,
-                            pp: currentPP,
-                            pn: currentPN,
+                            r: r,
+                            s: s,
+                            t: t,
+                            n: n,
+                            rn: rn,
+                            sn: sn,
+                            tn: tn,
+                            pp: pp,
+                            pn: pn,
                             rata2: calculations.rata2,
                             kva: calculations.kva,
                             persen: calculations.persen,
