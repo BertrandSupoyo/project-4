@@ -35,7 +35,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
           <div className="mx-auto w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
             <Lock className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Login System</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Login</h2>
           <p className="text-gray-600">Pilih cara login yang sesuai</p>
         </CardHeader>
         <CardContent>
@@ -47,7 +47,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
               disabled={loading}
             >
               <ViewerIcon className="w-4 h-4 mr-2" />
-              Login sebagai Viewer (Lihat Data Saja)
+              Login sebagai Viewer
             </Button>
             <p className="text-xs text-gray-500 mt-2 text-center">
               Masuk tanpa password untuk melihat data gardu distribusi
