@@ -635,7 +635,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
             <CardHeader>
               <div className="flex items-center space-x-2">
                 <Calculator className="h-5 w-5 text-orange-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Simulasi Pengukuran</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Data Pengukuran</h3>
               </div>
             </CardHeader>
             <CardContent>
