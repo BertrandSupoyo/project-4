@@ -10,7 +10,7 @@ import {
   Activity, 
   Shield, 
   BarChart3,
-  FileText,
+  // FileText,
   Download,
   Upload,
   Plus,

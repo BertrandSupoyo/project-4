@@ -4,9 +4,7 @@ import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { SubstationData } from '../types';
-import { createMeasurementSiang, createMeasurementMalam } from '../services/api';
 import { SubstationMaps } from './SubstationMaps';
-// HAPUS: import { exportSubstationToExcel } from './ExportSubstationExcel';
 import { ApiService } from '../services/api';
 
 interface SubstationDetailModalProps {
@@ -15,8 +13,8 @@ interface SubstationDetailModalProps {
   onClose: () => void;
   onUpdatePower: (id: string, newPower: string) => void;
   onUpdateSubstation: (substation: Partial<SubstationData>) => void;
-  onFetchSubstationDetail?: (id: string) => Promise<void>; // Tambah prop baru
-  isReadOnly?: boolean; // Tambah prop isReadOnly
+  onFetchSubstationDetail?: (id: string) => Promise<void>;
+  isReadOnly?: boolean;
 }
 
 export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
@@ -25,8 +23,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   onClose,
   onUpdatePower,
   onUpdateSubstation,
-  onFetchSubstationDetail, // Tambah prop baru
-  isReadOnly = false // Default false
+  onFetchSubstationDetail,
+  isReadOnly = false
 }) => {
   const [isEditingPower, setIsEditingPower] = useState(false);
   const [editedPower, setEditedPower] = useState('');
@@ -37,45 +35,23 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const [isEditingTanggal, setIsEditingTanggal] = useState(false);
   const [editedTanggal, setEditedTanggal] = useState('');
 
-  // Backup state measurement sebelum update (checkpoint)
-  // Hapus state checkpoint yang tidak digunakan
-
-  // Ganti useEffect untuk sinkronisasi measurement
   useEffect(() => {
     if (substation) {
-      console.log('🔄 Loading measurements for substation:', substation.id, substation.noGardu);
-      
-      let siang = substation.measurements_siang || [];
-      let malam = substation.measurements_malam || [];
+      const siang = substation.measurements_siang || [];
+      const malam = substation.measurements_malam || [];
       const rowNames = ['induk', '1', '2', '3', '4'];
 
-      console.log('📊 Raw siang data count:', siang.length);
-      console.log('📊 Raw malam data count:', malam.length);
-      console.log('📊 Raw siang data:', siang);
-      console.log('📊 Raw malam data:', malam);
+      const siangResults = rowNames
+        .map(rowName => siang.find(x => x.row_name?.toLowerCase() === rowName && String(x.substationId) === String(substation.id)) || null)
+        .filter(Boolean) as any[];
 
-      // SIANG - Gunakan data yang sebenarnya dari database
-      const siangResults = rowNames.map(rowName => {
-        const found = siang.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
-        console.log(`🔍 Looking for siang row "${rowName}":`, found ? 'Found' : 'Not found');
-        return found || null;
-      }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
-      
-      console.log('✅ Processed siang measurements:', siangResults);
+      const malamResults = rowNames
+        .map(rowName => malam.find(x => x.row_name?.toLowerCase() === rowName && String(x.substationId) === String(substation.id)) || null)
+        .filter(Boolean) as any[];
+
       setSiangMeasurements(siangResults);
-
-      // MALAM - Gunakan data yang sebenarnya dari database
-      const malamResults = rowNames.map(rowName => {
-        const found = malam.find(x => x.row_name?.toLowerCase() === rowName.toLowerCase() && String(x.substationId) === String(substation.id));
-        console.log(`🔍 Looking for malam row "${rowName}":`, found ? 'Found' : 'Not found');
-        return found || null;
-      }).filter(m => m !== null); // Hanya tampilkan data yang benar-benar ada
-      
-      console.log('✅ Processed malam measurements:', malamResults);
       setMalamMeasurements(malamResults);
-
     } else {
-      console.log('❌ No substation data, clearing measurements');
       setSiangMeasurements([]);
       setMalamMeasurements([]);
     }
@@ -113,7 +89,6 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleSaveTanggal = async () => {
     try {
       setIsUpdating(true);
-      // Kirim tanggal dalam format ISO agar diterima backend (Prisma DateTime)
       const isoTanggal = new Date(editedTanggal + 'T00:00:00').toISOString();
       await onUpdateSubstation({ id: substation.id, tanggal: isoTanggal });
       setIsEditingTanggal(false);
@@ -133,58 +108,22 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
     if (!substation) return;
     try {
       const update = { id: substation.id, latitude, longitude };
-      console.log('🌍 PATCH koordinat ke API:', update);
       await onUpdateSubstation(update);
       window.alert('Koordinat berhasil diupdate!');
-    } catch (err) {
+    } catch {
       window.alert('Gagal mengupdate koordinat lokasi!');
     }
   };
 
-  // Helper untuk sanitasi data substation
-  function sanitizeSubstation(sub: Partial<SubstationData>): SubstationData {
-    const allowedStatus = ['normal', 'warning', 'critical', 'non-active'] as const;
-    const status: typeof allowedStatus[number] = allowedStatus.includes(sub.status as any) ? sub.status as any : 'normal';
-    return {
-      ...sub,
-      no: Number(sub.no ?? 0),
-      ulp: String(sub.ulp || ''),
-      noGardu: String(sub.noGardu || ''),
-      namaLokasiGardu: String(sub.namaLokasiGardu || ''),
-      jenis: String(sub.jenis || ''),
-      merek: String(sub.merek || ''),
-      daya: String(sub.daya || ''),
-      tahun: String(sub.tahun || ''),
-      phasa: String(sub.phasa || ''),
-      tap_trafo_max_tap: String((sub.tap_trafo_max_tap || '')),
-      penyulang: String(sub.penyulang || ''),
-      arahSequence: String(sub.arahSequence || ''),
-      tanggal: sub.tanggal ? String(sub.tanggal) : '',
-      status,
-      is_active: typeof sub.is_active === 'number' ? sub.is_active : 1,
-      ugb: typeof sub.ugb === 'number' ? sub.ugb : 0,
-      latitude: typeof sub.latitude === 'number' ? sub.latitude : undefined,
-      longitude: typeof sub.longitude === 'number' ? sub.longitude : undefined,
-      id: String(sub.id || ''),
-      lastUpdate: sub.lastUpdate ? String(sub.lastUpdate) : new Date().toISOString(),
-      measurements: sub.measurements || [],
-    };
-  }
-
-
-
   const getStatusBadge = (isActive: number) => {
-    if (isActive === 1) {
-      return <Badge variant="success">Aktif</Badge>;
-    } else {
-      return <Badge variant="default" className="bg-gray-300 text-gray-700">Nonaktif</Badge>;
-    }
+    return isActive === 1
+      ? <Badge variant="success">Aktif</Badge>
+      : <Badge variant="default" className="bg-gray-300 text-gray-700">Nonaktif</Badge>;
   };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const d = new Date(dateString);
-    // Ambil tanggal dalam format YYYY-MM-DD
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -195,81 +134,37 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
     ? substation.measurements[substation.measurements.length - 1]
     : { r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' };
 
-  // Helper untuk mengambil data pengukuran sesuai baris dan kolom, berdasarkan row_name dan substationId
   const getMeasurementByRow = (measurements: any[], substationId: string, rowName: string) => {
-    console.log(`🔍 getMeasurementByRow - Looking for row "${rowName}" in substation ${substationId}`);
-    console.log(`🔍 Available measurements:`, measurements.map(m => ({ row_name: m.row_name, substationId: m.substationId })));
-    
     const found = measurements.find(
-        m => m.row_name?.toLowerCase() === rowName.toString().toLowerCase() && String(m.substationId) === String(substationId)
+      m => m.row_name?.toLowerCase() === rowName.toLowerCase() && String(m.substationId) === String(substationId)
     );
-    
-    if (found) {
-      console.log(`✅ Found measurement for row "${rowName}":`, found);
-    } else {
-      console.log(`❌ No measurement found for row "${rowName}"`);
-    }
-    
     return found || { id: null, r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '', rata2: undefined, kva: undefined, persen: undefined, unbalanced: undefined };
   };
 
-  // Handler untuk perubahan input hanya update state lokal (TIDAK auto-save ke backend)
   const handleCellChangeSiang = (measurementId: number | null, field: string, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setSiangMeasurements(prev =>
-      prev.map(m => m.id === measurementId ? { ...m, [field]: numValue } : m)
-    );
-    // Dihilangkan: auto-save ke backend
-    // if (measurementId && measurementId !== null) {
-    //   ApiService.patchMeasurementSiang(measurementId, { [field]: numValue })
-    //     .then(() => {
-    //       console.log(`Auto-saved ${field} = ${numValue} for SIANG measurement ID ${measurementId}`);
-    //     })
-    //     .catch((err) => {
-    //       console.error('Auto-save failed (siang):', err);
-    //       window.alert(`Gagal menyimpan ${field} (siang).`);
-    //     });
-    // }
+    setSiangMeasurements(prev => prev.map(m => (m.id === measurementId ? { ...m, [field]: numValue } : m)));
   };
-  // Handler malam: only update malamMeasurements (TIDAK auto-save ke backend)
+
   const handleCellChangeMalam = (measurementId: number | null, field: string, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setMalamMeasurements(prev => prev.map(m => {
-      if (m.id === measurementId) {
-        return { ...m, [field]: numValue };
-      }
-      return m;
-    }));
+    setMalamMeasurements(prev => prev.map(m => (m.id === measurementId ? { ...m, [field]: numValue } : m)));
   };
 
-  // Ubah signature patchMeasurementsSiangBulk agar mengembalikan any (bukan void)
-  // Pada import ApiService, tambahkan komentar:
-  // ApiService.patchMeasurementsSiangBulk: Promise<any>
-
-  // Fungsi untuk membaca data langsung dari input fields di UI
   const getDataFromUI = () => {
     const siangData: any[] = [];
     const malamData: any[] = [];
 
-    console.log('🔄 Reading data from UI...');
-
-    // Baca data SIANG dari input fields
     ['induk', '1', '2', '3', '4'].forEach((rowName) => {
       const rowData: any = {
         substationId: substation?.id,
         row_name: rowName,
         month: substation?.tanggal ? new Date(substation.tanggal).toISOString().slice(0, 7) : '',
       };
-
-      // Ambil nilai dari input fields SIANG berdasarkan row dan field
       const getInputValueSiang = (field: string) => {
-        // Gunakan selector yang lebih spesifik untuk tabel SIANG
-        const input = document.querySelector(`.siang-input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement;
-        const value = input ? Number(input.value) || 0 : 0;
-        console.log(`📊 Siang ${rowName}.${field}: ${value}`);
-        return value;
+        const input = document.querySelector(`.siang-input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement | null;
+        return input ? Number(input.value) || 0 : 0;
       };
-
       rowData.r = getInputValueSiang('r');
       rowData.s = getInputValueSiang('s');
       rowData.t = getInputValueSiang('t');
@@ -279,27 +174,19 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       rowData.tn = getInputValueSiang('tn');
       rowData.pp = getInputValueSiang('pp');
       rowData.pn = getInputValueSiang('pn');
-
       siangData.push(rowData);
     });
 
-    // Baca data MALAM dari input fields
     ['induk', '1', '2', '3', '4'].forEach((rowName) => {
       const rowData: any = {
         substationId: substation?.id,
         row_name: rowName,
         month: substation?.tanggal ? new Date(substation.tanggal).toISOString().slice(0, 7) : '',
       };
-
-      // Ambil nilai dari input fields MALAM berdasarkan row dan field
       const getInputValueMalam = (field: string) => {
-        // Gunakan selector yang lebih spesifik untuk tabel MALAM
-        const input = document.querySelector(`.malam-input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement;
-        const value = input ? Number(input.value) || 0 : 0;
-        console.log(`📊 Malam ${rowName}.${field}: ${value}`);
-        return value;
+        const input = document.querySelector(`.malam-input[data-row="${rowName}"][data-field="${field}"]`) as HTMLInputElement | null;
+        return input ? Number(input.value) || 0 : 0;
       };
-
       rowData.r = getInputValueMalam('r');
       rowData.s = getInputValueMalam('s');
       rowData.t = getInputValueMalam('t');
@@ -309,24 +196,16 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       rowData.tn = getInputValueMalam('tn');
       rowData.pp = getInputValueMalam('pp');
       rowData.pn = getInputValueMalam('pn');
-
       malamData.push(rowData);
     });
-
-    console.log('✅ Siang data:', siangData);
-    console.log('✅ Malam data:', malamData);
 
     return { siangData, malamData };
   };
 
-  // Ganti onFetchSubstationDetail dengan getSubstationById agar update state React tanpa reload
   const handleSaveAllMeasurements = async () => {
     setIsSaving(true);
     try {
-      // Baca data langsung dari UI input fields
       const { siangData, malamData } = getDataFromUI();
-
-      // Kirim PATCH bulk untuk Siang dan Malam secara paralel via ApiService
       const [siangResult, malamResult] = await Promise.all([
         ApiService.patchMeasurementsSiangBulk(siangData),
         ApiService.patchMeasurementsMalamBulk(malamData),
@@ -347,7 +226,6 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       }
 
       window.alert(messages.join('\n\n'));
-      // Fetch ulang data substation detail setelah save (pakai GET, tanpa reload)
       if (substation?.id && typeof onFetchSubstationDetail === 'function') {
         await onFetchSubstationDetail(substation.id);
       }
@@ -359,7 +237,6 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
     }
   };
 
-  // Hitung status performa berdasarkan unbalance tertinggi
   const allUnbalances = [
     ...(siangMeasurements?.map(m => Number(m.unbalanced) || 0) || []),
     ...(malamMeasurements?.map(m => Number(m.unbalanced) || 0) || [])
@@ -368,7 +245,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   let performaStatus: 'normal' | 'warning' | 'critical' = 'normal';
   if (maxUnbalance >= 20) performaStatus = 'critical';
   else if (maxUnbalance >= 10) performaStatus = 'warning';
-  // Badge warna
+
   const performaBadge = (
     <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold
       ${performaStatus === 'normal' ? 'bg-green-100 text-green-800 border border-green-300' : ''}
@@ -382,12 +259,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const handleExportExcel = async () => {
     if (!substation?.id) return;
     try {
-      console.log('📊 Exporting substation detail:', substation.id, substation.noGardu);
-      
-      // Gunakan endpoint baru untuk export individual substation
       const response = await fetch(`/api/export/substation-detail?id=${substation.id}`);
       if (!response.ok) throw new Error('Gagal mengunduh file Excel');
-      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -397,10 +270,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      
-      console.log('✅ Successfully exported substation detail');
     } catch (err) {
-      console.error('❌ Export failed:', err);
+      console.error('Export failed:', err);
       window.alert('Gagal mengunduh file Excel!');
     }
   };
@@ -460,18 +331,10 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                           onChange={(e) => setEditedPower(e.target.value)}
                           className="text-lg font-semibold text-gray-900 border border-gray-300 rounded px-2 py-1 w-20"
                         />
-                        <Button 
-                          size="sm" 
-                          onClick={handleSavePower}
-                          disabled={isUpdating}
-                        >
+                        <Button size="sm" onClick={handleSavePower} disabled={isUpdating}>
                           <Save size={14} />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={handleCancelEdit}
-                        >
+                        <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
                           <Cancel size={14} />
                         </Button>
                       </>
@@ -479,13 +342,9 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                       <>
                         <p className="text-lg font-semibold text-gray-900">{String(substation.daya)}</p>
                         {!isReadOnly && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={handleEditPower}
-                        >
-                          <Edit2 size={14} />
-                        </Button>
+                          <Button variant="ghost" size="sm" onClick={handleEditPower}>
+                            <Edit2 size={14} />
+                          </Button>
                         )}
                       </>
                     )}
@@ -512,7 +371,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Location & Network Information */}
+          {/* Network Information */}
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-2">
@@ -620,17 +479,15 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Action Buttons - Hanya tampilkan jika bukan read-only */}
+          {/* Action Buttons */}
           {!isReadOnly && (
-          <div className="flex justify-end space-x-3">
-            <Button onClick={onClose}>
-              Tutup
-            </Button>
-            <Button onClick={handleExportExcel} className="ml-2" variant="outline">Export Excel</Button>
-          </div>
+            <div className="flex justify-end space-x-3">
+              <Button onClick={onClose}>Tutup</Button>
+              <Button onClick={handleExportExcel} className="ml-2" variant="outline">Export Excel</Button>
+            </div>
           )}
 
-          {/* Simulation Section - Hanya tampilkan jika bukan read-only */}
+          {/* Measurement Tables */}
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-2">
@@ -639,7 +496,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               </div>
             </CardHeader>
             <CardContent>
-              {/* Day Measurement Section - Classic UI */}
+              {/* SIANG */}
               <div className="mb-2 mt-4 text-lg font-bold text-yellow-800 text-center">Pengukuran Siang</div>
               <div className="border border-yellow-300 rounded-lg overflow-x-auto mb-2">
                 <table className="min-w-max w-full text-center border-collapse">
@@ -698,7 +555,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                   </tbody>
                 </table>
               </div>
-              {/* BEBAN SIANG - hasil semua baris */}
+
+              {/* BEBAN SIANG */}
               <div className="mb-6 flex justify-center">
                 <table className="min-w-max w-auto border border-black text-center bg-white rounded-lg">
                   <thead className="bg-yellow-100">
@@ -727,7 +585,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                 </table>
               </div>
 
-              {/* Night Measurement Section - Classic UI */}
+              {/* MALAM */}
               <div className="mb-2 mt-8 text-lg font-bold text-blue-800 text-center">Pengukuran Malam</div>
               <div className="border border-blue-300 rounded-lg overflow-x-auto mb-2">
                 <table className="min-w-max w-full text-center border-collapse">
@@ -786,7 +644,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                   </tbody>
                 </table>
               </div>
-              {/* BEBAN MALAM - hasil semua baris */}
+
+              {/* BEBAN MALAM */}
               <div className="mb-6 flex justify-center">
                 <table className="min-w-max w-auto border border-black text-center bg-white rounded-lg">
                   <thead className="bg-blue-100">
@@ -818,19 +677,16 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
           </Card>
 
           {!isReadOnly && (
-          <div className="flex justify-end mt-4">
-            <Button size="md" onClick={handleSaveAllMeasurements} disabled={isSaving}>
-              {isSaving ? 'Menyimpan...' : 'Save Data'}
-            </Button>
-          </div>
+            <div className="flex justify-end mt-4">
+              <Button size="md" onClick={handleSaveAllMeasurements} disabled={isSaving}>
+                {isSaving ? 'Menyimpan...' : 'Save Data'}
+              </Button>
+            </div>
           )}
 
-          {/* Tombol Tutup untuk user read-only */}
           {isReadOnly && (
             <div className="flex justify-end mt-4">
-              <Button onClick={onClose}>
-                Tutup
-              </Button>
+              <Button onClick={onClose}>Tutup</Button>
             </div>
           )}
         </div>

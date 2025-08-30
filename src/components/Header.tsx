@@ -1,6 +1,6 @@
 import React from 'react';
-import { Zap, Bell, Settings, User } from 'lucide-react';
-import { Button } from './ui/Button';
+//import { Zap, Bell, Settings, User } from 'lucide-react';
+//import { Button } from './ui/Button';
 
 export const Header: React.FC = () => {
   return (
