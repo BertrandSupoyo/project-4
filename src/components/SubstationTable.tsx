@@ -41,8 +41,8 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   onAddSubstation,
   isReadOnly = false,
   currentUser,
-  adminToken,        // tidak digunakan di sini, dibiarkan agar kompatibel props lama
-  onRefetch,         // opsional
+ // adminToken,        // pengembangan berikut
+  onRefetch,         // pengembangan berikut
 }) => {
   /** Pegang salinan lokal agar bisa optimistic update tanpa reload */
   const [rows, setRows] = useState<SubstationData[]>(data);
@@ -55,10 +55,10 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   useEffect(() => {
     if (didInit.current) return;
     didInit.current = true;
-    // jika nanti perlu side-effect init, taruh di sini (mis. telemetry, dsb.)
+    
   }, []);
 
-  /** Filter & Search */
+  // Filter & Search //
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [jenisFilter, setJenisFilter] = useState<string>('all');
@@ -87,7 +87,7 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
     });
   }, [rows, debouncedSearch, statusFilter, jenisFilter]);
 
-  /** Pagination dengan guard */
+  // Pagination dengan guard //
   const [page, setPage] = useState(1);
   const pageSize = 50;
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
@@ -100,7 +100,7 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   }, [page, totalPages]);
   const paginatedData = filteredData.slice((page - 1) * pageSize, page * pageSize);
 
-  /** Detail Modal */
+  // Detail Modal //
   const [selectedSubstation, setSelectedSubstation] = useState<SubstationData | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -109,7 +109,7 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
     setIsDetailModalOpen(true);
   };
 
-  /** Busy flags (cegah double action) */
+  // Busy flags (cegah double action) //
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyDeleteId, setBusyDeleteId] = useState<string | null>(null);
 
