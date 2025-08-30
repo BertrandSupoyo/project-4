@@ -1,5 +1,0 @@
-[33m8369440[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m vercel manual
-[33m459736f[m Update substations.js
-[33m0d1370f[m Add force reload and debug logging to ensure checkbox changes are properly reflected in UI and stats
-[33m77ea926[m Fix checkbox functionality and add new export endpoint for individual substation
-[33ma543fcb[m Fix measurement data separation: Add specific CSS classes and data attributes to distinguish siang and malam input fields
