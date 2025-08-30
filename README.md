@@ -33,8 +33,6 @@ npm install
 npm run dev
 ```
 
-Server akan berjalan di `http://localhost:3001` dengan database SQLite otomatis dibuat.
-
 #### 2. Setup Frontend
 
 ```bash
@@ -71,7 +69,6 @@ Aplikasi akan berjalan di `http://localhost:5173`
 Aplikasi ini sekarang terintegrasi penuh dengan database dan mendukung:
 
 ### Database yang Didukung
-- ✅ **SQLite** (Development/Demo) - Otomatis setup
 - ✅ **PostgreSQL** (Production)
 - ✅ **MySQL** (Production)
 - ✅ **MongoDB** (Production)
@@ -116,25 +113,6 @@ project/
 └── README.md              # Dokumentasi ini
 ```
 
-## 🔧 API Endpoints
-
-### Substations
-- `GET /api/substations` - Mengambil semua data gardu
-- `GET /api/substations/:id` - Mengambil data gardu berdasarkan ID
-- `POST /api/substations` - Menambah gardu baru
-- `PUT /api/substations/:id` - Mengupdate data gardu
-- `DELETE /api/substations/:id` - Menghapus gardu
-
-### Status & Power Management
-- `PATCH /api/substations/:id/status` - Mengupdate status gardu
-- `PATCH /api/substations/:id/power` - Mengupdate daya gardu
-
-### Dashboard & Filtering
-- `GET /api/dashboard/stats` - Mengambil statistik dashboard
-- `GET /api/substations/filter` - Filter gardu berdasarkan kriteria
-
-### Health Check
-- `GET /api/health` - Status API server
 
 ## 📋 Struktur Data
 
@@ -174,9 +152,6 @@ interface SubstationData {
 ```
 
 ## 🗄️ Database Setup
-
-### SQLite (Default - Development)
-Database SQLite otomatis dibuat saat menjalankan backend server.
 
 ### PostgreSQL/MySQL (Production)
 Lihat file `SETUP_DATABASE.md` untuk panduan lengkap setup database production.
@@ -283,4 +258,3 @@ Untuk bantuan dan pertanyaan:
 
 ---
 
-**🎉 Selamat! Aplikasi monitoring gardu distribusi Anda sekarang terintegrasi penuh dengan database dan siap digunakan!** 
