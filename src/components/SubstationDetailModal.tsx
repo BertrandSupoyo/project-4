@@ -90,7 +90,9 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       if (typeof onFetchSubstationDetail === 'function') {
         await onFetchSubstationDetail(substation.id);
       }
-      // Clear pending states after successful upload
+      // Tampilkan notifikasi sukses dan pertahankan preview hingga setelah refresh selesai
+      window.alert('Foto berhasil disimpan');
+      // Clear pending states setelah data ter-refresh supaya gambar permanen tampil
       setPendingFile(null);
       setPreviewPhoto(null);
     } catch (err) {
