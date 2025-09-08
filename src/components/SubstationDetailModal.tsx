@@ -34,6 +34,9 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingTanggal, setIsEditingTanggal] = useState(false);
   const [editedTanggal, setEditedTanggal] = useState('');
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   useEffect(() => {
     if (substation) {
@@ -57,7 +60,46 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
     }
   }, [substation]);
 
+  useEffect(() => {
+    // Reset preview when modal opens with a different substation
+    setPreviewPhoto(null);
+    setPendingFile(null);
+  }, [isOpen, substation?.id]);
+
   if (!isOpen || !substation) return null;
+
+  const handlePhotoSelect: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files?.[0] || null;
+    setPendingFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewPhoto(null);
+    }
+  };
+
+  const handleSavePhoto = async () => {
+    if (!substation || !previewPhoto) return;
+    try {
+      setIsUploadingPhoto(true);
+      await ApiService.uploadSubstationPhoto(substation.id, previewPhoto, pendingFile?.name);
+      if (typeof onFetchSubstationDetail === 'function') {
+        await onFetchSubstationDetail(substation.id);
+      }
+      // Clear pending states after successful upload
+      setPendingFile(null);
+      setPreviewPhoto(null);
+    } catch (err) {
+      console.error('Gagal mengunggah foto:', err);
+      alert('Gagal mengunggah foto');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
 
   const handleEditPower = () => {
     setEditedPower(String(substation.daya));
@@ -211,21 +253,18 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
         ApiService.patchMeasurementsMalamBulk(malamData),
       ]);
 
-      const messages = [];
-      if (siangResult && siangResult.length > 0) {
-        setSiangMeasurements(siangResult);
-        messages.push('Data SIANG berhasil disimpan.');
-      } else {
-        messages.push('Gagal menyimpan data SIANG.');
-      }
-      if (malamResult && malamResult.length > 0) {
-        setMalamMeasurements(malamResult);
-        messages.push('Data MALAM berhasil disimpan.');
-      } else {
-        messages.push('Gagal menyimpan data MALAM.');
-      }
+      const siangOk = !!(siangResult && siangResult.length > 0);
+      const malamOk = !!(malamResult && malamResult.length > 0);
+      if (siangOk) setSiangMeasurements(siangResult);
+      if (malamOk) setMalamMeasurements(malamResult);
 
-      window.alert(messages.join('\n\n'));
+      if (siangOk && malamOk) {
+        window.alert('semua data berhasil disimpan');
+      } else if (siangOk || malamOk) {
+        window.alert('Sebagian data berhasil disimpan');
+      } else {
+        window.alert('Gagal menyimpan data');
+      }
       if (substation?.id && typeof onFetchSubstationDetail === 'function') {
         await onFetchSubstationDetail(substation.id);
       }
@@ -456,9 +495,9 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 <div className="md:col-span-2">
-                  {substation.photoUrl ? (
+                  {(previewPhoto || substation.photoUrl) ? (
                     <img
-                      src={substation.photoUrl}
+                      src={previewPhoto || substation.photoUrl || ''}
                       alt="Foto Gardu"
                       className="w-full h-64 object-contain rounded-lg border bg-gray-100"
                     />
@@ -470,31 +509,18 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                 </div>
                 {!isReadOnly && (
                   <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">Unggah / Ganti Foto</label>
+                    <label className="block text-sm font-medium text-gray-700">Pilih Foto</label>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = async () => {
-                          try {
-                            const base64 = reader.result as string; // data URL
-                            const updated = await ApiService.uploadSubstationPhoto(substation.id, base64, file.name);
-                            // Hindari double refresh: gunakan fetch detail sekali saja jika tersedia
-                            if (typeof onFetchSubstationDetail === 'function') {
-                              await onFetchSubstationDetail(substation.id);
-                            }
-                          } catch (err) {
-                            console.error('Gagal mengunggah foto:', err);
-                            alert('Gagal mengunggah foto');
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      }}
+                      onChange={handlePhotoSelect}
                       className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <div className="flex items-center gap-2">
+                      <Button onClick={handleSavePhoto} disabled={!previewPhoto || isUploadingPhoto}>
+                        {isUploadingPhoto ? 'Menyimpan...' : 'Simpan Foto'}
+                      </Button>
+                    </div>
                     <p className="text-xs text-gray-500">Format: JPG/PNG/WEBP, maks 10MB</p>
                   </div>
                 )}
