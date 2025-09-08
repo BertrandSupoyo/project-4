@@ -69,6 +69,21 @@ export default async function handler(req, res) {
         }
       });
 
+      // Ensure photoUrl column exists and merge photoUrl into results
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
+      if (substations.length > 0) {
+        const ids = substations.map(s => s.id);
+        const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+        const rows = await db.$queryRawUnsafe(
+          `SELECT id, "photoUrl" FROM "substations" WHERE id IN (${placeholders})`,
+          ...ids
+        );
+        const idToPhoto = new Map(rows.map(r => [r.id, r.photoUrl]));
+        for (const s of substations) {
+          s.photoUrl = idToPhoto.get(s.id) || null;
+        }
+      }
+
       console.log(`✅ Found ${substations.length} substations`);
 
       res.json({
