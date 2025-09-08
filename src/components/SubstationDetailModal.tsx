@@ -460,7 +460,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                     <img
                       src={substation.photoUrl}
                       alt="Foto Gardu"
-                      className="w-full h-64 object-cover rounded-lg border"
+                      className="w-full h-64 object-contain rounded-lg border bg-gray-100"
                     />
                   ) : (
                     <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg border text-gray-500">
@@ -482,7 +482,10 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                           try {
                             const base64 = reader.result as string; // data URL
                             const updated = await ApiService.uploadSubstationPhoto(substation.id, base64, file.name);
-                            onUpdateSubstation(updated);
+                            // Hindari double refresh: gunakan fetch detail sekali saja jika tersedia
+                            if (typeof onFetchSubstationDetail === 'function') {
+                              await onFetchSubstationDetail(substation.id);
+                            }
                           } catch (err) {
                             console.error('Gagal mengunggah foto:', err);
                             alert('Gagal mengunggah foto');
