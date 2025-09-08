@@ -61,12 +61,12 @@ export interface SubstationData {
   ugb: number; // 1 = UGB aktif, 0 = UGB tidak aktif
   latitude?: number;
   longitude?: number;
+  photoUrl?: string; // URL foto gardu
 }
 
 export interface DashboardStats {
   totalSubstations: number;
   activeSubstations: number;
-  inactiveSubstations: number;
   criticalIssues: number;
   monthlyMeasurements: number;
   ugbActive: number;

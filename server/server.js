@@ -6,6 +6,8 @@ const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 // Authentication middleware
@@ -113,6 +115,13 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files for uploaded images
+const uploadsDir = path.join(process.cwd(), 'server', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
+
 // Tambahkan parser text/plain agar import tetap bisa walau Content-Type salah
 app.use(express.text({ type: 'text/plain' }));
 app.use((req, res, next) => {
@@ -209,7 +218,7 @@ app.get('/api/health', async (req, res) => {
       error: 'Health check failed',
       timestamp: new Date().toISOString(),
     });
-}
+  }
 });
 
 // Monitoring endpoint
@@ -1410,6 +1419,43 @@ app.post('/api/admin/login', async (req, res, next) => {
       },
       message: 'Login successful',
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Upload/replace substation photo (expects JSON with { imageBase64: string, filename?: string })
+app.patch('/api/substations/:id/photo', authenticateAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { imageBase64, filename } = req.body || {};
+
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      return res.status(400).json({ success: false, error: 'imageBase64 is required' });
+    }
+
+    // Support data URL or plain base64
+    const matches = imageBase64.match(/^data:(.+);base64,(.*)$/);
+    const base64Data = matches ? matches[2] : imageBase64;
+    const mime = matches ? matches[1] : 'image/jpeg';
+
+    // Infer extension
+    const ext = mime.includes('png') ? 'png' : mime.includes('webp') ? 'webp' : mime.includes('jpeg') ? 'jpg' : 'jpg';
+    const uniqueName = `${Date.now()}-${uuidv4()}${filename && path.extname(filename) ? path.extname(filename) : '.' + ext}`;
+    const filePath = path.join(uploadsDir, uniqueName);
+
+    // Write file
+    fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+
+    const publicUrl = `/uploads/${uniqueName}`;
+
+    // Update DB
+    const updated = await prisma.substation.update({
+      where: { id },
+      data: { photoUrl: publicUrl, lastUpdate: new Date() },
+    });
+
+    res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
   }

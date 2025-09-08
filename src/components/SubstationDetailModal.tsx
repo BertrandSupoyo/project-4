@@ -446,7 +446,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Activity className="h-5 w-5 text-purple-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">Pengukuran Terkini</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Foto Gardu</h3>
                 </div>
                 <div className="text-sm text-gray-500">
                   Terakhir update: {formatDate(substation.lastUpdate)}
@@ -454,27 +454,47 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{latestMeasurement.r}</div>
-                  <div className="text-sm text-gray-600">R (V)</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div className="md:col-span-2">
+                  {substation.photoUrl ? (
+                    <img
+                      src={substation.photoUrl}
+                      alt="Foto Gardu"
+                      className="w-full h-64 object-cover rounded-lg border"
+                    />
+                  ) : (
+                    <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg border text-gray-500">
+                      Belum ada foto gardu
+                    </div>
+                  )}
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{latestMeasurement.s}</div>
-                  <div className="text-sm text-gray-600">S (V)</div>
-                </div>
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">{latestMeasurement.t}</div>
-                  <div className="text-sm text-gray-600">T (V)</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{latestMeasurement.pp}</div>
-                  <div className="text-sm text-gray-600">P-P (V)</div>
-                </div>
-                <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{latestMeasurement.pn}</div>
-                  <div className="text-sm text-gray-600">P-N (V)</div>
-                </div>
+                {!isReadOnly && (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-gray-700">Unggah / Ganti Foto</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = async () => {
+                          try {
+                            const base64 = reader.result as string; // data URL
+                            const updated = await ApiService.uploadSubstationPhoto(substation.id, base64, file.name);
+                            onUpdateSubstation(updated);
+                          } catch (err) {
+                            console.error('Gagal mengunggah foto:', err);
+                            alert('Gagal mengunggah foto');
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500">Format: JPG/PNG/WEBP, maks 10MB</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

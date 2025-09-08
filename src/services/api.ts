@@ -195,30 +195,6 @@ export class ApiService {
     });
   }
 
-  // PATCH measurement (partial update)
-  // static async patchMeasurement(id: number, updates: any): Promise<void> {
-  //   await ApiService.request(`/measurements/${id}`, {
-  //     method: 'PATCH',
-  //     body: JSON.stringify(updates),
-  //   });
-  // }
-
-  // PATCH measurement siang (partial update)
-  // static async patchMeasurementSiang(id: number, updates: any): Promise<void> {
-  //   await ApiService.request(`/measurements_siang/${id}`, {
-  //     method: 'PATCH',
-  //     body: JSON.stringify(updates),
-  //   });
-  // }
-
-  // PATCH measurement malam (partial update)
-  // static async patchMeasurementMalam(id: number, updates: any): Promise<void> {
-  //   await ApiService.request(`/measurements_malam/${id}`, {
-  //     method: 'PATCH',
-  //     body: JSON.stringify(updates),
-  //   });
-  // }
-
   // PATCH bulk measurement siang
   static async patchMeasurementsSiangBulk(measurements: any[]): Promise<any[]> {
     const response = await ApiService.request('/measurements_siang/bulk', {
@@ -246,6 +222,18 @@ export class ApiService {
         Authorization: `Bearer admin_token`, // Static token for now
       },
     });
+  }
+
+  // Upload/replace substation photo via base64 string
+  static async uploadSubstationPhoto(id: string, imageBase64: string, filename?: string): Promise<SubstationData> {
+    const response = await this.request<SubstationData>(`/substations/${id}/photo`, {
+      method: 'PATCH',
+      body: JSON.stringify({ imageBase64, filename }),
+      headers: {
+        Authorization: `Bearer admin_token`,
+      },
+    });
+    return response.data;
   }
 }
 

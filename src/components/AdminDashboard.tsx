@@ -219,7 +219,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 
-  const renderUsers = () => (
+ /*  const renderUsers = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">Manajemen User</h2>
@@ -229,7 +229,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </Button>
       </div>
 
-      <Card>
+     <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -271,9 +271,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </CardContent>
       </Card>
     </div>
-  );
+  ); 
 
-  const renderLogs = () => (
+ /*  const renderLogs = () => (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900">Activity Logs</h2>
       
@@ -304,7 +304,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </CardContent>
       </Card>
     </div>
-  );
+  ); */
 
   const renderSettings = () => (
     <div className="space-y-6">
@@ -353,9 +353,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'substations':
         return renderSubstations();
       case 'users':
-        return renderUsers();
+        //return renderUsers();
       case 'logs':
-        return renderLogs();
+      //  return renderLogs();
       case 'settings':
         return renderSettings();
       default:

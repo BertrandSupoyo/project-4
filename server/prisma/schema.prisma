@@ -28,6 +28,7 @@ model Substation {
   ugb                   Int      @default(0)
   latitude              Float?
   longitude             Float?
+  photoUrl              String?  // URL foto gardu
 
   measurements_siang MeasurementSiang[]
   measurements_malam MeasurementMalam[]
