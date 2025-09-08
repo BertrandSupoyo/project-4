@@ -78,21 +78,49 @@ export default async function handler(req, res) {
     }
   }
 
-  // PATCH - Update substation
+  // PATCH - Update substation (supports photo and coordinates)
   else if (req.method === 'PATCH') {
     try {
       console.log('🏭 PATCH update request:', req.body);
-      const updateData = req.body;
-      
-      console.log('📝 Update data:', { id, updateData });
+      const updateData = req.body || {};
 
-      // Hanya izinkan field tertentu untuk diupdate
+      // Handle imageBase64 -> photoUrl (data URL)
+      let photoUrlToSet;
+      if (typeof updateData.imageBase64 === 'string' && updateData.imageBase64.length > 0) {
+        const isDataUrl = updateData.imageBase64.startsWith('data:') && updateData.imageBase64.includes(';base64,');
+        photoUrlToSet = isDataUrl ? updateData.imageBase64 : `data:image/jpeg;base64,${updateData.imageBase64}`;
+        // Ensure column exists
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
+      }
+
+      // Build filtered fields
       const allowedFields = ['is_active', 'status', 'daya', 'lastUpdate', 'ugb', 'latitude', 'longitude', 'tanggal'];
       const filteredData = {};
       for (const key of allowedFields) {
         if (updateData[key] !== undefined) {
           filteredData[key] = updateData[key];
         }
+      }
+
+      // Normalize coordinates if provided as strings
+      if (filteredData.latitude !== undefined) filteredData.latitude = parseFloat(filteredData.latitude);
+      if (filteredData.longitude !== undefined) filteredData.longitude = parseFloat(filteredData.longitude);
+
+      // If photo was provided, update via raw SQL to avoid client mismatch
+      if (photoUrlToSet) {
+        const updated = await db.$queryRawUnsafe(
+          'UPDATE "substations" SET "photoUrl" = $1, "lastUpdate" = NOW() WHERE id = $2 RETURNING *',
+          photoUrlToSet,
+          id
+        );
+        // Also update any other filtered fields if present
+        if (Object.keys(filteredData).length > 0) {
+          await db.substation.update({ where: { id }, data: filteredData });
+        }
+        if (!updated || updated.length === 0) {
+          return res.status(404).json({ success: false, error: 'Substation not found' });
+        }
+        return res.json({ success: true, data: updated[0], message: 'Substation updated successfully' });
       }
 
       if (Object.keys(filteredData).length === 0) {
@@ -109,7 +137,6 @@ export default async function handler(req, res) {
 
       console.log('✅ Substation updated:', updatedSubstation.id);
       console.log('📝 Updated fields:', filteredData);
-      console.log('📊 New values - is_active:', updatedSubstation.is_active, 'ugb:', updatedSubstation.ugb);
 
       res.json({
         success: true,
