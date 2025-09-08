@@ -19,6 +19,8 @@ interface SubstationTableProps {
   adminToken?: string;
   /** Opsional: bila disediakan, dipanggil setelah add/import supaya refresh data terpusat tanpa reload */
   onRefetch?: () => Promise<void>;
+  /** Opsional: fungsi untuk fetch detail substation dan update state pusat */
+  onFetchSubstationDetail?: (id: string) => Promise<void>;
 }
 
 /** Hook kecil untuk debounce value (250ms default) */
@@ -43,6 +45,7 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   currentUser,
  // adminToken,        // pengembangan berikut
   onRefetch,         // pengembangan berikut
+  onFetchSubstationDetail,
 }) => {
   /** Pegang salinan lokal agar bisa optimistic update tanpa reload */
   const [rows, setRows] = useState<SubstationData[]>(data);
@@ -481,6 +484,7 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
         onClose={() => setIsDetailModalOpen(false)}
         onUpdatePower={handleUpdatePower}
         onUpdateSubstation={onUpdateSubstation}
+        onFetchSubstationDetail={onFetchSubstationDetail}
         isReadOnly={isReadOnly}
       />
 

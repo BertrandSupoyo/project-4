@@ -24,7 +24,8 @@ function App() {
     stats,
     updateSubstation,
     refreshData,
-    addSubstation
+    addSubstation,
+    getSubstationById
   } = useSubstations();
 
   const { user, isAuthenticated, loading: authLoading, login, loginViewer, logout } = useAuth();
@@ -299,12 +300,13 @@ function App() {
         {/* Data Table - Role-based access */}
         <SubstationTable 
           data={substations} 
-          onUpdateSubstation={isAdmin ? handleUpdateSubstation : () => {}} // Only admin can update
+          onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}} // Only admin can update
           loading={loading}
           onAddSubstation={isAdmin ? handleAddSubstation : async () => {}} // Only admin can add
           isReadOnly={!isAdmin} // Pass read-only flag
                 currentUser={user ? { role: user.role } : undefined} // Kirim hanya role, undefined jika null
                 adminToken={'admin_token'} // Tambahkan ini, ganti jika pakai JWT
+          onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
         />
             </>
           } />

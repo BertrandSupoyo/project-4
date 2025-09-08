@@ -90,11 +90,11 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
       if (typeof onFetchSubstationDetail === 'function') {
         await onFetchSubstationDetail(substation.id);
       }
-      // Tampilkan notifikasi sukses dan pertahankan preview hingga setelah refresh selesai
       window.alert('Foto berhasil disimpan');
-      // Clear pending states setelah data ter-refresh supaya gambar permanen tampil
       setPendingFile(null);
       setPreviewPhoto(null);
+      // Lakukan refresh halaman penuh setelah simpan agar konten ter-render ulang sepenuhnya
+      window.location.reload();
     } catch (err) {
       console.error('Gagal mengunggah foto:', err);
       alert('Gagal mengunggah foto');
