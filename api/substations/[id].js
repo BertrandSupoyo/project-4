@@ -84,11 +84,48 @@ export default async function handler(req, res) {
       console.log('🏭 PATCH update request:', req.body);
       const updateData = req.body || {};
 
-      // Handle imageBase64 -> photoUrl (data URL)
+      // Handle imageBase64 -> upload to blob (if token available) or store as data URL
       let photoUrlToSet;
       if (typeof updateData.imageBase64 === 'string' && updateData.imageBase64.length > 0) {
         const isDataUrl = updateData.imageBase64.startsWith('data:') && updateData.imageBase64.includes(';base64,');
-        photoUrlToSet = isDataUrl ? updateData.imageBase64 : `data:image/jpeg;base64,${updateData.imageBase64}`;
+        const dataUrl = isDataUrl ? updateData.imageBase64 : `data:image/jpeg;base64,${updateData.imageBase64}`;
+
+        const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+        if (blobToken) {
+          try {
+            // Upload to Vercel Blob
+            const uploadRes = await fetch('https://blob.vercel-storage.com', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${blobToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                content: dataUrl,
+                encoding: 'base64-data-url',
+                contentType: 'image/jpeg',
+              })
+            });
+            if (!uploadRes.ok) {
+              const errTxt = await uploadRes.text().catch(() => 'upload failed');
+              console.error('Blob upload failed:', errTxt);
+              photoUrlToSet = dataUrl; // fallback
+            } else {
+              const body = await uploadRes.json().catch(() => ({}));
+              if (body?.url) {
+                photoUrlToSet = body.url; // public URL
+              } else {
+                photoUrlToSet = dataUrl; // fallback
+              }
+            }
+          } catch (e) {
+            console.error('Blob upload error:', e);
+            photoUrlToSet = dataUrl; // fallback
+          }
+        } else {
+          photoUrlToSet = dataUrl; // fallback without Blob
+        }
+
         // Ensure column exists
         await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
       }
