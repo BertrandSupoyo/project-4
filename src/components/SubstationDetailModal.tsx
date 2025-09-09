@@ -495,37 +495,82 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                <div className="md:col-span-2">
-                  {(previewPhoto || substation.photoUrl) ? (
-                    <img
-                      src={previewPhoto || substation.photoUrl || ''}
-                      alt="Foto Gardu"
-                      className="w-full h-64 object-contain rounded-lg border bg-gray-100"
-                    />
-                  ) : (
-                    <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg border text-gray-500">
-                      Belum ada foto gardu
+              {!isReadOnly && (
+                <p className="text-xs text-gray-500 mb-3">Pilih foto per slot, lalu klik Simpan Foto untuk menyimpan. Tampilan di bawah menjaga rasio tanpa crop.</p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {([
+                  { key: 'R', title: 'R', url: substation.photoUrlR },
+                  { key: 'S', title: 'S', url: substation.photoUrlS },
+                  { key: 'T', title: 'T', url: substation.photoUrlT },
+                  { key: 'N', title: 'N', url: substation.photoUrlN },
+                  { key: 'PP', title: 'Phasa-Phasa', url: substation.photoUrlPP },
+                  { key: 'PN', title: 'Phasa-Netral', url: substation.photoUrlPN },
+                ] as const).map((slot) => (
+                  <div key={slot.key} className="space-y-2">
+                    <div className="font-semibold text-gray-800">{slot.title}</div>
+                    <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg border overflow-hidden">
+                      <img
+                        src={(previewPhoto && pendingFile) ? previewPhoto : (slot.url || '')}
+                        alt={`Foto ${slot.title}`}
+                        className="w-full h-64 object-contain"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      {!(previewPhoto && pendingFile) && !slot.url && (
+                        <span className="text-gray-500">Belum ada foto</span>
+                      )}
                     </div>
-                  )}
-                </div>
-                {!isReadOnly && (
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">Pilih Foto</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoSelect}
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <div className="flex items-center gap-2">
-                      <Button onClick={handleSavePhoto} disabled={!previewPhoto || isUploadingPhoto}>
-                        {isUploadingPhoto ? 'Menyimpan...' : 'Simpan Foto'}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500">Format: JPG/PNG/WEBP, maks 10MB</p>
+                    {!isReadOnly && (
+                      <div className="space-y-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setPendingFile(file);
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => setPreviewPhoto(reader.result as string);
+                              reader.readAsDataURL(file);
+                            } else {
+                              setPreviewPhoto(null);
+                            }
+                            // Store the chosen kind onto a data attribute using a hidden input or closure. We'll use a property on window temp.
+                            (window as any).__photoKind = slot.key;
+                          }}
+                          className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={async () => {
+                              if (!previewPhoto || !pendingFile) {
+                                window.alert('Pilih foto terlebih dahulu');
+                                return;
+                              }
+                              try {
+                                setIsUploadingPhoto(true);
+                                const kind = (window as any).__photoKind as 'R'|'S'|'T'|'N'|'PP'|'PN' | undefined;
+                                await ApiService.uploadSubstationPhoto(substation.id, previewPhoto, pendingFile.name, kind || slot.key);
+                                window.alert('Foto berhasil disimpan');
+                                setPendingFile(null);
+                                setPreviewPhoto(null);
+                                window.location.reload();
+                              } catch (err) {
+                                console.error('Gagal mengunggah foto:', err);
+                                window.alert('Gagal mengunggah foto');
+                              } finally {
+                                setIsUploadingPhoto(false);
+                              }
+                            }}
+                            disabled={isUploadingPhoto}
+                          >
+                            {isUploadingPhoto ? 'Menyimpan...' : 'Simpan Foto'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
             </CardContent>
           </Card>

@@ -62,6 +62,27 @@ export default async function handler(req, res) {
         });
       }
 
+      // Ensure columns exist and fetch photo URLs (single + six variants)
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlR" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlS" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlT" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlN" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPP" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPN" TEXT');
+
+      const rows = await db.$queryRawUnsafe('SELECT id, "photoUrl", "photoUrlR", "photoUrlS", "photoUrlT", "photoUrlN", "photoUrlPP", "photoUrlPN" FROM "substations" WHERE id = $1', id);
+      if (rows && rows.length > 0) {
+        const r = rows[0];
+        substation.photoUrl = r.photoUrl || null;
+        substation.photoUrlR = r.photoUrlR || null;
+        substation.photoUrlS = r.photoUrlS || null;
+        substation.photoUrlT = r.photoUrlT || null;
+        substation.photoUrlN = r.photoUrlN || null;
+        substation.photoUrlPP = r.photoUrlPP || null;
+        substation.photoUrlPN = r.photoUrlPN || null;
+      }
+
       console.log(`✅ Found substation: ${substation.noGardu}`);
 
       res.json({
@@ -84,8 +105,9 @@ export default async function handler(req, res) {
       console.log('🏭 PATCH update request:', req.body);
       const updateData = req.body || {};
 
-      // Handle imageBase64 -> upload to blob (if token available) or store as data URL
+      // Handle imageBase64 with optional photoKind -> upload to blob (if token available) or store as data URL
       let photoUrlToSet;
+      let photoColumnToSet; // one of photoUrl, photoUrlR/S/T/N/PP/PN
       if (typeof updateData.imageBase64 === 'string' && updateData.imageBase64.length > 0) {
         const isDataUrl = updateData.imageBase64.startsWith('data:') && updateData.imageBase64.includes(';base64,');
         const dataUrl = isDataUrl ? updateData.imageBase64 : `data:image/jpeg;base64,${updateData.imageBase64}`;
@@ -93,7 +115,6 @@ export default async function handler(req, res) {
         const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
         if (blobToken) {
           try {
-            // Upload to Vercel Blob
             const uploadRes = await fetch('https://blob.vercel-storage.com', {
               method: 'POST',
               headers: {
@@ -109,25 +130,39 @@ export default async function handler(req, res) {
             if (!uploadRes.ok) {
               const errTxt = await uploadRes.text().catch(() => 'upload failed');
               console.error('Blob upload failed:', errTxt);
-              photoUrlToSet = dataUrl; // fallback
+              photoUrlToSet = dataUrl;
             } else {
               const body = await uploadRes.json().catch(() => ({}));
-              if (body?.url) {
-                photoUrlToSet = body.url; // public URL
-              } else {
-                photoUrlToSet = dataUrl; // fallback
-              }
+              photoUrlToSet = body?.url || dataUrl;
             }
           } catch (e) {
             console.error('Blob upload error:', e);
-            photoUrlToSet = dataUrl; // fallback
+            photoUrlToSet = dataUrl;
           }
         } else {
-          photoUrlToSet = dataUrl; // fallback without Blob
+          photoUrlToSet = dataUrl;
         }
 
-        // Ensure column exists
+        // Decide column to set
+        const kind = String(updateData.photoKind || '').toUpperCase();
+        const kindToColumn = {
+          'R': 'photoUrlR',
+          'S': 'photoUrlS',
+          'T': 'photoUrlT',
+          'N': 'photoUrlN',
+          'PP': 'photoUrlPP',
+          'PN': 'photoUrlPN',
+        };
+        photoColumnToSet = kindToColumn[kind] || 'photoUrl';
+
+        // Ensure columns exist
         await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlR" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlS" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlT" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlN" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPP" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPN" TEXT');
       }
 
       // Build filtered fields
@@ -139,18 +174,16 @@ export default async function handler(req, res) {
         }
       }
 
-      // Normalize coordinates if provided as strings
       if (filteredData.latitude !== undefined) filteredData.latitude = parseFloat(filteredData.latitude);
       if (filteredData.longitude !== undefined) filteredData.longitude = parseFloat(filteredData.longitude);
 
-      // If photo was provided, update via raw SQL to avoid client mismatch
       if (photoUrlToSet) {
+        // Update specific photo column via unsafe query
         const updated = await db.$queryRawUnsafe(
-          'UPDATE "substations" SET "photoUrl" = $1, "lastUpdate" = NOW() WHERE id = $2 RETURNING *',
+          `UPDATE "substations" SET "${photoColumnToSet}" = $1, "lastUpdate" = NOW() WHERE id = $2 RETURNING *`,
           photoUrlToSet,
           id
         );
-        // Also update any other filtered fields if present
         if (Object.keys(filteredData).length > 0) {
           await db.substation.update({ where: { id }, data: filteredData });
         }

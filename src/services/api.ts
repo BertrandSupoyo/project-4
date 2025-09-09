@@ -225,10 +225,13 @@ export class ApiService {
   }
 
   // Upload/replace substation photo via base64 string
-  static async uploadSubstationPhoto(id: string, imageBase64: string, filename?: string): Promise<SubstationData> {
+  static async uploadSubstationPhoto(id: string, imageBase64: string, filename?: string, photoKind?: 'R'|'S'|'T'|'N'|'PP'|'PN'): Promise<SubstationData> {
+    const payload: any = { imageBase64 };
+    if (filename) payload.filename = filename;
+    if (photoKind) payload.photoKind = photoKind;
     const response = await this.request<SubstationData>(`/substations/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ imageBase64 }),
+      body: JSON.stringify(payload),
     });
     return response.data;
   }

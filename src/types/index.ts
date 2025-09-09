@@ -57,11 +57,17 @@ export interface SubstationData {
   }[];
   status: 'normal' | 'warning' | 'critical' | 'non-active';
   lastUpdate: string;
-  is_active: number; // 1 = aktif, 0 = tidak aktif
-  ugb: number; // 1 = UGB aktif, 0 = UGB tidak aktif
+  is_active: number;
+  ugb: number;
   latitude?: number;
   longitude?: number;
-  photoUrl?: string; // URL foto gardu
+  photoUrl?: string;
+  photoUrlR?: string;
+  photoUrlS?: string;
+  photoUrlT?: string;
+  photoUrlN?: string;
+  photoUrlPP?: string;
+  photoUrlPN?: string;
 }
 
 export interface DashboardStats {
