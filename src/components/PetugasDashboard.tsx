@@ -193,6 +193,23 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     return (<Badge className={statusInfo.color}>{statusInfo.label}</Badge>);
   };
 
+  const getUnbalanceBadge = (substation: SubstationData) => {
+    const siang = substation.measurements_siang || [];
+    const malam = substation.measurements_malam || [];
+    const values: number[] = [];
+    siang.forEach((m: any) => { if (m && m.unbalanced != null) values.push(Number(m.unbalanced)); });
+    malam.forEach((m: any) => { if (m && m.unbalanced != null) values.push(Number(m.unbalanced)); });
+    const maxUnb = values.length ? Math.max(...values) : 0;
+    if (maxUnb > 80) {
+      return <Badge className="bg-red-100 text-red-800">Overload {maxUnb.toFixed(1)}%</Badge>;
+    }
+    if (values.length) {
+      return <Badge className="bg-green-100 text-green-800">Normal {maxUnb.toFixed(1)}%</Badge>;
+    }
+    // fallback to status if no measurements
+    return getStatusBadge(substation.status);
+  };
+
   const handleUseCurrentLocation = () => {
     if (!('geolocation' in navigator)) {
       alert('Geolocation tidak didukung di perangkat ini.');
@@ -227,17 +244,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
               <p className="text-gray-600 text-sm md:text-base">Selamat datang, {user?.name}</p>
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
-              <div className="flex space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
-                <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
-                  Dashboard
-                </Button>
-                <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
-                  Tambah Gardu
-                </Button>
-                <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
-                  List Gardu
-                </Button>
-              </div>
               <Button onClick={onLogout} variant="outline" className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -248,6 +254,18 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* In-content nav toolbar */}
+        <div className="mb-4 flex items-center space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
+          <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+            Dashboard
+          </Button>
+          <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+            Tambah Gardu
+          </Button>
+          <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+            List Gardu
+          </Button>
+        </div>
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
@@ -319,7 +337,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                         <button key={substation.id} onClick={() => { setSelectedSubstation(substation); setIsDetailOpen(true); }} className="text-left border rounded-lg p-4 hover:shadow-md transition-shadow">
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold text-gray-900">{substation.noGardu}</h3>
-                            {getStatusBadge(substation.status)}
+                            {getUnbalanceBadge(substation)}
                           </div>
                           <p className="text-sm text-gray-600 mb-1">{substation.namaLokasiGardu}</p>
                           <p className="text-xs text-gray-500">ULP: {substation.ulp}</p>
@@ -530,7 +548,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
                               <h3 className="font-semibold text-gray-900">{substation.noGardu}</h3>
-                              {getStatusBadge(substation.status)}
+                              {getUnbalanceBadge(substation)}
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                               <div>
