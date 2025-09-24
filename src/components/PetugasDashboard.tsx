@@ -321,7 +321,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   {([ { key: 'rumah' as const, title: 'Rumah' }, { key: 'meter' as const, title: 'Meter' }, { key: 'petugas' as const, title: 'Petugas' }, { key: 'ba' as const, title: 'BA' }]).map((item) => (
                     <div key={item.key} className="text-center">
-                      <div className="w-full h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-2 overflow-hidden">
+                      <div className="w-full h-40 md:h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-2 overflow-hidden">
                         {photoPreviews[item.key] ? (
                           <img src={photoPreviews[item.key]!} alt={item.title} className="w-full h-full object-cover" />
                         ) : (
@@ -331,7 +331,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                           </div>
                         )}
                       </div>
-                      <input type="file" accept="image/*" onChange={handlePhotoChange(item.key)} className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                      <input type="file" accept="image/*" onChange={handlePhotoChange(item.key)} className="block w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                     </div>
                   ))}
                 </div>
@@ -359,7 +359,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                       { name: 'arahSequence', label: 'Arah Sequence' },
                     ] as const).map((f) => (
                       <div key={f.name}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
+                        <label className="block text-base md:text-sm font-medium text-gray-700 mb-1">{f.label}</label>
                         <Input name={f.name} value={(formData as any)[f.name]} onChange={handleInputChange} placeholder={`Masukkan ${f.label.replace('*','').trim()}`} required={f.label.includes('*')} />
                       </div>
                     ))}
@@ -374,8 +374,8 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pilihan Jurusan (Siang)</label>
-                    <select value={jurusanSiang} onChange={(e) => setJurusanSiang(e.target.value as any)} className="w-full border rounded-lg px-3 py-2">
+                    <label className="block text-base md:text-sm font-medium text-gray-700 mb-1">Pilihan Jurusan (Siang)</label>
+                    <select value={jurusanSiang} onChange={(e) => setJurusanSiang(e.target.value as any)} className="w-full border rounded-lg px-4 py-3 text-lg md:py-2 md:text-sm">
                       <option value="induk">Induk</option>
                       <option value="1">Jurusan 1</option>
                       <option value="2">Jurusan 2</option>
@@ -402,8 +402,8 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pilihan Jurusan (Malam)</label>
-                    <select value={jurusanMalam} onChange={(e) => setJurusanMalam(e.target.value as any)} className="w-full border rounded-lg px-3 py-2">
+                    <label className="block text-base md:text-sm font-medium text-gray-700 mb-1">Pilihan Jurusan (Malam)</label>
+                    <select value={jurusanMalam} onChange={(e) => setJurusanMalam(e.target.value as any)} className="w-full border rounded-lg px-4 py-3 text-lg md:py-2 md:text-sm">
                       <option value="induk">Induk</option>
                       <option value="1">Jurusan 1</option>
                       <option value="2">Jurusan 2</option>
@@ -433,11 +433,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                      <label className="block text-base md:text-sm font-medium text-gray-700 mb-1">Latitude</label>
                       <Input name="latitude" type="number" step="any" value={formData.latitude} onChange={handleInputChange} placeholder="Masukkan latitude" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                      <label className="block text-base md:text-sm font-medium text-gray-700 mb-1">Longitude</label>
                       <Input name="longitude" type="number" step="any" value={formData.longitude} onChange={handleInputChange} placeholder="Masukkan longitude" />
                     </div>
                   </div>
