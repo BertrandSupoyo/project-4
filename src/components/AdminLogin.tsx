@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
-import { Lock, User, Eye, EyeOff, Eye as ViewerIcon, Briefcase } from 'lucide-react';
+//import { Input } from './ui/Input';
+import { Lock, User, Eye, EyeOff, Eye as ViewerIcon } from 'lucide-react';
 
 interface AdminLoginProps {
   onLogin: (username: string, password: string) => Promise<void>;
-  onViewerLogin: () => void;
-  onPetugasLogin: () => void; // Tambah prop untuk petugas login
+  onViewerLogin: () => void; // Tambah prop untuk viewer login
   loading?: boolean;
   error?: string;
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ 
   onLogin, 
-  onViewerLogin,
-  onPetugasLogin, // Tambah prop
+  onViewerLogin, // Tambah prop
   loading = false, 
   error 
 }) => {
@@ -41,7 +40,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
         </CardHeader>
         <CardContent>
           {/* Tombol Login sebagai Viewer */}
-          <div className="mb-4">
+          <div className="mb-6">
             <Button
               onClick={onViewerLogin}
               className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -52,21 +51,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             </Button>
             <p className="text-xs text-gray-500 mt-2 text-center">
               Masuk tanpa password untuk melihat data gardu distribusi
-            </p>
-          </div>
-
-          {/* Tombol Login sebagai Petugas */}
-          <div className="mb-6">
-            <Button
-              onClick={onPetugasLogin}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-              disabled={loading}
-            >
-              <Briefcase className="w-4 h-4 mr-2" />
-              Login sebagai Petugas
-            </Button>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Masuk sebagai petugas lapangan untuk mengelola data gardu
             </p>
           </div>
 
@@ -141,4 +125,4 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
       </Card>
     </div>
   );
-};
+}; 
