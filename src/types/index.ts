@@ -77,3 +77,18 @@ export interface DashboardStats {
   monthlyMeasurements: number;
   ugbActive: number;
 }
+
+export type UserRole = 'admin' | 'petugas' | 'viewer';
+
+export interface User {
+  id: string;
+  username: string;
+  role: UserRole;
+  name: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+}

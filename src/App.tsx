@@ -8,6 +8,7 @@ import { SubstationListModal } from './components/SubstationListModal';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
+import { PetugasDashboard } from './components/PetugasDashboard';
 import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
 import { useSubstations } from './hooks/useSubstations';
 import { useAuth } from './hooks/useAuth';
@@ -28,7 +29,7 @@ function App() {
     getSubstationById
   } = useSubstations();
 
-  const { user, isAuthenticated, loading: authLoading, login, loginViewer, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, login, loginViewer, loginPetugas, logout } = useAuth();
 
   const [selectedModal, setSelectedModal] = useState<{
     type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | null;
@@ -139,6 +140,10 @@ function App() {
     loginViewer();
   };
 
+  const handlePetugasLogin = () => {
+    loginPetugas();
+  };
+
   const handleLogout = () => {
     logout();
   };
@@ -149,10 +154,16 @@ function App() {
       <AdminLogin 
         onLogin={handleAdminLogin}
         onViewerLogin={handleViewerLogin}
+        onPetugasLogin={handlePetugasLogin}
         loading={loginLoading}
         error={loginError || undefined}
       />
     );
+  }
+
+  // Show petugas dashboard if user is petugas
+  if (user?.role === 'petugas') {
+    return <PetugasDashboard user={user} onLogout={handleLogout} />;
   }
 
   // Tampilkan loading spinner jika sedang memuat data
@@ -198,132 +209,154 @@ function App() {
   return (
     <Router>
       <Header />
-      <nav className="mb-6 flex gap-4 justify-center">
-        <Link to="/">
-          <Button variant="primary" size="md" className="flex items-center gap-2">
-            <LayoutDashboard size={18} />
-            Dashboard
-          </Button>
-        </Link>
-        <Link to="/riwayat-gardu">
-          <Button variant="outline" size="md" className="flex items-center gap-2">
-            <History size={18} />
-            Riwayat
-          </Button>
-        </Link>
-      </nav>
-      <main className="container mx-auto px-4 py-8">
-        <Routes>
-          <Route path="/" element={
-            // ...dashboard utama Anda, misal:
-            <>
-        {/* User Info & Logout */}
-        {isAuthenticated && (
-          <div className="mb-6 flex justify-between items-center">
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Shield className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-gray-600">
-                  Login sebagai: <span className="font-semibold">{user?.name || user?.username}</span>
-                  {isAdmin && (
-                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                      Admin
-                    </span>
-                  )}
+              <div className="flex items-center text-gray-600">
+                <Shield className="w-5 h-5 mr-2" />
+                <span className="text-sm font-medium">
+                  {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : 'User'}
                 </span>
               </div>
+              <div className="flex space-x-4">
+                <Link 
+                  to="/"
+                  className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-1" />
+                  Dashboard
+                </Link>
+                <Link 
+                  to="/riwayat"
+                  className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  <History className="w-4 h-4 mr-1" />
+                  Riwayat Gardu
+                </Link>
+              </div>
             </div>
-            <button
+            <Button
               onClick={handleLogout}
-              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
-            </button>
+            </Button>
           </div>
-        )}
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <StatsCard
-            title="Total Gardu"
-            value={stats.totalSubstations}
-            icon={Activity}
-            trend="+2.5%"
-            onClick={() => handleStatsCardClick('total')}
-            loading={loading}
-          />
-          <StatsCard
-            title="Gardu Aktif"
-            value={stats.activeSubstations}
-            icon={Zap}
-            trend="+1.8%"
-            onClick={() => handleStatsCardClick('active')}
-            loading={loading}
-          />
-          <StatsCard
-            title="Gardu Non-Aktif"
-            value={stats.inactiveSubstations}
-            icon={PowerOff}
-            trend="-0.5%"
-            onClick={() => handleStatsCardClick('non-active')}
-            loading={loading}
-          />
-          <StatsCard
-            title="Masalah Kritis"
-            value={criticalCount}
-            icon={AlertTriangle}
-            trend="+0.3%"
-            onClick={() => handleStatsCardClick('critical')}
-            loading={loading}
-          />
-          <StatsCard
-            title="UGB Aktif"
-            value={stats.ugbActive}
-            icon={Shield}
-            trend="+1.2%"
-            onClick={() => handleStatsCardClick('ugb-active')}
-            loading={loading}
-          />
         </div>
+      </div>
 
-        {/* Voltage Chart */}
-        <div className="mb-8">
-          <VoltageChart data={substations} />
-        </div>
+      <Routes>
+        <Route path="/riwayat" element={<RiwayatGarduPage />} />
+        <Route path="/" element={
+          <main className="container mx-auto px-4 py-8">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+              <StatsCard
+                title="Total Gardu"
+                value={stats.totalSubstations}
+                icon={Activity}
+                color="blue"
+                trend="+2.5%"
+                onClick={() => handleStatsCardClick('total')}
+              />
+              <StatsCard
+                title="Gardu Aktif"
+                value={stats.activeSubstations}
+                icon={Zap}
+                color="green"
+                trend="+1.2%"
+                onClick={() => handleStatsCardClick('active')}
+              />
+              <StatsCard
+                title="Gardu Non-Aktif"
+                value={stats.totalSubstations - stats.activeSubstations}
+                icon={PowerOff}
+                color="gray"
+                trend="-0.8%"
+                onClick={() => handleStatsCardClick('non-active')}
+              />
+              <StatsCard
+                title="Issue Kritis"
+                value={criticalCount}
+                icon={AlertTriangle}
+                color="red"
+                trend="-5.2%"
+                onClick={() => handleStatsCardClick('critical')}
+              />
+              <StatsCard
+                title="UGB Aktif"
+                value={stats.ugbActive}
+                icon={Shield}
+                color="purple"
+                trend="+3.1%"
+                onClick={() => handleStatsCardClick('ugb-active')}
+              />
+            </div>
 
-        {/* Simulation Table - Full Width */}
-        <div className="mb-8">
-          <SubstationSimulationTable data={substations} />
-        </div>
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <VoltageChart data={substations} />
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-semibold mb-4">Status Distribusi</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Gardu Normal</span>
+                    <span className="font-semibold text-green-600">
+                      {substations.filter(s => s.status === 'normal').length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Gardu Warning</span>
+                    <span className="font-semibold text-yellow-600">
+                      {substations.filter(s => s.status === 'warning').length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Gardu Critical</span>
+                    <span className="font-semibold text-red-600">
+                      {substations.filter(s => s.status === 'critical').length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        {/* Data Table - Role-based access */}
-        <SubstationTable 
-          data={substations} 
-          onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}} // Only admin can update
-          loading={loading}
-          onAddSubstation={isAdmin ? handleAddSubstation : async () => {}} // Only admin can add
-          isReadOnly={!isAdmin} // Pass read-only flag
-                currentUser={user ? { role: user.role } : undefined} // Kirim hanya role, undefined jika null
-                adminToken={'admin_token'} // Tambahkan ini, ganti jika pakai JWT
-          onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
-        />
-            </>
-          } />
-          <Route path="/riwayat-gardu" element={<RiwayatGarduPage />} />
-        </Routes>
-      </main>
+            {/* Substation Table */}
+            <SubstationTable
+              data={substations}
+              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}} // Only admin can update
+              loading={loading}
+              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}} // Only admin can add
+              isReadOnly={!isAdmin} // Pass read-only flag
+              currentUser={user ? { role: user.role } : undefined} // Kirim hanya role, undefined jika null
+              adminToken={'admin_token'} // Tambahkan ini, ganti jika pakai JWT
+              onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
+            />
 
-      {/* List Modal */}
-      <SubstationListModal
-        isOpen={selectedModal.isOpen}
-        onClose={() => setSelectedModal({ type: null, isOpen: false })}
-        substations={substations}
-        title={getModalTitle()}
-        filter={getModalFilter()}
-        page={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
-        setPage={page => handleSetModalPage(selectedModal.type || 'total', page)}
-      />
+            {/* Simulation Table - hanya tampil jika admin */}
+            {isAdmin && (
+              <div className="mt-8">
+                <SubstationSimulationTable data={substations} />
+              </div>
+            )}
+
+            {/* Modal for displaying substation lists */}
+            <SubstationListModal
+              isOpen={selectedModal.isOpen}
+              onClose={() => setSelectedModal({ type: null, isOpen: false })}
+              title={getModalTitle()}
+              substations={substations}
+              filter={getModalFilter()}
+              currentPage={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
+              onPageChange={(page) => handleSetModalPage(selectedModal.type!, page)}
+            />
+          </main>
+        } />
+      </Routes>
     </Router>
   );
 }

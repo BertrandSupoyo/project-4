@@ -218,7 +218,7 @@ app.get('/api/health', async (req, res) => {
       error: 'Health check failed',
       timestamp: new Date().toISOString(),
     });
-  }
+}
 });
 
 // Monitoring endpoint

@@ -37,6 +37,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [previewPhotos, setPreviewPhotos] = useState<Record<string, string>>({});
+  const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({});
 
   useEffect(() => {
     if (substation) {
@@ -61,43 +63,51 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   }, [substation]);
 
   useEffect(() => {
-    // Reset preview when modal opens with a different substation
+    // Reset previews when modal opens with a different substation
     setPreviewPhoto(null);
     setPendingFile(null);
+    setPreviewPhotos({});
+    setPendingFiles({});
   }, [isOpen, substation?.id]);
 
   if (!isOpen || !substation) return null;
 
-  const handlePhotoSelect: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+  const handlePhotoSelectForKind = (kind: 'R'|'S'|'T'|'N'|'PP'|'PN') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setPendingFile(file);
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setPreviewPhoto(reader.result as string);
+        setPreviewPhotos(prev => ({ ...prev, [kind]: reader.result as string }));
+        setPendingFiles(prev => ({ ...prev, [kind]: file }));
       };
       reader.readAsDataURL(file);
     } else {
-      setPreviewPhoto(null);
+      setPreviewPhotos(prev => { const c = { ...prev }; delete (c as any)[kind]; return c; });
+      setPendingFiles(prev => { const c = { ...prev }; delete (c as any)[kind]; return c; });
     }
   };
 
-  const handleSavePhoto = async () => {
-    if (!substation || !previewPhoto) return;
+  const handleSaveAllPhotos = async () => {
+    if (!substation) return;
+    const kinds: Array<'R'|'S'|'T'|'N'|'PP'|'PN'> = ['R','S','T','N','PP','PN'];
+    const tasks = kinds
+      .filter(k => previewPhotos[k] && pendingFiles[k])
+      .map(k => ApiService.uploadSubstationPhoto(substation.id, previewPhotos[k], pendingFiles[k].name, k));
+    if (tasks.length === 0) {
+      window.alert('Pilih minimal satu foto terlebih dahulu');
+      return;
+    }
     try {
       setIsUploadingPhoto(true);
-      await ApiService.uploadSubstationPhoto(substation.id, previewPhoto, pendingFile?.name);
-      if (typeof onFetchSubstationDetail === 'function') {
-        await onFetchSubstationDetail(substation.id);
-      }
-      window.alert('Foto berhasil disimpan');
-      setPendingFile(null);
-      setPreviewPhoto(null);
-      // Lakukan refresh halaman penuh setelah simpan agar konten ter-render ulang sepenuhnya
+      await Promise.all(tasks);
+      window.alert('Semua foto berhasil disimpan');
+      // Clear local selections then hard refresh to render new photos
+      setPreviewPhotos({});
+      setPendingFiles({});
       window.location.reload();
     } catch (err) {
-      console.error('Gagal mengunggah foto:', err);
-      alert('Gagal mengunggah foto');
+      console.error('Gagal menyimpan sebagian/seluruh foto:', err);
+      window.alert('Gagal menyimpan foto');
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -496,7 +506,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
             </CardHeader>
             <CardContent>
               {!isReadOnly && (
-                <p className="text-xs text-gray-500 mb-3">Pilih foto per slot, lalu klik Simpan Foto untuk menyimpan. Tampilan di bawah menjaga rasio tanpa crop.</p>
+                <p className="text-xs text-gray-500 mb-3">Pilih foto untuk setiap slot, lalu klik "Simpan Semua Foto" agar semuanya tersimpan sekaligus.</p>
               )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {([
@@ -511,67 +521,36 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                     <div className="font-semibold text-gray-800">{slot.title}</div>
                     <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg border overflow-hidden">
                       <img
-                        src={(previewPhoto && pendingFile) ? previewPhoto : (slot.url || '')}
+                        src={previewPhotos[slot.key] || slot.url || ''}
                         alt={`Foto ${slot.title}`}
                         className="w-full h-64 object-contain"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                       />
-                      {!(previewPhoto && pendingFile) && !slot.url && (
+                      {!previewPhotos[slot.key] && !slot.url && (
                         <span className="text-gray-500">Belum ada foto</span>
                       )}
-                    </div>
+                </div>
                     {!isReadOnly && (
                       <div className="space-y-2">
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            setPendingFile(file);
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = () => setPreviewPhoto(reader.result as string);
-                              reader.readAsDataURL(file);
-                            } else {
-                              setPreviewPhoto(null);
-                            }
-                            // Store the chosen kind onto a data attribute using a hidden input or closure. We'll use a property on window temp.
-                            (window as any).__photoKind = slot.key;
-                          }}
+                          onChange={handlePhotoSelectForKind(slot.key)}
                           className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={async () => {
-                              if (!previewPhoto || !pendingFile) {
-                                window.alert('Pilih foto terlebih dahulu');
-                                return;
-                              }
-                              try {
-                                setIsUploadingPhoto(true);
-                                const kind = (window as any).__photoKind as 'R'|'S'|'T'|'N'|'PP'|'PN' | undefined;
-                                await ApiService.uploadSubstationPhoto(substation.id, previewPhoto, pendingFile.name, kind || slot.key);
-                                window.alert('Foto berhasil disimpan');
-                                setPendingFile(null);
-                                setPreviewPhoto(null);
-                                window.location.reload();
-                              } catch (err) {
-                                console.error('Gagal mengunggah foto:', err);
-                                window.alert('Gagal mengunggah foto');
-                              } finally {
-                                setIsUploadingPhoto(false);
-                              }
-                            }}
-                            disabled={isUploadingPhoto}
-                          >
-                            {isUploadingPhoto ? 'Menyimpan...' : 'Simpan Foto'}
-                          </Button>
-                        </div>
-                      </div>
+                        <p className="text-xs text-gray-500">Format: JPG/PNG/WEBP, maks 10MB</p>
+                </div>
                     )}
-                  </div>
+                </div>
                 ))}
+                </div>
+            {!isReadOnly && (
+              <div className="mt-4 flex justify-end">
+                <Button onClick={handleSaveAllPhotos} disabled={isUploadingPhoto}>
+                  {isUploadingPhoto ? 'Menyimpan...' : 'Simpan Semua Foto'}
+                </Button>
               </div>
+            )}
             </CardContent>
           </Card>
 

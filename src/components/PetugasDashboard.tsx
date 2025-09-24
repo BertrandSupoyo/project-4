@@ -5,7 +5,7 @@ import { Input } from './ui/Input';
 import { Badge } from './ui/Badge';
 import { SubstationData, DashboardStats, User } from '../types';
 import { useSubstations } from '../hooks/useSubstations';
-import { apiService } from '../services/api';
+import { ApiService } from '../services/api';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
 import { Camera, MapPin, Zap, Calendar, LogOut } from 'lucide-react';
@@ -75,7 +75,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getDashboardStats();
+      const response = await ApiService.getDashboardStats();
       setStats(response);
     } catch (err) {
       setError('Failed to fetch dashboard stats');
@@ -122,7 +122,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
       };
 
-      await apiService.addSubstation(newSubstation);
+      await ApiService.createSubstation(newSubstation);
       
       // Reset form
       setFormData({
