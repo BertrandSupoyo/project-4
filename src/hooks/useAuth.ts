@@ -1,17 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  username: string;
-  role: 'admin' | 'operator' | 'viewer';
-  name: string;
-}
-
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-}
+import { User, AuthState } from '../types';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
@@ -87,10 +75,10 @@ export const useAuth = () => {
   };
 
   const loginViewer = () => {
-    const viewerUser = {
+    const viewerUser: User = {
       id: 'viewer',
       username: 'viewer',
-      role: 'viewer' as const,
+      role: 'viewer',
       name: 'Viewer'
     };
 
@@ -100,6 +88,25 @@ export const useAuth = () => {
 
     setAuthState({
       user: viewerUser,
+      isAuthenticated: true,
+      loading: false,
+    });
+  };
+
+  const loginPetugas = () => {
+    const petugasUser: User = {
+      id: 'petugas',
+      username: 'petugas',
+      role: 'petugas',
+      name: 'Petugas Lapangan'
+    };
+
+    // Store in localStorage
+    localStorage.setItem('admin_token', 'petugas_token');
+    localStorage.setItem('admin_user', JSON.stringify(petugasUser));
+
+    setAuthState({
+      user: petugasUser,
       isAuthenticated: true,
       loading: false,
     });
@@ -125,8 +132,9 @@ export const useAuth = () => {
     isAuthenticated: authState.isAuthenticated,
     loading: authState.loading,
     login,
-    loginViewer, // Tambah fungsi loginViewer
+    loginViewer,
+    loginPetugas,
     logout,
     checkAuth,
   };
-}; 
+};
