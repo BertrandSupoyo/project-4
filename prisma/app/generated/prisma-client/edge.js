@@ -216,8 +216,7 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../../.env",
-    "schemaEnvPath": "../../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../..",
   "clientVersion": "6.13.0",
@@ -237,7 +236,7 @@ const config = {
   },
   "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"./app/generated/prisma-client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Substation {\n  id                String   @id @default(uuid())\n  no                Int\n  ulp               String\n  noGardu           String\n  namaLokasiGardu   String   @db.Text\n  jenis             String\n  merek             String\n  daya              String\n  tahun             String\n  phasa             String\n  tap_trafo_max_tap String\n  penyulang         String\n  arahSequence      String\n  tanggal           DateTime\n  status            String   @default(\"normal\")\n  lastUpdate        DateTime @default(now())\n  is_active         Int      @default(1)\n  ugb               Int      @default(0)\n  latitude          Float?\n  longitude         Float?\n\n  measurements_siang MeasurementSiang[]\n  measurements_malam MeasurementMalam[]\n\n  @@map(\"substations\")\n}\n\nmodel MeasurementSiang {\n  id           Int      @id @default(autoincrement())\n  substationId String\n  month        String\n  r            Float    @default(0)\n  s            Float    @default(0)\n  t            Float    @default(0)\n  n            Float    @default(0)\n  rn           Float    @default(0)\n  sn           Float    @default(0)\n  tn           Float    @default(0)\n  pp           Float    @default(0)\n  pn           Float    @default(0)\n  row_name     String\n  rata2        Float?   @default(0)\n  kva          Float?   @default(0)\n  persen       Float?   @default(0)\n  unbalanced   Float?   @default(0)\n  lastUpdate   DateTime @default(now())\n\n  substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)\n\n  @@unique([substationId, month, row_name])\n  @@map(\"measurements_siang\")\n}\n\nmodel MeasurementMalam {\n  id           Int      @id @default(autoincrement())\n  substationId String\n  month        String\n  r            Float    @default(0)\n  s            Float    @default(0)\n  t            Float    @default(0)\n  n            Float    @default(0)\n  rn           Float    @default(0)\n  sn           Float    @default(0)\n  tn           Float    @default(0)\n  pp           Float    @default(0)\n  pn           Float    @default(0)\n  row_name     String\n  rata2        Float?   @default(0)\n  kva          Float?   @default(0)\n  persen       Float?   @default(0)\n  unbalanced   Float?   @default(0)\n  lastUpdate   DateTime @default(now())\n\n  substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)\n\n  @@unique([substationId, month, row_name])\n  @@map(\"measurements_malam\")\n}\n\nmodel AdminUser {\n  id            Int      @id @default(autoincrement())\n  username      String   @unique\n  password_hash String\n  role          String   @default(\"admin\")\n  created_at    DateTime @default(now())\n\n  @@map(\"admin_users\")\n}\n",
   "inlineSchemaHash": "46b90955144b613af3cc590366e9c809cd95ae45ef412e4c03b7e3227ae6a956",
-  "copyEngine": false
+  "copyEngine": true
 }
 config.dirname = '/'
 
