@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -8,7 +8,8 @@ import { useSubstations } from '../hooks/useSubstations';
 import { ApiService } from '../services/api';
 import { LoadingSpinner } from './LoadingSpinner';
 import { ErrorMessage } from './ErrorMessage';
-import { Camera, MapPin, Zap, Calendar, LogOut } from 'lucide-react';
+import { Camera, MapPin, Calendar, LogOut } from 'lucide-react';
+import { SubstationDetailModal } from './SubstationDetailModal';
 
 interface PetugasDashboardProps {
   user: User;
@@ -21,6 +22,23 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { substations, loading: substationsLoading, refreshData } = useSubstations();
+
+  // Modal detail
+  const [selectedSubstation, setSelectedSubstation] = useState<SubstationData | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // search
+  const [search, setSearch] = useState('');
+  const filteredSubstations = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return substations;
+    return substations.filter(s => (
+      s.noGardu?.toLowerCase().includes(q) ||
+      s.namaLokasiGardu?.toLowerCase().includes(q) ||
+      s.ulp?.toLowerCase().includes(q) ||
+      s.jenis?.toLowerCase().includes(q)
+    ));
+  }, [search, substations]);
 
   // Form state for adding new substation
   const [formData, setFormData] = useState({
@@ -36,41 +54,22 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     penyulang: '',
     arahSequence: '',
     latitude: '',
-    longitude: '',
-    idPelanggan: '',
-    nomorTelepon: '',
-    nomorMeter: '',
-    namaPetugas: user?.name || 'Petugas Lapangan'
+    longitude: ''
   });
 
-  // Photo states
-  const [photos, setPhotos] = useState<{
-    rumah: File | null;
-    meter: File | null;
-    petugas: File | null;
-    ba: File | null;
-  }>({
-    rumah: null,
-    meter: null,
-    petugas: null,
-    ba: null
-  });
+  // Measurement input - Siang
+  const [jurusanSiang, setJurusanSiang] = useState<'induk' | '1' | '2' | '3' | '4' | 'ujung'>('induk');
+  const [measSiang, setMeasSiang] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
-  const [photoPreviews, setPhotoPreviews] = useState<{
-    rumah: string | null;
-    meter: string | null;
-    petugas: string | null;
-    ba: string | null;
-  }>({
-    rumah: null,
-    meter: null,
-    petugas: null,
-    ba: null
-  });
+  // Measurement input - Malam
+  const [jurusanMalam, setJurusanMalam] = useState<'induk' | '1' | '2' | '3' | '4' | 'ujung'>('induk');
+  const [measMalam, setMeasMalam] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  // Photos
+  const [photos, setPhotos] = useState<{ rumah: File | null; meter: File | null; petugas: File | null; ba: File | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
+  const [photoPreviews, setPhotoPreviews] = useState<{ rumah: string | null; meter: string | null; petugas: string | null; ba: string | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
+
+  useEffect(() => { fetchStats(); }, []);
 
   const fetchStats = async () => {
     try {
@@ -89,29 +88,31 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleMeasChange = (setter: React.Dispatch<React.SetStateAction<any>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setter((prev: any) => ({ ...prev, [name]: value }));
+  };
+
   const handlePhotoChange = (type: 'rumah' | 'meter' | 'petugas' | 'ba') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotos(prev => ({ ...prev, [type]: file }));
-      
-      // Create preview
       const reader = new FileReader();
-      reader.onload = () => {
-        setPhotoPreviews(prev => ({ ...prev, [type]: reader.result as string }));
-      };
+      reader.onload = () => setPhotoPreviews(prev => ({ ...prev, [type]: reader.result as string }));
       reader.readAsDataURL(file);
     }
   };
+
+  const hasAny = (obj: Record<string, string>) => Object.values(obj).some(v => v !== '' && v != null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
-      
-      // Convert form data to SubstationData format
+
       const newSubstation: Omit<SubstationData, 'id'> = {
         ...formData,
-        no: Date.now(), // Generate temporary number
+        no: Date.now(),
         tanggal: new Date().toISOString().split('T')[0],
         measurements: [],
         status: 'normal' as const,
@@ -122,35 +123,57 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
       };
 
-      await ApiService.createSubstation(newSubstation);
-      
-      // Reset form
-      setFormData({
-        noGardu: '',
-        namaLokasiGardu: '',
-        ulp: '',
-        jenis: '',
-        merek: '',
-        daya: '',
-        tahun: '',
-        phasa: '',
-        tap_trafo_max_tap: '',
-        penyulang: '',
-        arahSequence: '',
-        latitude: '',
-        longitude: '',
-        idPelanggan: '',
-        nomorTelepon: '',
-        nomorMeter: '',
-        namaPetugas: user?.name || 'Petugas Lapangan'
-      });
+      const created = await ApiService.createSubstation(newSubstation);
 
-      // Reset photos
+      if (created?.id) {
+        const month = new Date().toISOString().slice(0, 7);
+        const tasks: Promise<any>[] = [];
+        if (hasAny(measSiang)) {
+          tasks.push(ApiService.patchMeasurementsSiangBulk([{
+            substationId: created.id,
+            row_name: jurusanSiang,
+            month,
+            r: Number(measSiang.r) || 0,
+            s: Number(measSiang.s) || 0,
+            t: Number(measSiang.t) || 0,
+            n: Number(measSiang.n) || 0,
+            rn: Number(measSiang.rn) || 0,
+            sn: Number(measSiang.sn) || 0,
+            tn: Number(measSiang.tn) || 0,
+            pp: Number(measSiang.pp) || 0,
+            pn: Number(measSiang.pn) || 0,
+          }]));
+        }
+        if (hasAny(measMalam)) {
+          tasks.push(ApiService.patchMeasurementsMalamBulk([{
+            substationId: created.id,
+            row_name: jurusanMalam,
+            month,
+            r: Number(measMalam.r) || 0,
+            s: Number(measMalam.s) || 0,
+            t: Number(measMalam.t) || 0,
+            n: Number(measMalam.n) || 0,
+            rn: Number(measMalam.rn) || 0,
+            sn: Number(measMalam.sn) || 0,
+            tn: Number(measMalam.tn) || 0,
+            pp: Number(measMalam.pp) || 0,
+            pn: Number(measMalam.pn) || 0,
+          }]));
+        }
+        if (tasks.length) await Promise.all(tasks);
+      }
+
+      // reset
+      setFormData({ noGardu: '', namaLokasiGardu: '', ulp: '', jenis: '', merek: '', daya: '', tahun: '', phasa: '', tap_trafo_max_tap: '', penyulang: '', arahSequence: '', latitude: '', longitude: '' });
+      setJurusanSiang('induk');
+      setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+      setJurusanMalam('induk');
+      setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
       setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
       setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
 
       alert('Gardu berhasil ditambahkan!');
-      refreshData();
+      await refreshData();
       setActiveTab('list');
     } catch (err) {
       setError('Gagal menambahkan gardu');
@@ -166,19 +189,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       'critical': { color: 'bg-red-100 text-red-800', label: 'Critical' },
       'non-active': { color: 'bg-gray-100 text-gray-800', label: 'Non-Active' }
     };
-    
     const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap['normal'];
-    
-    return (
-      <Badge className={statusInfo.color}>
-        {statusInfo.label}
-      </Badge>
-    );
+    return (<Badge className={statusInfo.color}>{statusInfo.label}</Badge>);
   };
 
-  if (error) {
-    return <ErrorMessage message={error} />;
-  }
+  if (error) return <ErrorMessage message={error} />;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -192,30 +207,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex space-x-2">
-                <Button
-                  variant={activeTab === 'dashboard' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('dashboard')}
-                >
-                  Dashboard
-                </Button>
-                <Button
-                  variant={activeTab === 'add' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('add')}
-                >
-                  Tambah Gardu
-                </Button>
-                <Button
-                  variant={activeTab === 'list' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('list')}
-                >
-                  List Gardu
-                </Button>
+                <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')}>Dashboard</Button>
+                <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')}>Tambah Gardu</Button>
+                <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')}>List Gardu</Button>
               </div>
-              <Button
-                onClick={onLogout}
-                variant="outline"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
+              <Button onClick={onLogout} variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -228,9 +224,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {loading ? (
-              <LoadingSpinner />
-            ) : (
+            {loading ? <LoadingSpinner /> : (
               <>
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -295,7 +289,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {substations.slice(0, 6).map((substation) => (
-                        <div key={substation.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <button key={substation.id} onClick={() => { setSelectedSubstation(substation); setIsDetailOpen(true); }} className="text-left border rounded-lg p-4 hover:shadow-md transition-shadow">
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold text-gray-900">{substation.noGardu}</h3>
                             {getStatusBadge(substation.status)}
@@ -303,7 +297,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                           <p className="text-sm text-gray-600 mb-1">{substation.namaLokasiGardu}</p>
                           <p className="text-xs text-gray-500">ULP: {substation.ulp}</p>
                           <p className="text-xs text-gray-500">Daya: {substation.daya}</p>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </CardContent>
@@ -325,20 +319,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  {[
-                    { key: 'rumah' as const, title: 'Rumah' },
-                    { key: 'meter' as const, title: 'Meter' },
-                    { key: 'petugas' as const, title: 'Petugas' },
-                    { key: 'ba' as const, title: 'BA' }
-                  ].map((item) => (
+                  {([ { key: 'rumah' as const, title: 'Rumah' }, { key: 'meter' as const, title: 'Meter' }, { key: 'petugas' as const, title: 'Petugas' }, { key: 'ba' as const, title: 'BA' }]).map((item) => (
                     <div key={item.key} className="text-center">
                       <div className="w-full h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-2 overflow-hidden">
                         {photoPreviews[item.key] ? (
-                          <img 
-                            src={photoPreviews[item.key]!} 
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={photoPreviews[item.key]!} alt={item.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="text-gray-400">
                             <Camera className="w-8 h-8 mx-auto mb-2" />
@@ -346,12 +331,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                           </div>
                         )}
                       </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoChange(item.key)}
-                        className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
+                      <input type="file" accept="image/*" onChange={handlePhotoChange(item.key)} className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                     </div>
                   ))}
                 </div>
@@ -361,199 +341,84 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
             <form onSubmit={handleSubmit} className="mt-6 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Data Pelanggan</CardTitle>
+                  <CardTitle>Data Gardu</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        ID Pelanggan *
-                      </label>
-                      <Input
-                        name="idPelanggan"
-                        value={formData.idPelanggan}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan ID pelanggan"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nomor Telepon Pelanggan *
-                      </label>
-                      <Input
-                        name="nomorTelepon"
-                        value={formData.nomorTelepon}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan nomor telepon"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nomor Meter
-                      </label>
-                      <Input
-                        name="nomorMeter"
-                        value={formData.nomorMeter}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan nomor meter"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nama Petugas *
-                      </label>
-                      <Input
-                        name="namaPetugas"
-                        value={formData.namaPetugas}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan nama petugas"
-                        required
-                      />
-                    </div>
+                    {([
+                      { name: 'noGardu', label: 'No. Gardu *' },
+                      { name: 'namaLokasiGardu', label: 'Nama Lokasi Gardu *' },
+                      { name: 'ulp', label: 'ULP *' },
+                      { name: 'jenis', label: 'Jenis *' },
+                      { name: 'merek', label: 'Merek *' },
+                      { name: 'daya', label: 'Daya *' },
+                      { name: 'tahun', label: 'Tahun *' },
+                      { name: 'phasa', label: 'Phasa *' },
+                      { name: 'tap_trafo_max_tap', label: 'Tap Trafo Max Tap' },
+                      { name: 'penyulang', label: 'Penyulang' },
+                      { name: 'arahSequence', label: 'Arah Sequence' },
+                    ] as const).map((f) => (
+                      <div key={f.name}>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
+                        <Input name={f.name} value={(formData as any)[f.name]} onChange={handleInputChange} placeholder={`Masukkan ${f.label.replace('*','').trim()}`} required={f.label.includes('*')} />
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
+              {/* Siang Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Zap className="w-5 h-5 mr-2" />
-                    Data Gardu
-                  </CardTitle>
+                  <CardTitle>Input Pengukuran Siang</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        No. Gardu *
-                      </label>
-                      <Input
-                        name="noGardu"
-                        value={formData.noGardu}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan nomor gardu"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nama Lokasi Gardu *
-                      </label>
-                      <Input
-                        name="namaLokasiGardu"
-                        value={formData.namaLokasiGardu}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan nama lokasi"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        ULP *
-                      </label>
-                      <Input
-                        name="ulp"
-                        value={formData.ulp}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan ULP"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Jenis *
-                      </label>
-                      <Input
-                        name="jenis"
-                        value={formData.jenis}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan jenis"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Merek *
-                      </label>
-                      <Input
-                        name="merek"
-                        value={formData.merek}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan merek"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Daya *
-                      </label>
-                      <Input
-                        name="daya"
-                        value={formData.daya}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan daya"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Tahun *
-                      </label>
-                      <Input
-                        name="tahun"
-                        value={formData.tahun}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan tahun"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phasa *
-                      </label>
-                      <Input
-                        name="phasa"
-                        value={formData.phasa}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan phasa"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Tap Trafo Max Tap
-                      </label>
-                      <Input
-                        name="tap_trafo_max_tap"
-                        value={formData.tap_trafo_max_tap}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan tap trafo max tap"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Penyulang
-                      </label>
-                      <Input
-                        name="penyulang"
-                        value={formData.penyulang}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan penyulang"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Arah Sequence
-                      </label>
-                      <Input
-                        name="arahSequence"
-                        value={formData.arahSequence}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan arah sequence"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pilihan Jurusan (Siang)</label>
+                    <select value={jurusanSiang} onChange={(e) => setJurusanSiang(e.target.value as any)} className="w-full border rounded-lg px-3 py-2">
+                      <option value="induk">Induk</option>
+                      <option value="1">Jurusan 1</option>
+                      <option value="2">Jurusan 2</option>
+                      <option value="3">Jurusan 3</option>
+                      <option value="4">Jurusan 4</option>
+                      <option value="ujung">Ujung</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {([ 'r','s','t','n','rn','sn','tn','pp','pn' ] as const).map((key) => (
+                      <div key={`siang-${key}`}>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{key.toUpperCase()}</label>
+                        <Input name={key} value={(measSiang as any)[key]} onChange={handleMeasChange(setMeasSiang)} placeholder={key.toUpperCase()} type="number" step="any" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Malam Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Input Pengukuran Malam</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pilihan Jurusan (Malam)</label>
+                    <select value={jurusanMalam} onChange={(e) => setJurusanMalam(e.target.value as any)} className="w-full border rounded-lg px-3 py-2">
+                      <option value="induk">Induk</option>
+                      <option value="1">Jurusan 1</option>
+                      <option value="2">Jurusan 2</option>
+                      <option value="3">Jurusan 3</option>
+                      <option value="4">Jurusan 4</option>
+                      <option value="ujung">Ujung</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {([ 'r','s','t','n','rn','sn','tn','pp','pn' ] as const).map((key) => (
+                      <div key={`malam-${key}`}>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{key.toUpperCase()}</label>
+                        <Input name={key} value={(measMalam as any)[key]} onChange={handleMeasChange(setMeasMalam)} placeholder={key.toUpperCase()} type="number" step="any" />
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -568,68 +433,26 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Latitude
-                      </label>
-                      <Input
-                        name="latitude"
-                        type="number"
-                        step="any"
-                        value={formData.latitude}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan latitude"
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                      <Input name="latitude" type="number" step="any" value={formData.latitude} onChange={handleInputChange} placeholder="Masukkan latitude" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Longitude
-                      </label>
-                      <Input
-                        name="longitude"
-                        type="number"
-                        step="any"
-                        value={formData.longitude}
-                        onChange={handleInputChange}
-                        placeholder="Masukkan longitude"
-                      />
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                      <Input name="longitude" type="number" step="any" value={formData.longitude} onChange={handleInputChange} placeholder="Masukkan longitude" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <div className="flex justify-end space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setFormData({
-                      noGardu: '',
-                      namaLokasiGardu: '',
-                      ulp: '',
-                      jenis: '',
-                      merek: '',
-                      daya: '',
-                      tahun: '',
-                      phasa: '',
-                      tap_trafo_max_tap: '',
-                      penyulang: '',
-                      arahSequence: '',
-                      latitude: '',
-                      longitude: '',
-                      idPelanggan: '',
-                      nomorTelepon: '',
-                      nomorMeter: '',
-                      namaPetugas: user?.name || 'Petugas Lapangan'
-                    });
-                    setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
-                    setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
-                  }}
-                >
-                  Reset
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Menyimpan...' : 'Simpan Gardu'}
-                </Button>
+                <Button type="button" variant="outline" onClick={() => {
+                  setFormData({ noGardu: '', namaLokasiGardu: '', ulp: '', jenis: '', merek: '', daya: '', tahun: '', phasa: '', tap_trafo_max_tap: '', penyulang: '', arahSequence: '', latitude: '', longitude: '' });
+                  setJurusanSiang('induk'); setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+                  setJurusanMalam('induk'); setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+                  setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
+                  setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
+                }}>Reset</Button>
+                <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan Gardu'}</Button>
               </div>
             </form>
           </div>
@@ -646,12 +469,13 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {substationsLoading ? (
-                  <LoadingSpinner />
-                ) : (
+                <div className="mb-4">
+                  <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari no gardu / lokasi / ULP / jenis" />
+                </div>
+                {substationsLoading ? <LoadingSpinner /> : (
                   <div className="space-y-4">
-                    {substations.map((substation) => (
-                      <div key={substation.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    {filteredSubstations.map((substation) => (
+                      <button key={substation.id} onClick={() => { setSelectedSubstation(substation); setIsDetailOpen(true); }} className="text-left w-full border rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
@@ -672,12 +496,10 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                                 <p><span className="font-medium">Tahun:</span> {substation.tahun}</p>
                               </div>
                             </div>
-                            <div className="mt-2 text-xs text-gray-500">
-                              Last Update: {new Date(substation.lastUpdate).toLocaleDateString('id-ID')}
-                            </div>
+                            <div className="mt-2 text-xs text-gray-500">Last Update: {new Date(substation.lastUpdate).toLocaleDateString('id-ID')}</div>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -686,6 +508,9 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
           </div>
         )}
       </div>
+
+      {/* Detail Modal */}
+      <SubstationDetailModal substation={selectedSubstation} isOpen={isDetailOpen} onClose={() => setIsDetailOpen(false)} onUpdatePower={() => {}} onUpdateSubstation={() => {}} isReadOnly={true} />
     </div>
   );
 };

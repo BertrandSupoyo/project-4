@@ -33,24 +33,24 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6 text-white" />
+          <div className="mx-auto w-14 h-14 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+            <Lock className="w-7 h-7 md:w-6 md:h-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Login</h2>
-          <p className="text-gray-600">Pilih cara login yang sesuai</p>
+          <h2 className="text-3xl md:text-2xl font-bold text-gray-900">Login</h2>
+          <p className="text-base md:text-sm text-gray-600">Pilih cara login yang sesuai</p>
         </CardHeader>
         <CardContent>
           {/* Tombol Login sebagai Viewer */}
           <div className="mb-4">
             <Button
               onClick={onViewerLogin}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base"
               disabled={loading}
             >
-              <ViewerIcon className="w-4 h-4 mr-2" />
+              <ViewerIcon className="w-5 h-5 mr-2" />
               Login sebagai Viewer
             </Button>
-            <p className="text-xs text-gray-500 mt-2 text-center">
+            <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
               Masuk tanpa password untuk melihat data gardu distribusi
             </p>
           </div>
@@ -59,13 +59,13 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
           <div className="mb-6">
             <Button
               onClick={onPetugasLogin}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 text-base"
               disabled={loading}
             >
-              <Briefcase className="w-4 h-4 mr-2" />
+              <Briefcase className="w-5 h-5 mr-2" />
               Login sebagai Petugas
             </Button>
-            <p className="text-xs text-gray-500 mt-2 text-center">
+            <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
               Masuk sebagai petugas lapangan untuk mengelola data gardu
             </p>
           </div>
@@ -81,7 +81,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
           </div>
 
           {/* Form Login Admin */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-600 text-sm">{error}</p>
@@ -89,16 +89,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             )}
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-base md:text-sm font-medium text-gray-700 mb-2">
                 Username
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-11 pr-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Masukkan username"
                   required
                 />
@@ -106,16 +106,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-base md:text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-11 pr-12 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Masukkan password"
                   required
                 />
@@ -124,14 +124,14 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full py-3 text-base"
               disabled={loading || !username.trim() || !password.trim()}
             >
               {loading ? 'Memproses...' : 'Login sebagai Admin'}
