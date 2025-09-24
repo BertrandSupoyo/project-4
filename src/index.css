@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Enlarge base font size on small screens */
+  html {
+    font-size: 16px; /* default */
+  }
+  @media (max-width: 480px) {
+    html { font-size: 18px; }
+    body { line-height: 1.6; }
+  }
+}
+
+@layer components {
+  /* Larger tap targets on mobile */
+  .btn, button {
+    @apply md:py-2 md:px-3 md:text-sm;
+  }
+  @media (max-width: 480px) {
+    .btn, button {
+      @apply py-3 px-4 text-base;
+    }
+  }
+
+  input, select, textarea {
+    @apply md:py-2 md:px-3 md:text-sm;
+  }
+  @media (max-width: 480px) {
+    input, select, textarea {
+      @apply py-3 px-4 text-base;
+    }
+  }
+
+  label { @apply md:text-sm; }
+  @media (max-width: 480px) {
+    label { @apply text-base; }
+  }
+
+  .card-title { @apply md:text-lg md:font-semibold; }
+  @media (max-width: 480px) {
+    .card-title { @apply text-xl font-bold; }
+  }
+}
