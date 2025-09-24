@@ -572,37 +572,37 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
             </CardHeader>
             <CardContent>
               {/* SIANG */}
-              <div className="mb-2 mt-4 text-lg font-bold text-yellow-800 text-center">Pengukuran Siang</div>
+              <div className="mb-2 mt-4 text-base md:text-lg font-bold text-yellow-800 text-center">Pengukuran Siang</div>
               <div className="border border-yellow-300 rounded-lg overflow-x-auto mb-2">
-                <table className="min-w-max w-full text-center border-collapse">
+                <table className="min-w-max w-full text-center border-collapse text-xs md:text-sm">
                   <colgroup>
-                    <col style={{ width: '80px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
+                    <col style={{ width: '64px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
                   </colgroup>
                   <thead>
                     <tr>
-                      <th rowSpan={2} className="bg-green-200 border border-green-400 text-gray-900 font-bold align-middle">JURUSAN</th>
-                      <th colSpan={4} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold">ARUS</th>
-                      <th colSpan={3} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold">P-N</th>
-                      <th rowSpan={2} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold">P-P</th>
-                      <th rowSpan={2} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold">UJUNG</th>
+                      <th rowSpan={2} className="bg-green-200 border border-green-400 text-gray-900 font-bold align-middle px-2 py-1">JURUSAN</th>
+                      <th colSpan={4} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold px-2 py-1">ARUS</th>
+                      <th colSpan={3} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold px-2 py-1">P-N</th>
+                      <th rowSpan={2} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold px-2 py-1">P-P</th>
+                      <th rowSpan={2} className="bg-yellow-100 border border-yellow-400 text-gray-900 font-bold px-2 py-1">UJUNG</th>
                     </tr>
                     <tr>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">R</th>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">S</th>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">T</th>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">N</th>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">R-N</th>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">S-N</th>
-                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold">T-N</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">R</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">S</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">T</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">N</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">R-N</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">S-N</th>
+                      <th className="bg-yellow-200 border border-yellow-400 text-gray-900 font-bold px-2 py-1">T-N</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -610,20 +610,20 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                       const m = getMeasurementByRow(siangMeasurements, substation.id, rowName);
                       return (
                         <tr key={rowName}>
-                          <td className={rowName === 'induk' ? "bg-green-100 border border-green-300 font-semibold" : "bg-green-50 border border-green-200"}>{rowName.toUpperCase()}</td>
+                          <td className={rowName === 'induk' ? "bg-green-100 border border-green-300 font-semibold px-2 py-1" : "bg-green-50 border border-green-200 px-2 py-1"}>{rowName.toUpperCase()}</td>
                           {/* ARUS */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.r ?? ''} onChange={e => handleCellChangeSiang(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" data-type="siang" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.s ?? ''} onChange={e => handleCellChangeSiang(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" data-type="siang" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.t ?? ''} onChange={e => handleCellChangeSiang(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" data-type="siang" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.n ?? ''} onChange={e => handleCellChangeSiang(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.r ?? ''} onChange={e => handleCellChangeSiang(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.s ?? ''} onChange={e => handleCellChangeSiang(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.t ?? ''} onChange={e => handleCellChangeSiang(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.n ?? ''} onChange={e => handleCellChangeSiang(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" data-type="siang" /></td>
                           {/* P-N */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" data-type="siang" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" data-type="siang" /></td>
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" data-type="siang" /></td>
                           {/* P-P */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" data-type="siang" /></td>
                           {/* UJUNG (P=N) */}
-                          <td className="bg-white border border-yellow-100"><input className="w-full text-center bg-transparent siang-input" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" data-type="siang" /></td>
+                          <td className="bg-white border border-yellow-100 px-1"><input className="w-full text-center bg-transparent siang-input text-xs md:text-sm py-1" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeSiang(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" data-type="siang" /></td>
                         </tr>
                       );
                     })}
@@ -632,15 +632,15 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               </div>
 
               {/* BEBAN SIANG */}
-              <div className="mb-6 flex justify-center">
-                <table className="min-w-max w-auto border border-black text-center bg-white rounded-lg">
+              <div className="mb-6 flex justify-center overflow-x-auto">
+                <table className="min-w-max w-auto border border-black text-center bg-white rounded-lg text-xs md:text-sm">
                   <thead className="bg-yellow-100">
                     <tr>
-                      <th className="px-4 py-2 border border-black">BEBAN SIANG</th>
-                      <th className="px-4 py-2 border border-black">RATA2</th>
-                      <th className="px-4 py-2 border border-black">KVA</th>
-                      <th className="px-4 py-2 border border-black">%</th>
-                      <th className="px-4 py-2 border border-black">UNBALANCED</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">BEBAN SIANG</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">RATA2</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">KVA</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">%</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">UNBALANCED</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -648,11 +648,11 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                       const m = getMeasurementByRow(siangMeasurements, substation.id, rowName);
                       return (
                         <tr key={rowName} className="bg-white">
-                          <td className="px-4 py-2 font-semibold border border-black">{rowName.toUpperCase()}</td>
-                          <td className="px-4 py-2 border border-black">{m.rata2 !== undefined ? Number(m.rata2).toFixed(2) : '-'}</td>
-                          <td className="px-4 py-2 border border-black">{m.kva !== undefined ? Number(m.kva).toFixed(2) : '-'}</td>
-                          <td className="px-4 py-2 border border-black">{m.persen !== undefined ? Number(m.persen).toFixed(1) + '%' : '-'}</td>
-                          <td className="px-4 py-2 border border-black">{m.unbalanced !== undefined ? Number(m.unbalanced).toFixed(1) + '%' : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 font-semibold border border-black">{rowName.toUpperCase()}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.rata2 !== undefined ? Number(m.rata2).toFixed(2) : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.kva !== undefined ? Number(m.kva).toFixed(2) : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.persen !== undefined ? Number(m.persen).toFixed(1) + '%' : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.unbalanced !== undefined ? Number(m.unbalanced).toFixed(1) + '%' : '-'}</td>
                         </tr>
                       );
                     })}
@@ -661,37 +661,37 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               </div>
 
               {/* MALAM */}
-              <div className="mb-2 mt-8 text-lg font-bold text-blue-800 text-center">Pengukuran Malam</div>
+              <div className="mb-2 mt-8 text-base md:text-lg font-bold text-blue-800 text-center">Pengukuran Malam</div>
               <div className="border border-blue-300 rounded-lg overflow-x-auto mb-2">
-                <table className="min-w-max w-full text-center border-collapse">
+                <table className="min-w-max w-full text-center border-collapse text-xs md:text-sm">
                   <colgroup>
-                    <col style={{ width: '80px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
-                    <col style={{ width: '90px' }} />
+                    <col style={{ width: '64px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '72px' }} />
                   </colgroup>
                   <thead>
                     <tr>
-                      <th rowSpan={2} className="bg-green-200 border border-green-400 text-gray-900 font-bold align-middle">JURUSAN</th>
-                      <th colSpan={4} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold">ARUS</th>
-                      <th colSpan={3} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold">P-N</th>
-                      <th rowSpan={2} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold">P-P</th>
-                      <th rowSpan={2} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold">UJUNG</th>
+                      <th rowSpan={2} className="bg-green-200 border border-green-400 text-gray-900 font-bold align-middle px-2 py-1">JURUSAN</th>
+                      <th colSpan={4} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold px-2 py-1">ARUS</th>
+                      <th colSpan={3} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold px-2 py-1">P-N</th>
+                      <th rowSpan={2} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold px-2 py-1">P-P</th>
+                      <th rowSpan={2} className="bg-blue-100 border border-blue-400 text-gray-900 font-bold px-2 py-1">UJUNG</th>
                     </tr>
                     <tr>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">R</th>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">S</th>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">T</th>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">N</th>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">R-N</th>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">S-N</th>
-                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold">T-N</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">R</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">S</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">T</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">N</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">R-N</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">S-N</th>
+                      <th className="bg-blue-200 border border-blue-400 text-gray-900 font-bold px-2 py-1">T-N</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -699,20 +699,20 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                       const m = getMeasurementByRow(malamMeasurements, substation.id, rowName);
                       return (
                         <tr key={rowName}>
-                          <td className={rowName === 'induk' ? "bg-green-100 border border-green-300 font-semibold" : "bg-green-50 border border-green-200"}>{rowName.toUpperCase()}</td>
+                          <td className={rowName === 'induk' ? "bg-green-100 border border-green-300 font-semibold px-2 py-1" : "bg-green-50 border border-green-200 px-2 py-1"}>{rowName.toUpperCase()}</td>
                           {/* ARUS */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.r ?? ''} onChange={e => handleCellChangeMalam(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" data-type="malam" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.s ?? ''} onChange={e => handleCellChangeMalam(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" data-type="malam" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.t ?? ''} onChange={e => handleCellChangeMalam(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" data-type="malam" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.n ?? ''} onChange={e => handleCellChangeMalam(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.r ?? ''} onChange={e => handleCellChangeMalam(m.id, 'r', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="r" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.s ?? ''} onChange={e => handleCellChangeMalam(m.id, 's', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="s" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.t ?? ''} onChange={e => handleCellChangeMalam(m.id, 't', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="t" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.n ?? ''} onChange={e => handleCellChangeMalam(m.id, 'n', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="n" data-type="malam" /></td>
                           {/* P-N */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" data-type="malam" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" data-type="malam" /></td>
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.rn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'rn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="rn" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.sn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'sn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="sn" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.tn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'tn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="tn" data-type="malam" /></td>
                           {/* P-P */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.pp ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pp', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pp" data-type="malam" /></td>
                           {/* UJUNG (P=N) */}
-                          <td className="bg-white border border-blue-100"><input className="w-full text-center bg-transparent malam-input" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" data-type="malam" /></td>
+                          <td className="bg-white border border-blue-100 px-1"><input className="w-full text-center bg-transparent malam-input text-xs md:text-sm py-1" type="number" value={m.pn ?? ''} onChange={e => handleCellChangeMalam(m.id, 'pn', e.target.value)} readOnly={isReadOnly} disabled={isReadOnly} data-row={rowName} data-field="pn" data-type="malam" /></td>
                         </tr>
                       );
                     })}
@@ -721,15 +721,15 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
               </div>
 
               {/* BEBAN MALAM */}
-              <div className="mb-6 flex justify-center">
-                <table className="min-w-max w-auto border border-black text-center bg-white rounded-lg">
+              <div className="mb-6 flex justify-center overflow-x-auto">
+                <table className="min-w-max w-auto border border-black text-center bg-white rounded-lg text-xs md:text-sm">
                   <thead className="bg-blue-100">
                     <tr>
-                      <th className="px-4 py-2 border border-black">BEBAN MALAM</th>
-                      <th className="px-4 py-2 border border-black">RATA2</th>
-                      <th className="px-4 py-2 border border-black">KVA</th>
-                      <th className="px-4 py-2 border border-black">%</th>
-                      <th className="px-4 py-2 border border-black">UNBALANCED</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">BEBAN MALAM</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">RATA2</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">KVA</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">%</th>
+                      <th className="px-2 py-1 md:px-4 md:py-2 border border-black">UNBALANCED</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -737,11 +737,11 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
                       const m = getMeasurementByRow(malamMeasurements, substation.id, rowName);
                       return (
                         <tr key={rowName} className="bg-white">
-                          <td className="px-4 py-2 font-semibold border border-black">{rowName.toUpperCase()}</td>
-                          <td className="px-4 py-2 border border-black">{m.rata2 !== undefined ? Number(m.rata2).toFixed(2) : '-'}</td>
-                          <td className="px-4 py-2 border border-black">{m.kva !== undefined ? Number(m.kva).toFixed(2) : '-'}</td>
-                          <td className="px-4 py-2 border border-black">{m.persen !== undefined ? Number(m.persen).toFixed(1) + '%' : '-'}</td>
-                          <td className="px-4 py-2 border border-black">{m.unbalanced !== undefined ? Number(m.unbalanced).toFixed(1) + '%' : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 font-semibold border border-black">{rowName.toUpperCase()}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.rata2 !== undefined ? Number(m.rata2).toFixed(2) : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.kva !== undefined ? Number(m.kva).toFixed(2) : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.persen !== undefined ? Number(m.persen).toFixed(1) + '%' : '-'}</td>
+                          <td className="px-2 py-1 md:px-4 md:py-2 border border-black">{m.unbalanced !== undefined ? Number(m.unbalanced).toFixed(1) + '%' : '-'}</td>
                         </tr>
                       );
                     })}
