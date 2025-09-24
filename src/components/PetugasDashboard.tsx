@@ -58,11 +58,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   });
 
   // Measurement input - Siang
-  const [jurusanSiang, setJurusanSiang] = useState<'induk' | '1' | '2' | '3' | '4' | 'ujung'>('induk');
+  const [jurusanSiang, setJurusanSiang] = useState<'induk' | '1' | '2' | '3' | '4'>('induk');
   const [measSiang, setMeasSiang] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
   // Measurement input - Malam
-  const [jurusanMalam, setJurusanMalam] = useState<'induk' | '1' | '2' | '3' | '4' | 'ujung'>('induk');
+  const [jurusanMalam, setJurusanMalam] = useState<'induk' | '1' | '2' | '3' | '4'>('induk');
   const [measMalam, setMeasMalam] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
   // Photos
@@ -193,6 +193,27 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     return (<Badge className={statusInfo.color}>{statusInfo.label}</Badge>);
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation tidak didukung di perangkat ini.');
+      return;
+    }
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setFormData(prev => ({ ...prev, latitude: String(latitude), longitude: String(longitude) }));
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Geolocation error:', err);
+        alert('Gagal mendapatkan lokasi. Pastikan izin lokasi diaktifkan.');
+        setLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
   if (error) return <ErrorMessage message={error} />;
 
   return (
@@ -200,18 +221,24 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-3 md:py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard Petugas</h1>
-              <p className="text-gray-600">Selamat datang, {user?.name}</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard Petugas</h1>
+              <p className="text-gray-600 text-sm md:text-base">Selamat datang, {user?.name}</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex space-x-2">
-                <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')}>Dashboard</Button>
-                <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')}>Tambah Gardu</Button>
-                <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')}>List Gardu</Button>
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="flex space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
+                <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                  Dashboard
+                </Button>
+                <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                  Tambah Gardu
+                </Button>
+                <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                  List Gardu
+                </Button>
               </div>
-              <Button onClick={onLogout} variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Button onClick={onLogout} variant="outline" className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -381,14 +408,23 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                       <option value="2">Jurusan 2</option>
                       <option value="3">Jurusan 3</option>
                       <option value="4">Jurusan 4</option>
-                      <option value="ujung">Ujung</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {([ 'r','s','t','n','rn','sn','tn','pp','pn' ] as const).map((key) => (
-                      <div key={`siang-${key}`}>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{key.toUpperCase()}</label>
-                        <Input name={key} value={(measSiang as any)[key]} onChange={handleMeasChange(setMeasSiang)} placeholder={key.toUpperCase()} type="number" step="any" />
+                    {([
+                      { key: 'r', label: 'R' },
+                      { key: 's', label: 'S' },
+                      { key: 't', label: 'T' },
+                      { key: 'n', label: 'N' },
+                      { key: 'rn', label: 'RN' },
+                      { key: 'sn', label: 'SN' },
+                      { key: 'tn', label: 'TN' },
+                      { key: 'pp', label: 'Phasa-Phasa' },
+                      { key: 'pn', label: 'Ujung' },
+                    ] as const).map((f) => (
+                      <div key={`siang-${f.key}`}>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
+                        <Input name={f.key} value={(measSiang as any)[f.key]} onChange={handleMeasChange(setMeasSiang)} placeholder={f.label} type="number" step="any" />
                       </div>
                     ))}
                   </div>
@@ -409,14 +445,23 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                       <option value="2">Jurusan 2</option>
                       <option value="3">Jurusan 3</option>
                       <option value="4">Jurusan 4</option>
-                      <option value="ujung">Ujung</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {([ 'r','s','t','n','rn','sn','tn','pp','pn' ] as const).map((key) => (
-                      <div key={`malam-${key}`}>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">{key.toUpperCase()}</label>
-                        <Input name={key} value={(measMalam as any)[key]} onChange={handleMeasChange(setMeasMalam)} placeholder={key.toUpperCase()} type="number" step="any" />
+                    {([
+                      { key: 'r', label: 'R' },
+                      { key: 's', label: 'S' },
+                      { key: 't', label: 'T' },
+                      { key: 'n', label: 'N' },
+                      { key: 'rn', label: 'RN' },
+                      { key: 'sn', label: 'SN' },
+                      { key: 'tn', label: 'TN' },
+                      { key: 'pp', label: 'Phasa-Phasa' },
+                      { key: 'pn', label: 'Ujung' },
+                    ] as const).map((f) => (
+                      <div key={`malam-${f.key}`}>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
+                        <Input name={f.key} value={(measMalam as any)[f.key]} onChange={handleMeasChange(setMeasMalam)} placeholder={f.label} type="number" step="any" />
                       </div>
                     ))}
                   </div>
@@ -440,6 +485,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                       <label className="block text-base md:text-sm font-medium text-gray-700 mb-1">Longitude</label>
                       <Input name="longitude" type="number" step="any" value={formData.longitude} onChange={handleInputChange} placeholder="Masukkan longitude" />
                     </div>
+                  </div>
+                  <div className="mt-3">
+                    <Button type="button" variant="outline" onClick={handleUseCurrentLocation} disabled={loading}>
+                      {loading ? 'Mengambil lokasi…' : 'Gunakan lokasi saya'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
