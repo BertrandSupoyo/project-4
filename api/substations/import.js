@@ -97,24 +97,46 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, error: 'Error parsing upload' });
         }
 
-        if (!files.file || !files.file[0]) {
+        // Handle formidable v3 shape: can be a single File or an array
+        const incoming = files.file;
+        const uploaded = Array.isArray(incoming) ? incoming[0] : incoming;
+        if (!uploaded || !uploaded.filepath) {
             return res.status(400).json({ success: false, error: 'No file uploaded' });
         }
 
-        const tempFilePath = files.file[0].filepath;
+        const tempFilePath = uploaded.filepath;
 
         try {
             console.log('📄 Mulai memproses file Excel di backend...');
             
-            const fileContent = fs.readFileSync(tempFilePath);
-            const workbook = XLSX.read(fileContent, { type: 'buffer' });
-            const sheetName = workbook.SheetNames[0];
+            let fileContent;
+            try {
+                fileContent = fs.readFileSync(tempFilePath);
+            } catch (readErr) {
+                console.error('📄 Failed to read uploaded file:', readErr);
+                return res.status(400).json({ success: false, error: 'File cannot be read', details: readErr.message });
+            }
+
+            let workbook;
+            try {
+                workbook = XLSX.read(fileContent, { type: 'buffer' });
+            } catch (parseErr) {
+                console.error('📄 Failed to parse Excel file:', parseErr);
+                return res.status(400).json({ success: false, error: 'Invalid Excel file', details: parseErr.message });
+            }
+
+            const sheetName = workbook.SheetNames?.[0];
+            if (!sheetName) {
+                return res.status(400).json({ success: false, error: 'Excel has no sheets' });
+            }
             const worksheet = workbook.Sheets[sheetName];
             const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true });
 
             const normalizeHeader = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const headerRowIdx = allRows.findIndex(row => row.some(cell => normalizeHeader(cell) === 'nogardu'));
-            if (headerRowIdx === -1) throw new Error('Header "nogardu" tidak ditemukan.');
+            if (headerRowIdx === -1) {
+                return res.status(400).json({ success: false, error: 'Header "nogardu" tidak ditemukan.' });
+            }
             
             const headerRow = allRows[headerRowIdx].map(normalizeHeader);
             const dataRows = allRows.slice(headerRowIdx + 1);
@@ -235,7 +257,9 @@ export default async function handler(req, res) {
                 transformedData.push({ ...mainData, measurements_siang: measurementsSiangDeduped, measurements_malam: measurementsMalamDeduped });
             }
 
-            if (transformedData.length === 0) throw new Error('Tidak ada data valid untuk diimpor.');
+            if (transformedData.length === 0) {
+                return res.status(400).json({ success: false, error: 'Tidak ada data valid untuk diimpor.' });
+            }
             
             console.log(`📊 Ditemukan ${transformedData.length} data gardu valid. Memulai transaksi database...`);
             
