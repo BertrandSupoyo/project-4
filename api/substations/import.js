@@ -149,112 +149,104 @@ export default async function handler(req, res) {
                 return '';
             };
 
-            const transformedData = [];
-            for (let i = 0; i < dataRows.length; i += 5) {
-                const group = dataRows.slice(i, i + 5);
-                if (group.length < 5) continue;
+            // New row-oriented parser: group rows by (noGardu, month)
+            const groupsMap = new Map();
+            for (let i = 0; i < dataRows.length; i++) {
+                const rowArr = dataRows[i];
+                if (!rowArr || rowArr.length === 0) continue;
+                const rowObj = {};
+                headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
 
-                const rowObj0 = {};
-                headerRow.forEach((col, idx) => { rowObj0[col] = group[0]?.[idx]; });
+                const ulpVal = String(getField(rowObj, ['ulp'])).trim();
+                const noGarduVal = String(getField(rowObj, ['nogardu', 'no.gardu', 'no_gardu'])).trim();
+                const namaLokasiVal = String(getField(rowObj, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim();
+                if (!ulpVal && !noGarduVal && !namaLokasiVal) continue;
 
-                if (!getField(rowObj0, ['ulp', 'nogardu', 'namalokasi'])) continue;
-
-                const tanggalValue = parseSafeDate(getField(rowObj0, ['tanggal']));
+                const tanggalValue = parseSafeDate(getField(rowObj, ['tanggal']));
                 const monthValue = tanggalValue.toISOString().slice(0, 7);
+                const key = `${noGarduVal}__${monthValue}`;
 
-                const mainData = {
-                    // IMPORTANT: `no` will be generated sequentially on insert to avoid conflicts
-                    no: 0,
-                    ulp: String(getField(rowObj0, ['ulp'])).trim(),
-                    noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
-                    namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
-                    jenis: String(getField(rowObj0, ['jenis'])).trim(),
-                    merek: String(getField(rowObj0, ['merk', 'merek'])).trim(),
-                    daya: String(getField(rowObj0, ['daya'])).trim(),
-                    tahun: String(getField(rowObj0, ['tahun'])).trim(),
-                    phasa: String(getField(rowObj0, ['phasa'])).trim(),
-                    tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
-                    penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
-                    arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
-                    tanggal: tanggalValue,
-                };
-                
-                // Extract measurements with corrected calculations
-                const extractMeasurementsWithCalculations = (timeOfDay) => {
-                    const powerRating = parseFloat(mainData.daya) || 0;
-                    
-                    console.log(`🔍 Processing ${timeOfDay} measurements for gardu: ${mainData.noGardu}`);
-                    
-                    return group.map((rowArr, rowIndex) => {
-                        const rowObj = {};
-                        headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
+                if (!groupsMap.has(key)) {
+                    groupsMap.set(key, {
+                        main: {
+                            no: 0,
+                            ulp: ulpVal,
+                            noGardu: noGarduVal,
+                            namaLokasiGardu: namaLokasiVal,
+                            jenis: String(getField(rowObj, ['jenis'])).trim(),
+                            merek: String(getField(rowObj, ['merk', 'merek'])).trim(),
+                            daya: String(getField(rowObj, ['daya'])).trim(),
+                            tahun: String(getField(rowObj, ['tahun'])).trim(),
+                            phasa: String(getField(rowObj, ['phasa'])).trim(),
+                            tap_trafo_max_tap: String(getField(rowObj, ['taptrafomaxtap'])).trim(),
+                            penyulang: String(getField(rowObj, ['penyulang'])).trim(),
+                            arahSequence: String(getField(rowObj, ['arahsequence'])).trim(),
+                            tanggal: tanggalValue,
+                        },
+                        siang: [],
+                        malam: []
+                    });
+                }
 
-                        // Extract values for the specific time of day
-                        const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
-                        const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
-                        const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
-                        const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
-                        const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
-                        const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
-                        const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
-                        const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
-                        const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
+                const group = groupsMap.get(key);
+                const m = group.main;
+                m.ulp ||= ulpVal;
+                m.noGardu ||= noGarduVal;
+                m.namaLokasiGardu ||= namaLokasiVal;
+                m.jenis ||= String(getField(rowObj, ['jenis'])).trim();
+                m.merek ||= String(getField(rowObj, ['merk', 'merek'])).trim();
+                m.daya ||= String(getField(rowObj, ['daya'])).trim();
+                m.tahun ||= String(getField(rowObj, ['tahun'])).trim();
+                m.phasa ||= String(getField(rowObj, ['phasa'])).trim();
+                m.tap_trafo_max_tap ||= String(getField(rowObj, ['taptrafomaxtap'])).trim();
+                m.penyulang ||= String(getField(rowObj, ['penyulang'])).trim();
+                m.arahSequence ||= String(getField(rowObj, ['arahsequence'])).trim();
 
-                        // DEBUG: Log the extracted values
-                        console.log(`Row ${rowIndex} ${timeOfDay}:`, { r, s, t, n, pp, pn });
-
-                        // Calculate using the EXACT same formula as measurementSiang/measurementMalam
-                        const calculations = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
-
-                        const measurementData = {
-                            month: monthValue,
-                            row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
-                            r: r,
-                            s: s,
-                            t: t,
-                            n: n,
-                            rn: rn,
-                            sn: sn,
-                            tn: tn,
-                            pp: pp,
-                            pn: pn,
-                            rata2: calculations.rata2,
-                            kva: calculations.kva,
-                            persen: calculations.persen,
-                            unbalanced: calculations.unbalanced,
-                        };
-
-                        return measurementData;
-                    }).filter(m => m.row_name !== 'unknown');
-                };
-        
-                const measurements_siang = extractMeasurementsWithCalculations('siang');
-                const measurements_malam = extractMeasurementsWithCalculations('malam');
-
-                // De-duplicate by row_name and keep the last non-empty entry per row
+                const jurusan = String(getField(rowObj, ['jurusan'])).toLowerCase().trim();
                 const allowRowNames = new Set(['induk','1','2','3','4']);
-                const dedupe = (arr) => {
+                if (!jurusan || !allowRowNames.has(jurusan)) continue;
+
+                const powerRating = parseFloat(m.daya) || 0;
+                // Column-based extraction: O..W (14..22) siang, X..AF (23..31) malam
+                const idxSiang = [14,15,16,17,18,19,20,21,22];
+                const idxMalam = [23,24,25,26,27,28,29,30,31];
+                const safeNum = (val) => {
+                    const n = parseFloat(String(val ?? '').toString().replace(/,/g, '.'));
+                    return Number.isFinite(n) ? n : 0;
+                };
+                const extractByIndex = (rowArr, indices) => {
+                    const [rI,sI,tI,nI,rnI,snI,tnI,ppI,pnI] = indices;
+                    const r = safeNum(rowArr[rI]);
+                    const s = safeNum(rowArr[sI]);
+                    const t = safeNum(rowArr[tI]);
+                    const n = safeNum(rowArr[nI]);
+                    const rn = safeNum(rowArr[rnI]);
+                    const sn = safeNum(rowArr[snI]);
+                    const tn = safeNum(rowArr[tnI]);
+                    const pp = safeNum(rowArr[ppI]);
+                    const pn = safeNum(rowArr[pnI]);
+                    const calc = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
+                    const hasAny = [r,s,t,n,rn,sn,tn,pp,pn].some(v => v !== 0);
+                    return hasAny ? { month: monthValue, row_name: jurusan, r, s, t, n, rn, sn, tn, pp, pn, rata2: calc.rata2, kva: calc.kva, persen: calc.persen, unbalanced: calc.unbalanced } : null;
+                };
+
+                const siangEntry = extractByIndex(rowArr, idxSiang);
+                const malamEntry = extractByIndex(rowArr, idxMalam);
+                if (siangEntry) group.siang.push(siangEntry);
+                if (malamEntry) group.malam.push(malamEntry);
+            }
+
+            const transformedData = [];
+            for (const [, g] of groupsMap) {
+                const dedupeByRow = (arr) => {
                     const map = new Map();
-                    for (const item of arr) {
-                        const key = String(item.row_name || '').toLowerCase().trim();
-                        if (!key || !allowRowNames.has(key)) continue;
-                        map.set(key, item);
-                    }
+                    for (const it of arr) map.set(it.row_name, it);
                     return Array.from(map.values());
                 };
-
-                const measurementsSiangDeduped = dedupe(measurements_siang);
-                const measurementsMalamDeduped = dedupe(measurements_malam);
-
-                // DEBUG: Log measurements
-                console.log(`Siang measurements count: ${measurements_siang.length}`);
-                console.log(`Malam measurements count: ${measurements_malam.length}`);
-
-                if (measurementsSiangDeduped.length === 0 && measurementsMalamDeduped.length === 0) {
-                    // Skip completely empty groups
-                    continue;
-                }
-                transformedData.push({ ...mainData, measurements_siang: measurementsSiangDeduped, measurements_malam: measurementsMalamDeduped });
+                const siang = dedupeByRow(g.siang);
+                const malam = dedupeByRow(g.malam);
+                if (!g.main.noGardu || (!siang.length && !malam.length)) continue;
+                transformedData.push({ ...g.main, measurements_siang: siang, measurements_malam: malam });
             }
 
             if (transformedData.length === 0) {
