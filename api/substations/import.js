@@ -133,7 +133,8 @@ export default async function handler(req, res) {
                 const monthValue = tanggalValue.toISOString().slice(0, 7);
 
                 const mainData = {
-                    no: parseInt(getField(rowObj0, ['no'])) || 0,
+                    // IMPORTANT: `no` will be generated sequentially on insert to avoid conflicts
+                    no: 0,
                     ulp: String(getField(rowObj0, ['ulp'])).trim(),
                     noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
                     namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
@@ -200,11 +201,30 @@ export default async function handler(req, res) {
                 const measurements_siang = extractMeasurementsWithCalculations('siang');
                 const measurements_malam = extractMeasurementsWithCalculations('malam');
 
+                // De-duplicate by row_name and keep the last non-empty entry per row
+                const allowRowNames = new Set(['induk','1','2','3','4']);
+                const dedupe = (arr) => {
+                    const map = new Map();
+                    for (const item of arr) {
+                        const key = String(item.row_name || '').toLowerCase().trim();
+                        if (!key || !allowRowNames.has(key)) continue;
+                        map.set(key, item);
+                    }
+                    return Array.from(map.values());
+                };
+
+                const measurementsSiangDeduped = dedupe(measurements_siang);
+                const measurementsMalamDeduped = dedupe(measurements_malam);
+
                 // DEBUG: Log measurements
                 console.log(`Siang measurements count: ${measurements_siang.length}`);
                 console.log(`Malam measurements count: ${measurements_malam.length}`);
 
-                transformedData.push({ ...mainData, measurements_siang, measurements_malam });
+                if (measurementsSiangDeduped.length === 0 && measurementsMalamDeduped.length === 0) {
+                    // Skip completely empty groups
+                    continue;
+                }
+                transformedData.push({ ...mainData, measurements_siang: measurementsSiangDeduped, measurements_malam: measurementsMalamDeduped });
             }
 
             if (transformedData.length === 0) throw new Error('Tidak ada data valid untuk diimpor.');
@@ -216,13 +236,62 @@ export default async function handler(req, res) {
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
                 for (const data of transformedData) {
-                    await tx.substation.create({
+                    // Generate next sequential `no` regardless of Excel content
+                    const agg = await tx.substation.aggregate({ _max: { no: true } });
+                    const maxNo = agg?._max?.no || 0;
+                    const safeNo = maxNo + 1;
+
+                    // Create substation first, then bulk insert measurements to avoid nested unique conflicts
+                    const created = await tx.substation.create({
                         data: {
-                            ...data, 
-                            measurements_siang: { create: data.measurements_siang },
-                            measurements_malam: { create: data.measurements_malam }
+                            no: safeNo,
+                            ulp: data.ulp,
+                            noGardu: data.noGardu,
+                            namaLokasiGardu: data.namaLokasiGardu,
+                            jenis: data.jenis,
+                            merek: data.merek,
+                            daya: data.daya,
+                            tahun: data.tahun,
+                            phasa: data.phasa,
+                            tap_trafo_max_tap: data.tap_trafo_max_tap || '',
+                            penyulang: data.penyulang || '',
+                            arahSequence: data.arahSequence || '',
+                            tanggal: data.tanggal,
+                            status: 'normal',
+                            is_active: 1,
+                            ugb: 0,
+                            latitude: null,
+                            longitude: null,
                         }
                     });
+
+                    if (data.measurements_siang?.length) {
+                        const siangRows = data.measurements_siang.map(m => ({
+                            substationId: created.id,
+                            month: m.month,
+                            row_name: m.row_name,
+                            r: m.r, s: m.s, t: m.t, n: m.n,
+                            rn: m.rn, sn: m.sn, tn: m.tn,
+                            pp: m.pp, pn: m.pn,
+                            rata2: m.rata2, kva: m.kva, persen: m.persen, unbalanced: m.unbalanced,
+                            lastUpdate: new Date()
+                        }));
+                        await tx.measurementSiang.createMany({ data: siangRows, skipDuplicates: true });
+                    }
+
+                    if (data.measurements_malam?.length) {
+                        const malamRows = data.measurements_malam.map(m => ({
+                            substationId: created.id,
+                            month: m.month,
+                            row_name: m.row_name,
+                            r: m.r, s: m.s, t: m.t, n: m.n,
+                            rn: m.rn, sn: m.sn, tn: m.tn,
+                            pp: m.pp, pn: m.pn,
+                            rata2: m.rata2, kva: m.kva, persen: m.persen, unbalanced: m.unbalanced,
+                            lastUpdate: new Date()
+                        }));
+                        await tx.measurementMalam.createMany({ data: malamRows, skipDuplicates: true });
+                    }
                     createdCount++;
                 }
                 return { createdCount };
@@ -236,11 +305,11 @@ export default async function handler(req, res) {
             });
 
         } catch (procError) {
-            console.error('💥 Terjadi kesalahan kritis:', procError);
+            console.error('💥 Terjadi kesalahan kritis:', procError?.stack || procError);
             res.status(500).json({ 
                 success: false, 
                 error: 'Gagal memproses file di server.', 
-                details: procError.message 
+                details: procError?.message || String(procError)
             });
         } finally {
             try {
