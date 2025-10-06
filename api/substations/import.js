@@ -61,13 +61,21 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-    const allowedOrigins = ['http://localhost:3000', 'https://yourdomain.com'];
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
+    const origin = req.headers.origin || '';
+    const allowThisOrigin = (() => {
+        if (!origin) return false;
+        if (origin.startsWith('http://localhost:')) return true;
+        if (origin.endsWith('.vercel.app')) return true; // allow all vercel preview/prod domains
+        if (origin === 'https://project-4-vyl4.vercel.app') return true; // production
+        return false;
+    })();
+
+    if (allowThisOrigin) {
         res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
     }
-    
-    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
