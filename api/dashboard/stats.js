@@ -43,37 +43,28 @@ export default async function handler(req, res) {
     const db = await initPrisma();
     
     const totalSubstations = await db.substation.count();
-    const activeSubstations = await db.substation.count({
-      where: { is_active: 1 }
-    });
-    const ugbActive = await db.substation.count({
-      where: { ugb: 1 }
-    });
+    const activeSubstations = await db.substation.count({ where: { is_active: 1 } });
+    const ugbActive = await db.substation.count({ where: { ugb: 1 } });
 
     console.log('📊 Dashboard stats calculated:');
     console.log('  - Total substations:', totalSubstations);
     console.log('  - Active substations (is_active: 1):', activeSubstations);
     console.log('  - UGB active (ugb: 1):', ugbActive);
 
-    // Calculate critical issues (unbalanced > 80%)
-    const criticalSubstations = await db.substation.findMany({
-      include: {
-        measurements_siang: true,
-        measurements_malam: true
-      }
-    });
-
+    // Calculate critical issues (unbalanced > 80%) using aggregate count instead of loading all rows
     let criticalCount = 0;
-    for (const substation of criticalSubstations) {
-      const siang = substation.measurements_siang || [];
-      const malam = substation.measurements_malam || [];
-      
-      const hasUnstableSiang = siang.some(m => m.unbalanced > 80);
-      const hasUnstableMalam = malam.some(m => m.unbalanced > 80);
-      
-      if (hasUnstableSiang || hasUnstableMalam) {
-        criticalCount++;
-      }
+    try {
+      criticalCount = await db.substation.count({
+        where: {
+          OR: [
+            { measurements_siang: { some: { unbalanced: { gt: 80 } } } },
+            { measurements_malam: { some: { unbalanced: { gt: 80 } } } },
+          ],
+        },
+      });
+    } catch (aggErr) {
+      console.warn('⚠️ Critical count aggregate failed, falling back to 0:', aggErr.message);
+      criticalCount = 0;
     }
 
     res.json({
