@@ -53,7 +53,8 @@ export class ApiService {
 
   // Mengambil semua data gardu distribusi
   static async getSubstations(): Promise<SubstationData[]> {
-    const response = await this.request<SubstationData[]>('/substations?limit=10000');
+    // Request with a reasonable default limit; server will clamp further if needed
+    const response = await this.request<SubstationData[]>('/substations?limit=500&page=1');
     return response.data;
   }
 

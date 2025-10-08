@@ -141,6 +141,12 @@ app.get('/api/substations', async (req, res) => {
   try {
     const db = await initPrisma();
     const { limit = 100, page = 1, search, status, ulp, jenis } = req.query;
+    // Clamp limit & page
+    const MAX_LIMIT = 1000;
+    const parsedLimit = parseInt(limit);
+    const safeLimit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), MAX_LIMIT);
+    const parsedPage = parseInt(page);
+    const safePage = Math.max(Number.isFinite(parsedPage) ? parsedPage : 1, 1);
     
     const where = {};
     if (search) {
@@ -156,8 +162,8 @@ app.get('/api/substations', async (req, res) => {
 
     const substations = await db.substation.findMany({
       where,
-      take: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit),
+      take: safeLimit,
+      skip: (safePage - 1) * safeLimit,
       orderBy: { no: 'asc' }
     });
 
