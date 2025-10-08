@@ -227,6 +227,17 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
               <p className="text-gray-600 text-sm md:text-base">Selamat datang, {user?.name}</p>
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="flex space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
+                <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                  Dashboard
+                </Button>
+                <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                  Tambah Gardu
+                </Button>
+                <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                  List Gardu
+                </Button>
+              </div>
               <Button onClick={onLogout} variant="outline" className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -237,18 +248,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* In-content nav toolbar */}
-        <div className="mb-4 flex items-center space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
-          <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
-            Dashboard
-          </Button>
-          <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
-            Tambah Gardu
-          </Button>
-          <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
-            List Gardu
-          </Button>
-        </div>
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
