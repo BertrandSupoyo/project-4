@@ -40,12 +40,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     ));
   }, [search, substations]);
 
-  const recentSubstations = useMemo(() => {
-    return [...substations]
-      .sort((a, b) => new Date(b.lastUpdate).getTime() - new Date(a.lastUpdate).getTime())
-      .slice(0, 10);
-  }, [substations]);
-
   // Form state for adding new substation
   const [formData, setFormData] = useState({
     noGardu: '',
@@ -72,8 +66,8 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const [measMalam, setMeasMalam] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
   // Photos
-  const [photos, setPhotos] = useState<{ R: File | null; S: File | null; T: File | null; N: File | null; PP: File | null; PN: File | null; }>({ R: null, S: null, T: null, N: null, PP: null, PN: null });
-  const [photoPreviews, setPhotoPreviews] = useState<{ R: string | null; S: string | null; T: string | null; N: string | null; PP: string | null; PN: string | null; }>({ R: null, S: null, T: null, N: null, PP: null, PN: null });
+  const [photos, setPhotos] = useState<{ rumah: File | null; meter: File | null; petugas: File | null; ba: File | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
+  const [photoPreviews, setPhotoPreviews] = useState<{ rumah: string | null; meter: string | null; petugas: string | null; ba: string | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
 
   useEffect(() => { fetchStats(); }, []);
 
@@ -99,7 +93,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     setter((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoChange = (type: 'R' | 'S' | 'T' | 'N' | 'PP' | 'PN') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (type: 'rumah' | 'meter' | 'petugas' | 'ba') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotos(prev => ({ ...prev, [type]: file }));
@@ -135,18 +129,36 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         const month = new Date().toISOString().slice(0, 7);
         const tasks: Promise<any>[] = [];
         if (hasAny(measSiang)) {
-          tasks.push(ApiService.patchMeasurementsSiangBulk([{ substationId: created.id, row_name: jurusanSiang, month, r: Number(measSiang.r) || 0, s: Number(measSiang.s) || 0, t: Number(measSiang.t) || 0, n: Number(measSiang.n) || 0, rn: Number(measSiang.rn) || 0, sn: Number(measSiang.sn) || 0, tn: Number(measSiang.tn) || 0, pp: Number(measSiang.pp) || 0, pn: Number(measSiang.pn) || 0 }]));
+          tasks.push(ApiService.patchMeasurementsSiangBulk([{
+            substationId: created.id,
+            row_name: jurusanSiang,
+            month,
+            r: Number(measSiang.r) || 0,
+            s: Number(measSiang.s) || 0,
+            t: Number(measSiang.t) || 0,
+            n: Number(measSiang.n) || 0,
+            rn: Number(measSiang.rn) || 0,
+            sn: Number(measSiang.sn) || 0,
+            tn: Number(measSiang.tn) || 0,
+            pp: Number(measSiang.pp) || 0,
+            pn: Number(measSiang.pn) || 0,
+          }]));
         }
         if (hasAny(measMalam)) {
-          tasks.push(ApiService.patchMeasurementsMalamBulk([{ substationId: created.id, row_name: jurusanMalam, month, r: Number(measMalam.r) || 0, s: Number(measMalam.s) || 0, t: Number(measMalam.t) || 0, n: Number(measMalam.n) || 0, rn: Number(measMalam.rn) || 0, sn: Number(measMalam.sn) || 0, tn: Number(measMalam.tn) || 0, pp: Number(measMalam.pp) || 0, pn: Number(measMalam.pn) || 0 }]));
-        }
-        // Upload any selected photos to the proper slots (R,S,T,N,PP,PN)
-        const photoKinds: Array<'R'|'S'|'T'|'N'|'PP'|'PN'> = ['R','S','T','N','PP','PN'];
-        for (const kind of photoKinds) {
-          const preview = photoPreviews[kind];
-          if (preview) {
-            tasks.push(ApiService.uploadSubstationPhoto(created.id, preview, `${created.noGardu || 'foto'}-${kind}.jpg`, kind));
-          }
+          tasks.push(ApiService.patchMeasurementsMalamBulk([{
+            substationId: created.id,
+            row_name: jurusanMalam,
+            month,
+            r: Number(measMalam.r) || 0,
+            s: Number(measMalam.s) || 0,
+            t: Number(measMalam.t) || 0,
+            n: Number(measMalam.n) || 0,
+            rn: Number(measMalam.rn) || 0,
+            sn: Number(measMalam.sn) || 0,
+            tn: Number(measMalam.tn) || 0,
+            pp: Number(measMalam.pp) || 0,
+            pn: Number(measMalam.pn) || 0,
+          }]));
         }
         if (tasks.length) await Promise.all(tasks);
       }
@@ -157,8 +169,8 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
       setJurusanMalam('induk');
       setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-      setPhotos({ R: null, S: null, T: null, N: null, PP: null, PN: null });
-      setPhotoPreviews({ R: null, S: null, T: null, N: null, PP: null, PN: null });
+      setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
+      setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
 
       alert('Gardu berhasil ditambahkan!');
       await refreshData();
@@ -179,23 +191,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     };
     const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap['normal'];
     return (<Badge className={statusInfo.color}>{statusInfo.label}</Badge>);
-  };
-
-  const getUnbalanceBadge = (substation: SubstationData) => {
-    const siang = substation.measurements_siang || [];
-    const malam = substation.measurements_malam || [];
-    const values: number[] = [];
-    siang.forEach((m: any) => { if (m && m.unbalanced != null) values.push(Number(m.unbalanced)); });
-    malam.forEach((m: any) => { if (m && m.unbalanced != null) values.push(Number(m.unbalanced)); });
-    const maxUnb = values.length ? Math.max(...values) : 0;
-    if (maxUnb > 80) {
-      return <Badge className="bg-red-100 text-red-800">Overload {maxUnb.toFixed(1)}%</Badge>;
-    }
-    if (values.length) {
-      return <Badge className="bg-green-100 text-green-800">Normal {maxUnb.toFixed(1)}%</Badge>;
-    }
-    // fallback to status if no measurements
-    return getStatusBadge(substation.status);
   };
 
   const handleUseCurrentLocation = () => {
@@ -321,11 +316,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {recentSubstations.map((substation) => (
+                      {substations.slice(0, 6).map((substation) => (
                         <button key={substation.id} onClick={() => { setSelectedSubstation(substation); setIsDetailOpen(true); }} className="text-left border rounded-lg p-4 hover:shadow-md transition-shadow">
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold text-gray-900">{substation.noGardu}</h3>
-                            {getUnbalanceBadge(substation)}
+                            {getStatusBadge(substation.status)}
                           </div>
                           <p className="text-sm text-gray-600 mb-1">{substation.namaLokasiGardu}</p>
                           <p className="text-xs text-gray-500">ULP: {substation.ulp}</p>
@@ -347,19 +342,12 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Camera className="w-5 h-5 mr-2" />
-                  Dokumentasi Foto (R, S, T, N, Phasa-Phasa, Phasa-Netral)
+                  Dokumentasi Foto
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  {([
-                    { key: 'R' as const, title: 'R' },
-                    { key: 'S' as const, title: 'S' },
-                    { key: 'T' as const, title: 'T' },
-                    { key: 'N' as const, title: 'N' },
-                    { key: 'PP' as const, title: 'Phasa-Phasa' },
-                    { key: 'PN' as const, title: 'Phasa-Netral' },
-                  ]).map((item) => (
+                  {([ { key: 'rumah' as const, title: 'Rumah' }, { key: 'meter' as const, title: 'Meter' }, { key: 'petugas' as const, title: 'Petugas' }, { key: 'ba' as const, title: 'BA' }]).map((item) => (
                     <div key={item.key} className="text-center">
                       <div className="w-full h-40 md:h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-2 overflow-hidden">
                         {photoPreviews[item.key] ? (
@@ -512,8 +500,8 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                   setFormData({ noGardu: '', namaLokasiGardu: '', ulp: '', jenis: '', merek: '', daya: '', tahun: '', phasa: '', tap_trafo_max_tap: '', penyulang: '', arahSequence: '', latitude: '', longitude: '' });
                   setJurusanSiang('induk'); setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
                   setJurusanMalam('induk'); setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-                  setPhotos({ R: null, S: null, T: null, N: null, PP: null, PN: null });
-                  setPhotoPreviews({ R: null, S: null, T: null, N: null, PP: null, PN: null });
+                  setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
+                  setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
                 }}>Reset</Button>
                 <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan Gardu'}</Button>
               </div>
@@ -543,7 +531,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
                               <h3 className="font-semibold text-gray-900">{substation.noGardu}</h3>
-                              {getUnbalanceBadge(substation)}
+                              {getStatusBadge(substation.status)}
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
                               <div>

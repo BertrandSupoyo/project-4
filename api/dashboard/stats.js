@@ -89,19 +89,10 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('💥 Stats error:', err);
-    // Fail-soft to keep UI functional
-    res.status(200).json({
-      success: true,
-      data: {
-        totalSubstations: 0,
-        activeSubstations: 0,
-        inactiveSubstations: 0,
-        ugbActive: 0,
-        criticalIssues: 0,
-        monthlyMeasurements: 0
-      },
-      warning: 'Stats fallback due to error',
-      details: err?.message || String(err)
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      details: err.message
     });
   }
 } 

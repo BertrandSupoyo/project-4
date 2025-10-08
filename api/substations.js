@@ -69,18 +69,14 @@ export default async function handler(req, res) {
         }
       });
 
-      // Ensure photoUrl columns exist and merge into results (ignore DDL errors in serverless envs)
-      try {
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlR" TEXT');
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlS" TEXT');
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlT" TEXT');
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlN" TEXT');
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPP" TEXT');
-        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPN" TEXT');
-      } catch (ddlErr) {
-        console.warn('⚠️  Skipping photoUrl DDL:', ddlErr?.message || ddlErr);
-      }
+      // Ensure photoUrl columns exist and merge into results
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlR" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlS" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlT" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlN" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPP" TEXT');
+      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPN" TEXT');
       if (substations.length > 0) {
         const ids = substations.map(s => s.id);
         const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
@@ -111,12 +107,10 @@ export default async function handler(req, res) {
       });
     } catch (err) {
       console.error('💥 Substations GET error:', err);
-      // Fail-soft: allow UI to render while we inspect logs
-      res.status(200).json({
-        success: true,
-        data: [],
-        warning: 'Substations fallback due to error',
-        details: err?.message || String(err)
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        details: err.message
       });
     }
   }
@@ -126,33 +120,12 @@ export default async function handler(req, res) {
     try {
       console.log('🏭 Creating substation...');
       
-      const substationData = req.body || {};
+      const substationData = req.body;
       console.log('📝 Substation data:', substationData);
-
-      // Validate required fields to avoid 500
-      const required = ['noGardu','namaLokasiGardu','ulp','jenis','merek','daya','tahun','phasa','tanggal'];
-      const missing = required.filter((k) => !substationData[k] || String(substationData[k]).trim() === '');
-      if (missing.length) {
-        console.warn('⚠️ Missing required fields:', missing);
-        return res.status(400).json({ success: false, error: 'Missing required fields', details: missing });
-      }
-
-      // Safeguard for field 'no' (Postgres Int32). Compute next sequential no; ignore client-provided value.
-      const agg = await db.substation.aggregate({ _max: { no: true } });
-      const maxNo = agg?._max?.no || 0;
-      const safeNo = maxNo + 1;
-
-      // Coerce coordinates to float if provided as string
-      const lat = substationData.latitude !== undefined && substationData.latitude !== null
-        ? Number(substationData.latitude)
-        : null;
-      const lng = substationData.longitude !== undefined && substationData.longitude !== null
-        ? Number(substationData.longitude)
-        : null;
 
       const newSubstation = await db.substation.create({
         data: {
-          no: safeNo,
+          no: substationData.no,
           ulp: substationData.ulp,
           noGardu: substationData.noGardu,
           namaLokasiGardu: substationData.namaLokasiGardu,
@@ -161,15 +134,15 @@ export default async function handler(req, res) {
           daya: substationData.daya,
           tahun: substationData.tahun,
           phasa: substationData.phasa,
-          tap_trafo_max_tap: substationData.tap_trafo_max_tap || '',
-          penyulang: substationData.penyulang || '',
-          arahSequence: substationData.arahSequence || '',
+          tap_trafo_max_tap: substationData.tap_trafo_max_tap,
+          penyulang: substationData.penyulang,
+          arahSequence: substationData.arahSequence,
           tanggal: new Date(substationData.tanggal),
           status: substationData.status || 'normal',
           is_active: substationData.is_active || 1,
           ugb: substationData.ugb || 0,
-          latitude: lat !== null && !Number.isNaN(lat) ? lat : null,
-          longitude: lng !== null && !Number.isNaN(lng) ? lng : null
+          latitude: substationData.latitude,
+          longitude: substationData.longitude
         }
       });
 
@@ -221,11 +194,11 @@ export default async function handler(req, res) {
         message: 'Substation created successfully with auto-generated measurements'
       });
     } catch (err) {
-      console.error('💥 Substation POST error:', err?.stack || err);
+      console.error('💥 Substation POST error:', err);
       res.status(500).json({
         success: false,
         error: 'Internal server error',
-        details: err?.message || String(err)
+        details: err.message
       });
     }
   }
