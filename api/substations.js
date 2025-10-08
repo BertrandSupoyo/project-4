@@ -126,36 +126,52 @@ export default async function handler(req, res) {
     try {
       console.log('🏭 Creating substation...');
       
-      const substationData = req.body;
+      const substationData = req.body || {};
       console.log('📝 Substation data:', substationData);
 
-      const newSubstation = await db.substation.create({
-        data: {
-          no: substationData.no,
-          ulp: substationData.ulp,
-          noGardu: substationData.noGardu,
-          namaLokasiGardu: substationData.namaLokasiGardu,
-          jenis: substationData.jenis,
-          merek: substationData.merek,
-          daya: substationData.daya,
-          tahun: substationData.tahun,
-          phasa: substationData.phasa,
-          tap_trafo_max_tap: substationData.tap_trafo_max_tap,
-          penyulang: substationData.penyulang,
-          arahSequence: substationData.arahSequence,
-          tanggal: new Date(substationData.tanggal),
-          status: substationData.status || 'normal',
-          is_active: substationData.is_active || 1,
-          ugb: substationData.ugb || 0,
-          latitude: substationData.latitude,
-          longitude: substationData.longitude
-        }
-      });
+      // Sanitize/coerce inputs
+      const toStringSafe = (v, def = '') => (v === null || v === undefined ? def : String(v));
+      const toIntSafe = (v, def = 0) => {
+        const n = parseInt(v);
+        return Number.isFinite(n) ? n : def;
+      };
+      const toFloatOrNull = (v) => {
+        if (v === undefined || v === null || v === '') return null;
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? n : null;
+      };
+      const toDateSafe = (v) => {
+        const d = v ? new Date(v) : new Date();
+        return isNaN(d.getTime()) ? new Date() : d;
+      };
+
+      const createData = {
+        no: toIntSafe(substationData.no, Date.now()),
+        ulp: toStringSafe(substationData.ulp),
+        noGardu: toStringSafe(substationData.noGardu),
+        namaLokasiGardu: toStringSafe(substationData.namaLokasiGardu),
+        jenis: toStringSafe(substationData.jenis),
+        merek: toStringSafe(substationData.merek),
+        daya: toStringSafe(substationData.daya),
+        tahun: toStringSafe(substationData.tahun),
+        phasa: toStringSafe(substationData.phasa),
+        tap_trafo_max_tap: toStringSafe(substationData.tap_trafo_max_tap),
+        penyulang: toStringSafe(substationData.penyulang),
+        arahSequence: toStringSafe(substationData.arahSequence),
+        tanggal: toDateSafe(substationData.tanggal),
+        status: toStringSafe(substationData.status, 'normal'),
+        is_active: toIntSafe(substationData.is_active, 1),
+        ugb: toIntSafe(substationData.ugb, 0),
+        latitude: toFloatOrNull(substationData.latitude),
+        longitude: toFloatOrNull(substationData.longitude),
+      };
+
+      const newSubstation = await db.substation.create({ data: createData });
 
       console.log('✅ Substation created:', newSubstation.id);
 
       // Auto-generate measurements untuk gardu baru
-      const month = new Date(substationData.tanggal).toISOString().slice(0, 7); // Format: YYYY-MM
+      const month = toDateSafe(substationData.tanggal).toISOString().slice(0, 7); // Format: YYYY-MM
       const rowNames = ['induk', '1', '2', '3', '4'];
       
       // Buat measurements siang
@@ -183,14 +199,15 @@ export default async function handler(req, res) {
       }));
 
       // Insert measurements siang dan malam
-      await Promise.all([
-        db.measurementSiang.createMany({
-          data: siangMeasurements
-        }),
-        db.measurementMalam.createMany({
-          data: malamMeasurements
-        })
-      ]);
+      try {
+        await Promise.all([
+          db.measurementSiang.createMany({ data: siangMeasurements }),
+          db.measurementMalam.createMany({ data: malamMeasurements }),
+        ]);
+      } catch (meErr) {
+        console.error('❌ Failed to create initial measurements:', meErr);
+        // Do not fail the whole request; continue with created substation
+      }
 
       console.log('✅ Auto-generated measurements for substation:', newSubstation.id);
 
@@ -204,7 +221,13 @@ export default async function handler(req, res) {
       res.status(500).json({
         success: false,
         error: 'Internal server error',
-        details: err.message
+        details: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+        payloadSample: {
+          // small sample for debugging
+          ulp: req.body?.ulp,
+          noGardu: req.body?.noGardu,
+        }
       });
     }
   }
