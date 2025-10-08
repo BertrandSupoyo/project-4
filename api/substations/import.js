@@ -207,33 +207,24 @@ export default async function handler(req, res) {
                 if (!jurusan || !allowRowNames.has(jurusan)) continue;
 
                 const powerRating = parseFloat(m.daya) || 0;
-                // Column-based extraction: O..W (14..22) siang, X..AF (23..31) malam
-                const idxSiang = [14,15,16,17,18,19,20,21,22];
-                const idxMalam = [23,24,25,26,27,28,29,30,31];
-                const safeNum = (val) => {
-                    const n = parseFloat(String(val ?? '').toString().replace(/,/g, '.'));
-                    return Number.isFinite(n) ? n : 0;
-                };
-                const extractByIndex = (rowArr, indices) => {
-                    const [rI,sI,tI,nI,rnI,snI,tnI,ppI,pnI] = indices;
-                    const r = safeNum(rowArr[rI]);
-                    const s = safeNum(rowArr[sI]);
-                    const t = safeNum(rowArr[tI]);
-                    const n = safeNum(rowArr[nI]);
-                    const rn = safeNum(rowArr[rnI]);
-                    const sn = safeNum(rowArr[snI]);
-                    const tn = safeNum(rowArr[tnI]);
-                    const pp = safeNum(rowArr[ppI]);
-                    const pn = safeNum(rowArr[pnI]);
+                const extractFor = (timeOfDay) => {
+                    const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
+                    const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
+                    const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
+                    const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
+                    const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
+                    const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
+                    const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
+                    const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
+                    const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
                     const calc = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
-                    const hasAny = [r,s,t,n,rn,sn,tn,pp,pn].some(v => v !== 0);
-                    return hasAny ? { month: monthValue, row_name: jurusan, r, s, t, n, rn, sn, tn, pp, pn, rata2: calc.rata2, kva: calc.kva, persen: calc.persen, unbalanced: calc.unbalanced } : null;
+                    return { month: monthValue, row_name: jurusan, r, s, t, n, rn, sn, tn, pp, pn, rata2: calc.rata2, kva: calc.kva, persen: calc.persen, unbalanced: calc.unbalanced };
                 };
 
-                const siangEntry = extractByIndex(rowArr, idxSiang);
-                const malamEntry = extractByIndex(rowArr, idxMalam);
-                if (siangEntry) group.siang.push(siangEntry);
-                if (malamEntry) group.malam.push(malamEntry);
+                const hasSiang = ['r','s','t','n','rn','sn','tn','pp','pn'].some(k => getField(rowObj, [`${k}siang`, `${k}(siang)`, `${k}_siang`]) !== '');
+                const hasMalam = ['r','s','t','n','rn','sn','tn','pp','pn'].some(k => getField(rowObj, [`${k}malam`, `${k}(malam)`, `${k}_malam`]) !== '');
+                if (hasSiang) group.siang.push(extractFor('siang'));
+                if (hasMalam) group.malam.push(extractFor('malam'));
             }
 
             const transformedData = [];
