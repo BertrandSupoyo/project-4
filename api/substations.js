@@ -129,6 +129,17 @@ export default async function handler(req, res) {
       const substationData = req.body || {};
       console.log('📝 Substation data:', substationData);
 
+      // Basic required fields validation
+      const required = ['ulp','noGardu','namaLokasiGardu','jenis','merek','daya','tahun','phasa'];
+      const missing = required.filter(k => !substationData[k] || String(substationData[k]).trim() === '');
+      if (missing.length) {
+        return res.status(400).json({
+          success: false,
+          error: 'Validation error',
+          details: `Field wajib belum diisi: ${missing.join(', ')}`,
+        });
+      }
+
       // Sanitize/coerce inputs
       const toStringSafe = (v, def = '') => (v === null || v === undefined ? def : String(v));
       const toIntSafe = (v, def = 0) => {
@@ -145,8 +156,15 @@ export default async function handler(req, res) {
         return isNaN(d.getTime()) ? new Date() : d;
       };
 
+      // Generate a safe 32-bit integer for 'no' when missing/invalid
+      const generateSafeNo = () => {
+        const seconds = Math.floor(Date.now() / 1000);
+        // keep within signed 32-bit range
+        return seconds % 2000000000;
+      };
+
       const createData = {
-        no: toIntSafe(substationData.no, Date.now()),
+        no: toIntSafe(substationData.no, generateSafeNo()),
         ulp: toStringSafe(substationData.ulp),
         noGardu: toStringSafe(substationData.noGardu),
         namaLokasiGardu: toStringSafe(substationData.namaLokasiGardu),

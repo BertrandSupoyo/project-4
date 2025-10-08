@@ -65,8 +65,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const [jurusanMalam, setJurusanMalam] = useState<'induk' | '1' | '2' | '3' | '4'>('induk');
   const [measMalam, setMeasMalam] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
-  // Photos
-  const [photos, setPhotos] = useState<{ rumah: File | null; meter: File | null; petugas: File | null; ba: File | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
+  // Photo previews
   const [photoPreviews, setPhotoPreviews] = useState<{ rumah: string | null; meter: string | null; petugas: string | null; ba: string | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
 
   useEffect(() => { fetchStats(); }, []);
@@ -107,7 +106,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const handlePhotoChange = (type: 'rumah' | 'meter' | 'petugas' | 'ba') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPhotos(prev => ({ ...prev, [type]: file }));
       const reader = new FileReader();
       reader.onload = () => setPhotoPreviews(prev => ({ ...prev, [type]: reader.result as string }));
       reader.readAsDataURL(file);
@@ -121,9 +119,10 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     try {
       setLoading(true);
 
+      const safeNo = Math.floor(Date.now() / 1000) % 2000000000;
       const newSubstation: Omit<SubstationData, 'id'> = {
         ...formData,
-        no: Date.now(),
+        no: safeNo,
         tanggal: new Date().toISOString().split('T')[0],
         measurements: [],
         status: 'normal' as const,
@@ -180,7 +179,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
       setJurusanMalam('induk');
       setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-      setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
       setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
 
       alert('Gardu berhasil ditambahkan!');
@@ -237,15 +235,15 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
               <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard Petugas</h1>
               <p className="text-gray-600 text-sm md:text-base">Selamat datang, {user?.name}</p>
             </div>
-            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="flex items-center space-x-2 md:space-x-4">
               <div className="flex space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
-                <Button variant={activeTab === 'dashboard' ? 'default' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                <Button variant={activeTab === 'dashboard' ? 'primary' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
                   Dashboard
                 </Button>
-                <Button variant={activeTab === 'add' ? 'default' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                <Button variant={activeTab === 'add' ? 'primary' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
                   Tambah Gardu
                 </Button>
-                <Button variant={activeTab === 'list' ? 'default' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                <Button variant={activeTab === 'list' ? 'primary' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
                   List Gardu
                 </Button>
               </div>
@@ -510,7 +508,6 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                   setFormData({ noGardu: '', namaLokasiGardu: '', ulp: '', jenis: '', merek: '', daya: '', tahun: '', phasa: '', tap_trafo_max_tap: '', penyulang: '', arahSequence: '', latitude: '', longitude: '' });
                   setJurusanSiang('induk'); setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
                   setJurusanMalam('induk'); setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-                  setPhotos({ rumah: null, meter: null, petugas: null, ba: null });
                   setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
                 }}>Reset</Button>
                 <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan Gardu'}</Button>
