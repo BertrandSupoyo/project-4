@@ -75,34 +75,42 @@ export default async function handler(req, res) {
         }
       });
 
-      // Ensure photoUrl columns exist and merge into results
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlR" TEXT');
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlS" TEXT');
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlT" TEXT');
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlN" TEXT');
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPP" TEXT');
-      await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPN" TEXT');
-      if (substations.length > 0) {
-        const ids = substations.map(s => s.id);
-        const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
-        const rows = await db.$queryRawUnsafe(
-          `SELECT id, "photoUrl", "photoUrlR", "photoUrlS", "photoUrlT", "photoUrlN", "photoUrlPP", "photoUrlPN" FROM "substations" WHERE id IN (${placeholders})`,
-          ...ids
-        );
-        const map = new Map(rows.map(r => [r.id, r]));
-        for (const s of substations) {
-          const r = map.get(s.id);
-          if (r) {
-            s.photoUrl = r.photoUrl || null;
-            s.photoUrlR = r.photoUrlR || null;
-            s.photoUrlS = r.photoUrlS || null;
-            s.photoUrlT = r.photoUrlT || null;
-            s.photoUrlN = r.photoUrlN || null;
-            s.photoUrlPP = r.photoUrlPP || null;
-            s.photoUrlPN = r.photoUrlPN || null;
+      // Ensure photoUrl columns exist and merge into results (best-effort; ignore permission errors)
+      try {
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrl" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlR" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlS" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlT" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlN" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPP" TEXT');
+        await db.$executeRawUnsafe('ALTER TABLE "substations" ADD COLUMN IF NOT EXISTS "photoUrlPN" TEXT');
+      } catch (e) {
+        console.warn('⚠️ Skipping ALTER TABLE for photo columns (likely no permission):', e.message);
+      }
+      try {
+        if (substations.length > 0) {
+          const ids = substations.map(s => s.id);
+          const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+          const rows = await db.$queryRawUnsafe(
+            `SELECT id, "photoUrl", "photoUrlR", "photoUrlS", "photoUrlT", "photoUrlN", "photoUrlPP", "photoUrlPN" FROM "substations" WHERE id IN (${placeholders})`,
+            ...ids
+          );
+          const map = new Map(rows.map(r => [r.id, r]));
+          for (const s of substations) {
+            const r = map.get(s.id);
+            if (r) {
+              s.photoUrl = r.photoUrl || null;
+              s.photoUrlR = r.photoUrlR || null;
+              s.photoUrlS = r.photoUrlS || null;
+              s.photoUrlT = r.photoUrlT || null;
+              s.photoUrlN = r.photoUrlN || null;
+              s.photoUrlPP = r.photoUrlPP || null;
+              s.photoUrlPN = r.photoUrlPN || null;
+            }
           }
         }
+      } catch (e) {
+        console.warn('⚠️ Skipping photoUrl merge (columns may not exist):', e.message);
       }
 
       console.log(`✅ Found ${substations.length} substations`);
