@@ -65,8 +65,8 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const [jurusanMalam, setJurusanMalam] = useState<'induk' | '1' | '2' | '3' | '4'>('induk');
   const [measMalam, setMeasMalam] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
 
-  // Photo previews
-  const [photoPreviews, setPhotoPreviews] = useState<{ rumah: string | null; meter: string | null; petugas: string | null; ba: string | null; }>({ rumah: null, meter: null, petugas: null, ba: null });
+  // Photo previews for R,S,T,N,PP,PN
+  const [photoPreviews, setPhotoPreviews] = useState<{ R: string | null; S: string | null; T: string | null; N: string | null; PP: string | null; PN: string | null; }>({ R: null, S: null, T: null, N: null, PP: null, PN: null });
 
   useEffect(() => { fetchStats(); }, []);
 
@@ -103,7 +103,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     setter((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoChange = (type: 'rumah' | 'meter' | 'petugas' | 'ba') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (type: 'R' | 'S' | 'T' | 'N' | 'PP' | 'PN') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -170,6 +170,13 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
             pn: Number(measMalam.pn) || 0,
           }]));
         }
+        // Upload selected photos for R,S,T,N,PP,PN
+        (['R','S','T','N','PP','PN'] as const).forEach(kind => {
+          const preview = photoPreviews[kind];
+          if (preview) {
+            tasks.push(ApiService.uploadSubstationPhoto(created.id, preview, `${created.noGardu || 'foto'}-${kind}.jpg`, kind));
+          }
+        });
         if (tasks.length) await Promise.all(tasks);
       }
 
@@ -179,7 +186,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
       setJurusanMalam('induk');
       setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-      setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
+      setPhotoPreviews({ R: null, S: null, T: null, N: null, PP: null, PN: null });
 
       alert('Gardu berhasil ditambahkan!');
       await refreshData();
@@ -347,19 +354,26 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         {activeTab === 'add' && (
           <div className="max-w-4xl mx-auto">
             <Card>
-              <CardHeader>
+                  <CardHeader>
                 <CardTitle className="flex items-center">
                   <Camera className="w-5 h-5 mr-2" />
-                  Dokumentasi Foto
+                  Dokumentasi Foto (R, S, T, N, Phasa-Phasa, Phasa-Netral)
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  {([ { key: 'rumah' as const, title: 'Rumah' }, { key: 'meter' as const, title: 'Meter' }, { key: 'petugas' as const, title: 'Petugas' }, { key: 'ba' as const, title: 'BA' }]).map((item) => (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                  {([
+                    { key: 'R' as const, title: 'R' },
+                    { key: 'S' as const, title: 'S' },
+                    { key: 'T' as const, title: 'T' },
+                    { key: 'N' as const, title: 'N' },
+                    { key: 'PP' as const, title: 'Phasa-Phasa' },
+                    { key: 'PN' as const, title: 'Phasa-Netral' },
+                  ]).map((item) => (
                     <div key={item.key} className="text-center">
                       <div className="w-full h-40 md:h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-2 overflow-hidden">
                         {photoPreviews[item.key] ? (
-                          <img src={photoPreviews[item.key]!} alt={item.title} className="w-full h-full object-cover" />
+                          <img src={photoPreviews[item.key]!} alt={item.title} className="w-full h-full object-contain" />
                         ) : (
                           <div className="text-gray-400">
                             <Camera className="w-8 h-8 mx-auto mb-2" />
@@ -508,7 +522,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                   setFormData({ noGardu: '', namaLokasiGardu: '', ulp: '', jenis: '', merek: '', daya: '', tahun: '', phasa: '', tap_trafo_max_tap: '', penyulang: '', arahSequence: '', latitude: '', longitude: '' });
                   setJurusanSiang('induk'); setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
                   setJurusanMalam('induk'); setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-                  setPhotoPreviews({ rumah: null, meter: null, petugas: null, ba: null });
+                  setPhotoPreviews({ R: null, S: null, T: null, N: null, PP: null, PN: null });
                 }}>Reset</Button>
                 <Button type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan Gardu'}</Button>
               </div>
