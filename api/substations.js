@@ -64,15 +64,7 @@ export default async function handler(req, res) {
         where,
         take: safeLimit,
         skip: (safePage - 1) * safeLimit,
-        orderBy: { no: 'asc' },
-        include: {
-          measurements_siang: {
-            orderBy: { row_name: 'asc' }
-          },
-          measurements_malam: {
-            orderBy: { row_name: 'asc' }
-          }
-        }
+        orderBy: { no: 'asc' }
       });
 
       // Ensure photoUrl columns exist and merge into results (best-effort; ignore permission errors)
