@@ -103,25 +103,51 @@ export const RiwayatGarduTable: React.FC = () => {
       });
   }, []);
 
-  // Filter data berdasarkan bulan-tahun yang dipilih
+  // Filter data berdasarkan bulan-tahun yang dipilih dan fetch detail measurement dari API
   useEffect(() => {
-    if (!selectedMonth || !selectedYear) return;
-    
-    const filtered = allData.filter(sub => {
-      if (!sub.tanggal) return false;
-      const d = new Date(sub.tanggal);
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear());
-      return month === selectedMonth && year === selectedYear;
-    })
-    // Mapping agar row.siang dan row.malam ada
-    .map(sub => ({
-      substation: sub,
-      siang: sub.measurements_siang || [],
-      malam: sub.measurements_malam || []
-    }));
-    
-    setData(filtered);
+    let cancelled = false;
+    const run = async () => {
+      if (!selectedMonth || !selectedYear) return;
+      setLoading(true);
+      setError(null);
+      try {
+        // Ambil substation yang tanggalnya match bulan/tahun
+        const filteredSubs = allData.filter(sub => {
+          if (!sub.tanggal) return false;
+          const d = new Date(sub.tanggal);
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = String(d.getFullYear());
+          return month === selectedMonth && year === selectedYear;
+        });
+
+        // Fetch detail per substation agar measurements terisi dari database
+        const results: SubstationData[] = [];
+        for (const sub of filteredSubs) {
+          try {
+            const detail = await ApiService.getSubstationById(sub.id);
+            const monthLabel = `${selectedYear}-${selectedMonth}`;
+            const siang = Array.isArray((detail as any).measurements_siang)
+              ? (detail as any).measurements_siang.filter((m: any) => m.month === monthLabel)
+              : [];
+            const malam = Array.isArray((detail as any).measurements_malam)
+              ? (detail as any).measurements_malam.filter((m: any) => m.month === monthLabel)
+              : [];
+            results.push({ substation: detail, siang, malam });
+          } catch (e) {
+            // Jika gagal fetch detail, push entri minimal agar tidak hilang dari tabel
+            results.push({ substation: sub, siang: [], malam: [] });
+          }
+          if (cancelled) return;
+        }
+        if (!cancelled) setData(results);
+      } catch (e) {
+        if (!cancelled) setError('Gagal memuat riwayat pengukuran');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
   }, [selectedMonth, selectedYear, allData]);
 
   // 🔥 PERBAIKAN: Memoize unbalanced calculations untuk performance
