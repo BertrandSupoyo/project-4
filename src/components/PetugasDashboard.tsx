@@ -26,6 +26,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   // Modal detail
   const [selectedSubstation, setSelectedSubstation] = useState<SubstationData | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // search
   const [search, setSearch] = useState('');
@@ -90,12 +91,34 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const handleOpenDetail = async (sub: SubstationData) => {
     setSelectedSubstation(sub);
     setIsDetailOpen(true);
+    setIsEditMode(false);
     try {
       const full = await ApiService.getSubstationById(sub.id);
       setSelectedSubstation(full);
     } catch (e) {
       console.error('Failed to load substation detail:', e);
     }
+  };
+
+  const handleOpenEdit = async (sub: SubstationData) => {
+    setSelectedSubstation(sub);
+    setIsDetailOpen(true);
+    setIsEditMode(true);
+    try {
+      const full = await ApiService.getSubstationById(sub.id);
+      setSelectedSubstation(full);
+    } catch (e) {
+      console.error('Failed to load substation detail (edit):', e);
+    }
+  };
+
+  const handleUpdatePower = async (id: string, newPower: string) => {
+    await ApiService.updateSubstationPower(id, newPower);
+  };
+
+  const handleUpdateSubstation = async (updates: Partial<SubstationData>) => {
+    if (!updates.id) return;
+    await ApiService.updateSubstation(updates.id, updates);
   };
 
   const handleMeasChange = (setter: React.Dispatch<React.SetStateAction<any>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -578,7 +601,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                 {substationsLoading ? <LoadingSpinner /> : (
                   <div className="space-y-4">
                     {filteredSubstations.map((substation) => (
-                      <button key={substation.id} onClick={() => handleOpenDetail(substation)} className="text-left w-full border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={substation.id} className="text-left w-full border rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
@@ -601,8 +624,12 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                             </div>
                             <div className="mt-2 text-xs text-gray-500">Last Update: {new Date(substation.lastUpdate).toLocaleDateString('id-ID')}</div>
                           </div>
+                          <div className="flex flex-col gap-2 ml-4">
+                            <Button variant="outline" size="sm" onClick={() => handleOpenDetail(substation)}>Lihat</Button>
+                            <Button variant="primary" size="sm" onClick={() => handleOpenEdit(substation)}>Update</Button>
+                          </div>
                         </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -617,13 +644,13 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         substation={selectedSubstation}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        onUpdatePower={() => {}}
-        onUpdateSubstation={() => {}}
+        onUpdatePower={handleUpdatePower}
+        onUpdateSubstation={handleUpdateSubstation}
         onFetchSubstationDetail={async (id: string) => {
           const full = await ApiService.getSubstationById(id);
           setSelectedSubstation(full);
         }}
-        isReadOnly={true}
+        isReadOnly={!isEditMode}
       />
     </div>
   );

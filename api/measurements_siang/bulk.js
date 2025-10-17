@@ -68,7 +68,7 @@ export default async function handler(req, res) {
         
         // UNBALANCED: sesuai rumus Excel user
         const unbalanced = rata2 !== 0
-          ? (Math.abs((r / rata2) - 1) + Math.abs((s / rata2) - 1) + (Math.abs(t / rata2) - 1)) * 100
+          ? (Math.abs((r / rata2) - 1) + Math.abs((s / rata2) - 1) + Math.abs((t / rata2) - 1)) * 100
           : 0;
 
         // Cari measurement yang sudah ada
