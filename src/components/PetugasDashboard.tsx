@@ -27,6 +27,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const [selectedSubstation, setSelectedSubstation] = useState<SubstationData | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [editingSubstationId, setEditingSubstationId] = useState<string | null>(null);
 
   // search
   const [search, setSearch] = useState('');
@@ -101,15 +102,27 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   };
 
   const handleOpenEdit = async (sub: SubstationData) => {
-    setSelectedSubstation(sub);
-    setIsDetailOpen(true);
+    // Buka form Tambah Gardu dalam mode edit dengan data terisi
     setIsEditMode(true);
-    try {
-      const full = await ApiService.getSubstationById(sub.id);
-      setSelectedSubstation(full);
-    } catch (e) {
-      console.error('Failed to load substation detail (edit):', e);
-    }
+    setActiveTab('add');
+    setEditingSubstationId(sub.id);
+    setFormData({
+      noGardu: sub.noGardu || '',
+      namaLokasiGardu: sub.namaLokasiGardu || '',
+      ulp: sub.ulp || '',
+      jenis: sub.jenis || '',
+      merek: sub.merek || '',
+      daya: String(sub.daya || ''),
+      tahun: String(sub.tahun || ''),
+      phasa: sub.phasa || '',
+      tap_trafo_max_tap: String(sub.tap_trafo_max_tap || ''),
+      penyulang: sub.penyulang || '',
+      arahSequence: sub.arahSequence || '',
+      latitude: sub.latitude != null ? String(sub.latitude) : '',
+      longitude: sub.longitude != null ? String(sub.longitude) : '',
+    });
+    setJurusanSiang('induk'); setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+    setJurusanMalam('induk'); setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
   };
 
   const handleUpdatePower = async (id: string, newPower: string) => {
@@ -172,28 +185,52 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     try {
       setLoading(true);
 
-      const safeNo = Math.floor(Date.now() / 1000) % 2000000000;
-      const newSubstation: Omit<SubstationData, 'id'> = {
-        ...formData,
-        no: safeNo,
-        tanggal: new Date().toISOString().split('T')[0],
-        measurements: [],
-        status: 'normal' as const,
-        lastUpdate: new Date().toISOString(),
-        is_active: 1,
-        ugb: 0,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
-      };
+      // Determine create vs update
+      let targetId: string | null = editingSubstationId;
+      let targetNoGardu: string = formData.noGardu || 'foto';
+      if (!editingSubstationId) {
+        const safeNo = Math.floor(Date.now() / 1000) % 2000000000;
+        const newSubstation: Omit<SubstationData, 'id'> = {
+          ...formData,
+          no: safeNo,
+          tanggal: new Date().toISOString().split('T')[0],
+          measurements: [],
+          status: 'normal' as const,
+          lastUpdate: new Date().toISOString(),
+          is_active: 1,
+          ugb: 0,
+          latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
+          longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+        };
+        const created = await ApiService.createSubstation(newSubstation);
+        targetId = created?.id || null;
+        targetNoGardu = created?.noGardu || targetNoGardu;
+      } else {
+        await ApiService.updateSubstation(editingSubstationId, {
+          noGardu: formData.noGardu,
+          namaLokasiGardu: formData.namaLokasiGardu,
+          ulp: formData.ulp,
+          jenis: formData.jenis,
+          merek: formData.merek,
+          daya: formData.daya,
+          tahun: formData.tahun,
+          phasa: formData.phasa,
+          tap_trafo_max_tap: formData.tap_trafo_max_tap,
+          penyulang: formData.penyulang,
+          arahSequence: formData.arahSequence,
+          latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
+          longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+          lastUpdate: new Date().toISOString(),
+        });
+        targetId = editingSubstationId;
+      }
 
-      const created = await ApiService.createSubstation(newSubstation);
-
-      if (created?.id) {
+      if (targetId) {
         const month = new Date().toISOString().slice(0, 7);
         const tasks: Promise<any>[] = [];
         if (hasAny(measSiang)) {
           tasks.push(ApiService.patchMeasurementsSiangBulk([{
-            substationId: created.id,
+            substationId: targetId,
             row_name: jurusanSiang,
             month,
             r: Number(measSiang.r) || 0,
@@ -209,7 +246,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         }
         if (hasAny(measMalam)) {
           tasks.push(ApiService.patchMeasurementsMalamBulk([{
-            substationId: created.id,
+            substationId: targetId,
             row_name: jurusanMalam,
             month,
             r: Number(measMalam.r) || 0,
@@ -223,11 +260,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
             pn: Number(measMalam.pn) || 0,
           }]));
         }
-        // Upload selected photos for R,S,T,N,PP,PN sequentially to avoid 413
+        // Upload selected photos sequentially
         for (const kind of ['R','S','T','N','PP','PN'] as const) {
           const preview = photoPreviews[kind];
           if (preview) {
-            await ApiService.uploadSubstationPhoto(created.id, preview, `${created.noGardu || 'foto'}-${kind}.jpg`, kind);
+            await ApiService.uploadSubstationPhoto(targetId, preview, `${targetNoGardu}-${kind}.jpg`, kind);
           }
         }
         if (tasks.length) await Promise.all(tasks);
@@ -241,11 +278,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
       setPhotoPreviews({ R: null, S: null, T: null, N: null, PP: null, PN: null });
 
-      alert('Gardu berhasil ditambahkan!');
+      alert(editingSubstationId ? 'Gardu berhasil diupdate!' : 'Gardu berhasil ditambahkan!');
       await refreshData();
       setActiveTab('list');
     } catch (err) {
-      setError('Gagal menambahkan gardu');
+      setError(editingSubstationId ? 'Gagal mengupdate gardu' : 'Gagal menambahkan gardu');
     } finally {
       setLoading(false);
     }
