@@ -28,6 +28,16 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingSubstationId, setEditingSubstationId] = useState<string | null>(null);
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    noGardu: '', namaLokasiGardu: '', ulp: '', jenis: '', merek: '', daya: '', tahun: '', phasa: '',
+    tap_trafo_max_tap: '', penyulang: '', arahSequence: '', latitude: '', longitude: ''
+  });
+  const [editJurusanSiang, setEditJurusanSiang] = useState<'induk' | '1' | '2' | '3' | '4'>('induk');
+  const [editMeasSiang, setEditMeasSiang] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+  const [editJurusanMalam, setEditJurusanMalam] = useState<'induk' | '1' | '2' | '3' | '4'>('induk');
+  const [editMeasMalam, setEditMeasMalam] = useState({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+  const [editPhotoPreviews, setEditPhotoPreviews] = useState<{ R: string | null; S: string | null; T: string | null; N: string | null; PP: string | null; PN: string | null; }>({ R: null, S: null, T: null, N: null, PP: null, PN: null });
 
   // search
   const [search, setSearch] = useState('');
@@ -102,11 +112,11 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   };
 
   const handleOpenEdit = async (sub: SubstationData) => {
-    // Buka form Tambah Gardu dalam mode edit dengan data terisi
+    // Buka modal update khusus (bukan form tambah)
     setIsEditMode(true);
-    setActiveTab('add');
+    setIsUpdateOpen(true);
     setEditingSubstationId(sub.id);
-    setFormData({
+    setEditForm({
       noGardu: sub.noGardu || '',
       namaLokasiGardu: sub.namaLokasiGardu || '',
       ulp: sub.ulp || '',
@@ -121,8 +131,9 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       latitude: sub.latitude != null ? String(sub.latitude) : '',
       longitude: sub.longitude != null ? String(sub.longitude) : '',
     });
-    setJurusanSiang('induk'); setMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
-    setJurusanMalam('induk'); setMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+    setEditJurusanSiang('induk'); setEditMeasSiang({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+    setEditJurusanMalam('induk'); setEditMeasMalam({ r: '', s: '', t: '', n: '', rn: '', sn: '', tn: '', pp: '', pn: '' });
+    setEditPhotoPreviews({ R: null, S: null, T: null, N: null, PP: null, PN: null });
   };
 
   const handleUpdatePower = async (id: string, newPower: string) => {
@@ -689,6 +700,166 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         }}
         isReadOnly={!isEditMode}
       />
+
+      {/* Update Modal */}
+      {isUpdateOpen && editingSubstationId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
+              <h2 className="text-lg font-bold text-gray-900">Update Data Gardu</h2>
+              <Button variant="ghost" size="sm" onClick={() => { setIsUpdateOpen(false); setEditingSubstationId(null); }}>Tutup</Button>
+            </div>
+            <div className="p-6 space-y-6">
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  setLoading(true);
+                  await ApiService.updateSubstation(editingSubstationId, {
+                    noGardu: editForm.noGardu,
+                    namaLokasiGardu: editForm.namaLokasiGardu,
+                    ulp: editForm.ulp,
+                    jenis: editForm.jenis,
+                    merek: editForm.merek,
+                    daya: editForm.daya,
+                    tahun: editForm.tahun,
+                    phasa: editForm.phasa,
+                    tap_trafo_max_tap: editForm.tap_trafo_max_tap,
+                    penyulang: editForm.penyulang,
+                    arahSequence: editForm.arahSequence,
+                    latitude: editForm.latitude ? parseFloat(editForm.latitude) : undefined,
+                    longitude: editForm.longitude ? parseFloat(editForm.longitude) : undefined,
+                    lastUpdate: new Date().toISOString(),
+                  });
+                  const month = new Date().toISOString().slice(0,7);
+                  if (Object.values(editMeasSiang).some(v => v !== '')) {
+                    await ApiService.patchMeasurementsSiangBulk([{ substationId: editingSubstationId, row_name: editJurusanSiang, month,
+                      r: Number(editMeasSiang.r)||0, s: Number(editMeasSiang.s)||0, t: Number(editMeasSiang.t)||0, n: Number(editMeasSiang.n)||0,
+                      rn: Number(editMeasSiang.rn)||0, sn: Number(editMeasSiang.sn)||0, tn: Number(editMeasSiang.tn)||0, pp: Number(editMeasSiang.pp)||0, pn: Number(editMeasSiang.pn)||0 }]);
+                  }
+                  if (Object.values(editMeasMalam).some(v => v !== '')) {
+                    await ApiService.patchMeasurementsMalamBulk([{ substationId: editingSubstationId, row_name: editJurusanMalam, month,
+                      r: Number(editMeasMalam.r)||0, s: Number(editMeasMalam.s)||0, t: Number(editMeasMalam.t)||0, n: Number(editMeasMalam.n)||0,
+                      rn: Number(editMeasMalam.rn)||0, sn: Number(editMeasMalam.sn)||0, tn: Number(editMeasMalam.tn)||0, pp: Number(editMeasMalam.pp)||0, pn: Number(editMeasMalam.pn)||0 }]);
+                  }
+                  for (const kind of ['R','S','T','N','PP','PN'] as const) {
+                    const preview = editPhotoPreviews[kind];
+                    if (preview) {
+                      await ApiService.uploadSubstationPhoto(editingSubstationId, preview, `${editForm.noGardu||'foto'}-${kind}.jpg`, kind);
+                    }
+                  }
+                  alert('Gardu berhasil diupdate!');
+                  await refreshData();
+                  setIsUpdateOpen(false);
+                  setEditingSubstationId(null);
+                } catch (err) {
+                  alert('Gagal mengupdate gardu');
+                } finally {
+                  setLoading(false);
+                }
+              }} className="space-y-6">
+                <Card>
+                  <CardHeader><CardTitle>Data Gardu</CardTitle></CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {([
+                      { name: 'noGardu', label: 'No. Gardu *' },
+                      { name: 'namaLokasiGardu', label: 'Nama Lokasi Gardu *' },
+                      { name: 'ulp', label: 'ULP *' },
+                      { name: 'jenis', label: 'Jenis *' },
+                      { name: 'merek', label: 'Merek *' },
+                      { name: 'daya', label: 'Daya *' },
+                      { name: 'tahun', label: 'Tahun *' },
+                      { name: 'phasa', label: 'Phasa *' },
+                      { name: 'tap_trafo_max_tap', label: 'Tap Trafo Max Tap' },
+                      { name: 'penyulang', label: 'Penyulang' },
+                      { name: 'arahSequence', label: 'Arah Sequence' },
+                    ] as const).map((f) => (
+                      <div key={`edit-${f.name}`}>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
+                        <Input name={f.name} value={(editForm as any)[f.name]} onChange={(e)=> setEditForm(prev=>({ ...prev, [f.name]: e.target.value }))} required={f.label.includes('*')} />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>Input Pengukuran Siang (opsional)</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <select value={editJurusanSiang} onChange={(e)=> setEditJurusanSiang(e.target.value as any)} className="w-full border rounded-lg px-4 py-2">
+                      <option value="induk">Induk</option><option value="1">Jurusan 1</option><option value="2">Jurusan 2</option><option value="3">Jurusan 3</option><option value="4">Jurusan 4</option>
+                    </select>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {([ { key:'r',label:'R'},{ key:'s',label:'S'},{ key:'t',label:'T'},{ key:'n',label:'N'},{ key:'rn',label:'RN'},{ key:'sn',label:'SN'},{ key:'tn',label:'TN'},{ key:'pp',label:'Phasa-Phasa'},{ key:'pn',label:'Ujung'} ] as const).map(f=> (
+                        <div key={`edit-siang-${f.key}`}>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
+                          <Input name={f.key} value={(editMeasSiang as any)[f.key]} onChange={(e)=> setEditMeasSiang(prev=>({ ...prev, [f.key]: e.target.value }))} type="number" step="any" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>Input Pengukuran Malam (opsional)</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <select value={editJurusanMalam} onChange={(e)=> setEditJurusanMalam(e.target.value as any)} className="w-full border rounded-lg px-4 py-2">
+                      <option value="induk">Induk</option><option value="1">Jurusan 1</option><option value="2">Jurusan 2</option><option value="3">Jurusan 3</option><option value="4">Jurusan 4</option>
+                    </select>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {([ { key:'r',label:'R'},{ key:'s',label:'S'},{ key:'t',label:'T'},{ key:'n',label:'N'},{ key:'rn',label:'RN'},{ key:'sn',label:'SN'},{ key:'tn',label:'TN'},{ key:'pp',label:'Phasa-Phasa'},{ key:'pn',label:'Ujung'} ] as const).map(f=> (
+                        <div key={`edit-malam-${f.key}`}>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
+                          <Input name={f.key} value={(editMeasMalam as any)[f.key]} onChange={(e)=> setEditMeasMalam(prev=>({ ...prev, [f.key]: e.target.value }))} type="number" step="any" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle>Dokumentasi Foto (opsional)</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                      {([ { key:'R',title:'R'},{ key:'S',title:'S'},{ key:'T',title:'T'},{ key:'N',title:'N'},{ key:'PP',title:'Phasa-Phasa'},{ key:'PN',title:'Phasa-Netral'} ] as const).map(item => (
+                        <div key={`edit-foto-${item.key}`} className="text-center">
+                          <div className="w-full h-40 md:h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center mb-2 overflow-hidden">
+                            {editPhotoPreviews[item.key] ? (
+                              <img src={editPhotoPreviews[item.key]!} alt={item.title} className="w-full h-full object-contain" />
+                            ) : (
+                              <div className="text-gray-400">
+                                <Camera className="w-8 h-8 mx-auto mb-2" />
+                                <p className="text-xs">{item.title}</p>
+                              </div>
+                            )}
+                          </div>
+                          <input type="file" accept="image/*" onChange={async (e)=>{
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const reader = new FileReader();
+                              const dataUrl: string = await new Promise((resolve,reject)=>{ reader.onload=()=>resolve(reader.result as string); reader.onerror=()=>reject('fail'); reader.readAsDataURL(file); });
+                              const img = await new Promise<HTMLImageElement>((resolve,reject)=>{ const i=new Image(); i.onload=()=>resolve(i); i.onerror=()=>reject('fail'); i.src=dataUrl; });
+                              const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d'); if (!ctx) { setEditPhotoPreviews(prev=>({ ...prev, [item.key]: dataUrl })); return; }
+                              const maxDim=1600; const scale=Math.min(1, maxDim/Math.max(img.width,img.height)); const w=Math.round(img.width*scale); const h=Math.round(img.height*scale);
+                              cvs.width=w; cvs.height=h; ctx.drawImage(img,0,0,w,h); const out=cvs.toDataURL('image/jpeg',0.7);
+                              setEditPhotoPreviews(prev=>({ ...prev, [item.key]: out }));
+                            } catch { /* ignore */ }
+                          }} className="block w-full text-xs text-gray-500" />
+                          <p className="mt-1 text-xs text-gray-500">Maks ~1 MB per foto</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={()=>{ setIsUpdateOpen(false); setEditingSubstationId(null); }}>Batal</Button>
+                  <Button type="submit">Simpan Perubahan</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
