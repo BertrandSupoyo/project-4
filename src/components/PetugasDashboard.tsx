@@ -103,12 +103,42 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
     setter((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handlePhotoChange = (type: 'R' | 'S' | 'T' | 'N' | 'PP' | 'PN') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (type: 'R' | 'S' | 'T' | 'N' | 'PP' | 'PN') => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setPhotoPreviews(prev => ({ ...prev, [type]: reader.result as string }));
-      reader.readAsDataURL(file);
+      try {
+        // Resize to reduce payload
+        const resized = await (async () => {
+          const reader = new FileReader();
+          const dataUrl: string = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('Gagal membaca file'));
+            reader.readAsDataURL(file);
+          });
+          const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error('Gagal memuat gambar'));
+            image.src = dataUrl;
+          });
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return dataUrl;
+          const maxDim = 1600;
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(img, 0, 0, w, h);
+          return canvas.toDataURL('image/jpeg', 0.7);
+        })();
+        setPhotoPreviews(prev => ({ ...prev, [type]: resized }));
+      } catch {
+        const reader = new FileReader();
+        reader.onload = () => setPhotoPreviews(prev => ({ ...prev, [type]: reader.result as string }));
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -170,13 +200,13 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
             pn: Number(measMalam.pn) || 0,
           }]));
         }
-        // Upload selected photos for R,S,T,N,PP,PN
-        (['R','S','T','N','PP','PN'] as const).forEach(kind => {
+        // Upload selected photos for R,S,T,N,PP,PN sequentially to avoid 413
+        for (const kind of ['R','S','T','N','PP','PN'] as const) {
           const preview = photoPreviews[kind];
           if (preview) {
-            tasks.push(ApiService.uploadSubstationPhoto(created.id, preview, `${created.noGardu || 'foto'}-${kind}.jpg`, kind));
+            await ApiService.uploadSubstationPhoto(created.id, preview, `${created.noGardu || 'foto'}-${kind}.jpg`, kind);
           }
-        });
+        }
         if (tasks.length) await Promise.all(tasks);
       }
 
@@ -382,6 +412,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                         )}
                       </div>
                       <input type="file" accept="image/*" onChange={handlePhotoChange(item.key)} className="block w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                      <p className="mt-1 text-xs text-gray-500">Maks ~1 MB per foto (otomatis diperkecil).</p>
                     </div>
                   ))}
                 </div>
