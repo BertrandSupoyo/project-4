@@ -107,9 +107,17 @@ export const SubstationTable: React.FC<SubstationTableProps> = ({
   const [selectedSubstation, setSelectedSubstation] = useState<SubstationData | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleViewDetails = (substation: SubstationData) => {
+  const handleViewDetails = async (substation: SubstationData) => {
+    // Buka modal segera dengan data ringkas agar terasa responsif
     setSelectedSubstation(substation);
     setIsDetailModalOpen(true);
+    // Lalu fetch detail lengkap (termasuk measurements & foto) dari API
+    try {
+      const full = await ApiService.getSubstationById(substation.id);
+      setSelectedSubstation(full);
+    } catch (e) {
+      console.error('Gagal memuat detail gardu:', e);
+    }
   };
 
   // Busy flags (cegah double action) //

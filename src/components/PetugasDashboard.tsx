@@ -412,7 +412,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
                         )}
                       </div>
                       <input type="file" accept="image/*" onChange={handlePhotoChange(item.key)} className="block w-full text-xs text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                      <p className="mt-1 text-xs text-gray-500">Maks ~1 MB per foto (otomatis diperkecil).</p>
+                      <p className="mt-1 text-xs text-gray-500">Maks ~1 MB per foto</p>
                     </div>
                   ))}
                 </div>
