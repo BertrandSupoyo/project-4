@@ -95,6 +95,7 @@ export default async function handler(req, res) {
         user: {
           id: user.id,
           username: user.username,
+          name: user.name,
           role: user.role,
         },
         token: 'admin_token',
