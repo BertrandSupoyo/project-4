@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
-import { UserManagementModal } from './UserManagementModal';
-import { userService, User } from '../services/userService';
 import { 
   Users, 
   Database, 
@@ -42,72 +40,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
-  const [users, setUsers] = useState<User[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-
-  // Load users when component mounts or when users tab is active
-  useEffect(() => {
-    if (activeTab === 'users') {
-      loadUsers();
-    }
-  }, [activeTab]);
-
-  const loadUsers = async () => {
-    setUsersLoading(true);
-    try {
-      const usersData = await userService.getUsers();
-      setUsers(usersData);
-    } catch (error) {
-      console.error('Failed to load users:', error);
-    } finally {
-      setUsersLoading(false);
-    }
-  };
-
-  const handleCreateUser = () => {
-    setEditingUser(null);
-    setShowUserModal(true);
-  };
-
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setShowUserModal(true);
-  };
-
-  const handleDeleteUser = async (userId: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-      try {
-        await userService.deleteUser(userId);
-        await loadUsers();
-      } catch (error) {
-        console.error('Failed to delete user:', error);
-        alert('Gagal menghapus user');
-      }
-    }
-  };
-
-  const handleUserCreated = () => {
-    loadUsers();
-  };
-
-  const handleUserUpdated = () => {
-    loadUsers();
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Badge variant="default" className="bg-red-100 text-red-800">Administrator</Badge>;
-      case 'petugas':
-        return <Badge variant="success">Petugas Lapangan</Badge>;
-      case 'viewer':
-        return <Badge variant="default" className="bg-blue-100 text-blue-800">Viewer</Badge>;
-      default:
-        return <Badge variant="default">{role}</Badge>;
-    }
-  };
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -170,7 +102,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total User</p>
-                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                <p className="text-2xl font-bold text-gray-900">5</p>
               </div>
             </div>
           </CardContent>
@@ -219,7 +151,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <Download className="w-4 h-4 mr-2" />
                 Export Data
               </Button>
-              <Button variant="outline" className="h-12" onClick={handleCreateUser}>
+              <Button variant="outline" className="h-12">
                 <Users className="w-4 h-4 mr-2" />
                 Tambah User
               </Button>
@@ -287,89 +219,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 
-  const renderUsers = () => (
+ /*  const renderUsers = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">Manajemen User</h2>
-        <Button onClick={handleCreateUser}>
+        <Button>
           <Plus className="w-4 h-4 mr-2" />
           Tambah User
         </Button>
       </div>
 
-      <Card>
+     <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dibuat</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {usersLoading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
-                        Memuat data user...
+                {[
+                  { username: 'admin', role: 'Administrator', status: 'Aktif' },
+                  { username: 'operator1', role: 'Operator', status: 'Aktif' },
+                  { username: 'viewer1', role: 'Viewer', status: 'Aktif' },
+                ].map((user, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.role}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge variant="success">{user.status}</Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
-                ) : users.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                      Belum ada user yang terdaftar
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {user.username}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getRoleBadge(user.role)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(user.created_at).toLocaleDateString('id-ID')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  ); 
 
  /*  const renderLogs = () => (
     <div className="space-y-6">
@@ -451,7 +353,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'substations':
         return renderSubstations();
       case 'users':
-        return renderUsers();
+        //return renderUsers();
       case 'logs':
       //  return renderLogs();
       case 'settings':
@@ -514,15 +416,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       </div>
-
-      {/* User Management Modal */}
-      <UserManagementModal
-        isOpen={showUserModal}
-        onClose={() => setShowUserModal(false)}
-        onUserCreated={handleUserCreated}
-        onUserUpdated={handleUserUpdated}
-        editingUser={editingUser}
-      />
     </div>
   );
 }; 

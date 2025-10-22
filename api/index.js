@@ -5,7 +5,6 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const crypto = require('crypto');
 
 const app = express();
 let prisma;
@@ -106,12 +105,9 @@ app.post('/api/admin/login', async (req, res) => {
       where: { username },
     });
 
-    console.log('User found:', user ? { id: user.id, username: user.username, name: user.name, role: user.role } : 'null');
+    console.log('User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
 
-    // Hash password using SHA-256 (same as createAdmin script)
-    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
-
-    if (!user || user.password_hash !== passwordHash) {
+    if (!user || user.password_hash !== password) {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials',
@@ -124,7 +120,6 @@ app.post('/api/admin/login', async (req, res) => {
         user: {
           id: user.id,
           username: user.username,
-          name: user.name,
           role: user.role,
         },
         token: 'admin_token',

@@ -189,18 +189,9 @@ exports.Prisma.AdminUserScalarFieldEnum = {
   id: 'id',
   username: 'username',
   password_hash: 'password_hash',
+  name: 'name',
   role: 'role',
   created_at: 'created_at'
-};
-
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  username: 'username',
-  password: 'password',
-  role: 'role',
-  name: 'name',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -223,8 +214,7 @@ exports.Prisma.ModelName = {
   Substation: 'Substation',
   MeasurementSiang: 'MeasurementSiang',
   MeasurementMalam: 'MeasurementMalam',
-  AdminUser: 'AdminUser',
-  User: 'User'
+  AdminUser: 'AdminUser'
 };
 
 /**

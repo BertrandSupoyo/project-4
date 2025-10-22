@@ -92,7 +92,6 @@ model AdminUser {
   id           Int      @id @default(autoincrement())
   username     String   @unique
   password_hash String
-  name         String
   role         String   @default("admin")
   created_at   DateTime @default(now())
 
