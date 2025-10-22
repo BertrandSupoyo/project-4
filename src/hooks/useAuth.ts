@@ -34,12 +34,12 @@ export const useAuth = () => {
     try {
       setAuthState(prev => ({ ...prev, loading: true }));
 
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, loginType: 'admin' }),
       });
 
       const data = await response.json();
@@ -97,12 +97,12 @@ export const useAuth = () => {
     try {
       setAuthState(prev => ({ ...prev, loading: true }));
 
-      const response = await fetch('/api/petugas/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, loginType: 'petugas' }),
       });
 
       const data = await response.json();
