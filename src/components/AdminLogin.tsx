@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
-import { Lock, User, Eye, EyeOff, Eye as ViewerIcon } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Eye as ViewerIcon, Briefcase } from 'lucide-react';
 
 interface AdminLoginProps {
   onLogin: (username: string, password: string) => Promise<void>;
   onViewerLogin: () => void;
+  onPetugasLogin: () => void; // Tambah prop untuk petugas login
   loading?: boolean;
   error?: string;
 }
@@ -13,6 +14,7 @@ interface AdminLoginProps {
 export const AdminLogin: React.FC<AdminLoginProps> = ({ 
   onLogin, 
   onViewerLogin,
+  onPetugasLogin, // Tambah prop
   loading = false, 
   error 
 }) => {
@@ -35,11 +37,11 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             <Lock className="w-7 h-7 md:w-6 md:h-6 text-white" />
           </div>
           <h2 className="text-3xl md:text-2xl font-bold text-gray-900">Login</h2>
-          <p className="text-base md:text-sm text-gray-600">Masukkan username dan password</p>
+          <p className="text-base md:text-sm text-gray-600">Pilih cara login yang sesuai</p>
         </CardHeader>
         <CardContent>
           {/* Tombol Login sebagai Viewer */}
-          <div className="mb-6">
+          <div className="mb-4">
             <Button
               onClick={onViewerLogin}
               className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base"
@@ -53,6 +55,21 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             </p>
           </div>
 
+          {/* Tombol Login sebagai Petugas */}
+          <div className="mb-6">
+            <Button
+              onClick={onPetugasLogin}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 text-base"
+              disabled={loading}
+            >
+              <Briefcase className="w-5 h-5 mr-2" />
+              Login sebagai Petugas
+            </Button>
+            <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
+              Masuk sebagai petugas lapangan untuk mengelola data gardu
+            </p>
+          </div>
+
           {/* Divider */}
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
@@ -63,7 +80,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             </div>
           </div>
 
-          {/* Form Login */}
+          {/* Form Login Admin */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -117,14 +134,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
               className="w-full py-3 text-base"
               disabled={loading || !username.trim() || !password.trim()}
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Memproses...
-                </div>
-              ) : (
-                'Login'
-              )}
+              {loading ? 'Memproses...' : 'Login sebagai Admin'}
             </Button>
           </form>
         </CardContent>

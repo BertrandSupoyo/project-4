@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -40,124 +40,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
-  const [newUser, setNewUser] = useState({
-    username: '',
-    password: '',
-    role: 'viewer',
-    name: ''
-  });
-
-  // Fetch users
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/users');
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers(data.users);
-      } else {
-        setError(data.error || 'Failed to fetch users');
-      }
-    } catch (err) {
-      setError('Failed to fetch users');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Create user
-  const createUser = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newUser),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers([...users, data.user]);
-        setNewUser({ username: '', password: '', role: 'viewer', name: '' });
-        setShowUserForm(false);
-        setError(null);
-      } else {
-        setError(data.error || 'Failed to create user');
-      }
-    } catch (err) {
-      setError('Failed to create user');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update user
-  const updateUser = async (userId: string, userData: any) => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/users', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: userId, ...userData }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers(users.map(u => u.id === userId ? data.user : u));
-        setEditingUser(null);
-        setError(null);
-      } else {
-        setError(data.error || 'Failed to update user');
-      }
-    } catch (err) {
-      setError('Failed to update user');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Delete user
-  const deleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/users?id=${userId}`, {
-        method: 'DELETE',
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setUsers(users.filter(u => u.id !== userId));
-        setError(null);
-      } else {
-        setError(data.error || 'Failed to delete user');
-      }
-    } catch (err) {
-      setError('Failed to delete user');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers();
-    }
-  }, [activeTab]);
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -337,161 +219,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 
-  const renderUsers = () => (
+ /*  const renderUsers = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">Manajemen User</h2>
-        <Button onClick={() => setShowUserForm(true)}>
+        <Button>
           <Plus className="w-4 h-4 mr-2" />
           Tambah User
         </Button>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-red-600 text-sm">{error}</p>
-        </div>
-      )}
-
-      {/* User Form Modal */}
-      {showUserForm && (
-        <Card>
-          <CardHeader>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {editingUser ? 'Edit User' : 'Tambah User Baru'}
-            </h3>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={editingUser ? editingUser.username : newUser.username}
-                  onChange={(e) => editingUser 
-                    ? setEditingUser({...editingUser, username: e.target.value})
-                    : setNewUser({...newUser, username: e.target.value})
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Masukkan username"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nama Lengkap
-                </label>
-                <input
-                  type="text"
-                  value={editingUser ? editingUser.name : newUser.name}
-                  onChange={(e) => editingUser 
-                    ? setEditingUser({...editingUser, name: e.target.value})
-                    : setNewUser({...newUser, name: e.target.value})
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Masukkan nama lengkap"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
-                <select
-                  value={editingUser ? editingUser.role : newUser.role}
-                  onChange={(e) => editingUser 
-                    ? setEditingUser({...editingUser, role: e.target.value})
-                    : setNewUser({...newUser, role: e.target.value})
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="petugas">Petugas</option>
-                  <option value="pekerja">Pekerja</option>
-                  <option value="viewer">Viewer</option>
-                </select>
-              </div>
-              {!editingUser && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Masukkan password"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="flex space-x-3">
-              <Button 
-                onClick={editingUser ? () => updateUser(editingUser.id, editingUser) : createUser}
-                disabled={loading}
-              >
-                {loading ? 'Menyimpan...' : editingUser ? 'Update User' : 'Buat User'}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setShowUserForm(false);
-                  setEditingUser(null);
-                  setNewUser({ username: '', password: '', role: 'viewer', name: '' });
-                }}
-              >
-                Batal
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
+     <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dibuat</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                {[
+                  { username: 'admin', role: 'Administrator', status: 'Aktif' },
+                  { username: 'operator1', role: 'Operator', status: 'Aktif' },
+                  { username: 'viewer1', role: 'Viewer', status: 'Aktif' },
+                ].map((user, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.role}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      <Badge variant="success">{user.status}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setEditingUser(user);
-                            setShowUserForm(true);
-                          }}
-                        >
+                        <Button variant="ghost" size="sm">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => deleteUser(user.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
+                        <Button variant="ghost" size="sm">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -504,7 +271,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </CardContent>
       </Card>
     </div>
-  );
+  ); 
 
  /*  const renderLogs = () => (
     <div className="space-y-6">
@@ -586,9 +353,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'substations':
         return renderSubstations();
       case 'users':
-        return renderUsers();
+        //return renderUsers();
       case 'logs':
-        return <div className="text-center py-8 text-gray-500">Activity Logs - Coming Soon</div>;
+      //  return renderLogs();
       case 'settings':
         return renderSettings();
       default:
