@@ -10,8 +10,8 @@ interface SubstationListModalProps {
   substations: SubstationData[];
   title: string;
   filter?: (substation: SubstationData) => boolean;
-  page: number;
-  setPage: (page: number) => void;
+  currentPage: number;
+  onPageChange: (page: number) => void;
 }
 
 export const SubstationListModal: React.FC<SubstationListModalProps> = ({
@@ -20,8 +20,8 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
   substations,
   title,
   filter,
-  page,
-  setPage
+  currentPage,
+  onPageChange
 }) => {
   const pageSize = 10;
 
@@ -29,7 +29,7 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
 
   const filteredSubstations = filter ? substations.filter(filter) : substations;
   const totalPages = Math.ceil(filteredSubstations.length / pageSize);
-  const paginatedSubstations = filteredSubstations.slice((page - 1) * pageSize, page * pageSize);
+  const paginatedSubstations = filteredSubstations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getStatusBadge = (isActive: number) => {
     if (isActive === 1) {
@@ -73,7 +73,7 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
                 {paginatedSubstations.map((substation, idx) => (
                   <tr key={substation.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {(page - 1) * pageSize + idx + 1}
+                      {(currentPage - 1) * pageSize + idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{substation.ulp}</div>
@@ -103,19 +103,19 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
               >
                 Sebelumnya
               </Button>
               <span className="text-sm text-gray-700">
-                Halaman {page} dari {totalPages}
+                Halaman {currentPage} dari {totalPages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage(page + 1)}
-                disabled={page === totalPages}
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
               >
                 Selanjutnya
               </Button>

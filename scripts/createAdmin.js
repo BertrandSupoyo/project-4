@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const prisma = new PrismaClient();
 
-async function createAdminUser(username, password, role = 'admin') {
+async function createAdminUser(username, password, name, role = 'admin') {
   try {
     // Hash password (simple hash for demo, use bcrypt in production)
     const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
@@ -12,6 +12,7 @@ async function createAdminUser(username, password, role = 'admin') {
       data: {
         username,
         password_hash: passwordHash,
+        name: name || username,
         role,
       },
     });
@@ -19,6 +20,7 @@ async function createAdminUser(username, password, role = 'admin') {
     console.log('✅ Admin user created successfully:', {
       id: adminUser.id,
       username: adminUser.username,
+      name: adminUser.name,
       role: adminUser.role,
       created_at: adminUser.created_at
     });
@@ -40,6 +42,7 @@ async function listAdminUsers() {
       select: {
         id: true,
         username: true,
+        name: true,
         role: true,
         created_at: true
       }
@@ -47,7 +50,7 @@ async function listAdminUsers() {
     
     console.log('📋 Current admin users:');
     users.forEach(user => {
-      console.log(`- ID: ${user.id}, Username: ${user.username}, Role: ${user.role}, Created: ${user.created_at}`);
+      console.log(`- ID: ${user.id}, Username: ${user.username}, Name: ${user.name}, Role: ${user.role}, Created: ${user.created_at}`);
     });
     
     return users;
@@ -76,15 +79,16 @@ async function main() {
   const command = process.argv[2];
   const username = process.argv[3];
   const password = process.argv[4];
+  const name = process.argv[5];
   
   try {
     switch (command) {
       case 'create':
         if (!username || !password) {
-          console.log('Usage: node createAdmin.js create <username> <password>');
+          console.log('Usage: node createAdmin.js create <username> <password> [name]');
           process.exit(1);
         }
-        await createAdminUser(username, password);
+        await createAdminUser(username, password, name);
         break;
         
       case 'list':
@@ -101,9 +105,9 @@ async function main() {
         
       default:
         console.log('Available commands:');
-        console.log('  create <username> <password> - Create new admin user');
-        console.log('  list                        - List all admin users');
-        console.log('  delete <username>           - Delete admin user');
+        console.log('  create <username> <password> [name] - Create new admin user');
+        console.log('  list                                 - List all admin users');
+        console.log('  delete <username>                    - Delete admin user');
         break;
     }
   } catch (error) {

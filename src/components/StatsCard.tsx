@@ -6,6 +6,7 @@ interface StatsCardProps {
   title: string;
   value: number;
   icon: LucideIcon;
+  color: string;
   trend: string;
   onClick?: () => void;
   loading?: boolean;

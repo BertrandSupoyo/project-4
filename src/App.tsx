@@ -3,11 +3,11 @@ import { Header } from './components/Header';
 import { StatsCard } from './components/StatsCard';
 import { VoltageChart } from './components/VoltageChart';
 import { SubstationTable } from './components/SubstationTable';
-import { SubstationSimulationTable } from './components/SubstationSimulationTable';
 import { SubstationListModal } from './components/SubstationListModal';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
+import { AdminDashboard } from './components/AdminDashboard';
 import { PetugasDashboard } from './components/PetugasDashboard';
 import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
 import { useSubstations } from './hooks/useSubstations';
@@ -23,9 +23,7 @@ function App() {
     loading,
     error,
     stats,
-    updateSubstation,
     refreshData,
-    addSubstation,
     getSubstationById
   } = useSubstations();
 
@@ -50,23 +48,6 @@ function App() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const handleUpdateSubstation = async (updatedSubstation: Partial<SubstationData>) => {
-    try {
-      if (!updatedSubstation.id) return;
-      console.log('🔄 Updating substation in App.tsx:', updatedSubstation.id, updatedSubstation);
-      await updateSubstation(updatedSubstation as SubstationData);
-      console.log('✅ Substation updated, refreshing data...');
-      await refreshData();
-      console.log('✅ Data refreshed successfully');
-    } catch (error) {
-      console.error('❌ Failed to update substation:', error);
-    }
-  };
-
-  const handleAddSubstation = async (sub: Omit<SubstationData, 'id'>) => {
-    await addSubstation(sub);
-    await refreshData();
-  };
 
   const handleStatsCardClick = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active') => {
     setSelectedModal({
@@ -161,6 +142,16 @@ function App() {
     );
   }
 
+  // Show admin dashboard if user is admin
+  if (user?.role === 'admin') {
+    return <AdminDashboard 
+      onLogout={handleLogout} 
+      substations={substations}
+      stats={stats}
+      currentUser={user}
+    />;
+  }
+
   // Show petugas dashboard if user is petugas
   if (user?.role === 'petugas') {
     return <PetugasDashboard user={user} onLogout={handleLogout} />;
@@ -193,9 +184,8 @@ function App() {
     );
   }
 
-  // Check if user is admin
-  const isAdmin = user?.role === 'admin';
-  console.log('isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
+  // This section is only for viewer role
+  // Admin and petugas are handled above
 
   // Hitung jumlah gardu kritis (unbalance > 80%)
   const criticalCount = substations.filter(substation => {
@@ -216,7 +206,7 @@ function App() {
               <div className="flex items-center text-gray-600">
                 <Shield className="w-5 h-5 mr-2" />
                 <span className="text-sm font-medium">
-                  {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : 'User'}
+                  {user?.role === 'viewer' ? 'Viewer' : 'User'}
                 </span>
               </div>
               <div className="flex space-x-4">
@@ -328,21 +318,16 @@ function App() {
             {/* Substation Table */}
             <SubstationTable
               data={substations}
-              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}} // Only admin can update
+              onUpdateSubstation={async () => {}} // Viewer cannot update
               loading={loading}
-              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}} // Only admin can add
-              isReadOnly={!isAdmin} // Pass read-only flag
+              onAddSubstation={async () => {}} // Viewer cannot add
+              isReadOnly={true} // Viewer is read-only
               currentUser={user ? { role: user.role } : undefined} // Kirim hanya role, undefined jika null
               adminToken={'admin_token'} // Tambahkan ini, ganti jika pakai JWT
               onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
             />
 
-            {/* Simulation Table - hanya tampil jika admin */}
-            {isAdmin && (
-              <div className="mt-8">
-                <SubstationSimulationTable data={substations} />
-              </div>
-            )}
+            {/* Simulation Table - tidak tampil untuk viewer */}
 
             {/* Modal for displaying substation lists */}
             <SubstationListModal
@@ -352,7 +337,7 @@ function App() {
               substations={substations}
               filter={getModalFilter()}
               currentPage={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
-              onPageChange={(page) => handleSetModalPage(selectedModal.type!, page)}
+              onPageChange={(page: number) => handleSetModalPage(selectedModal.type!, page)}
             />
           </main>
         } />
