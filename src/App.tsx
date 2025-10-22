@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { StatsCard } from './components/StatsCard';
 import { VoltageChart } from './components/VoltageChart';
@@ -161,7 +161,7 @@ function App() {
   };
 
   // User management functions
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setUserLoading(true);
       const response = await fetch('/api/admin/users');
@@ -177,7 +177,7 @@ function App() {
     } finally {
       setUserLoading(false);
     }
-  };
+  }, []);
 
   const createUser = async () => {
     try {
@@ -263,7 +263,7 @@ function App() {
     if (activeTab === 'users' && isAdmin) {
       fetchUsers();
     }
-  }, [activeTab, isAdmin]);
+  }, [activeTab, isAdmin, fetchUsers]);
 
   // Show login if not authenticated
   if (!isAuthenticated && !authLoading) {
