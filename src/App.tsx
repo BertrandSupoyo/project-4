@@ -8,6 +8,7 @@ import { SubstationListModal } from './components/SubstationListModal';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
+import { AdminDashboard } from './components/AdminDashboard';
 import { PetugasDashboard } from './components/PetugasDashboard';
 import { PekerjaDashboard } from './components/PekerjaDashboard';
 import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
@@ -166,6 +167,18 @@ function App() {
   // Show pekerja dashboard if user is pekerja
   if (user?.role === 'pekerja') {
     return <PekerjaDashboard user={user} onLogout={handleLogout} />;
+  }
+
+  // Show admin dashboard if user is admin
+  if (user?.role === 'admin') {
+    return (
+      <AdminDashboard 
+        onLogout={handleLogout}
+        substations={substations}
+        stats={stats}
+        currentUser={user}
+      />
+    );
   }
 
   // Tampilkan loading spinner jika sedang memuat data
