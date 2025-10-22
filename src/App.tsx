@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { StatsCard } from './components/StatsCard';
 import { VoltageChart } from './components/VoltageChart';
@@ -9,13 +9,165 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
 import { PetugasDashboard } from './components/PetugasDashboard';
-import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
+import { UserManagementModal } from './components/UserManagementModal';
+import { userService, User } from './services/userService';
+import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History, Users, Plus, Edit, Trash2 } from 'lucide-react';
 import { useSubstations } from './hooks/useSubstations';
 import { useAuth } from './hooks/useAuth';
 import { SubstationData } from './types';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import RiwayatGarduPage from './pages/RiwayatGarduPage';
 import { Button } from './components/ui/Button';
+import { Card, CardContent, CardHeader } from './components/ui/Card';
+import { Badge } from './components/ui/Badge';
+
+// User Management Page Component
+const UserManagementPage = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [userLoading, setUserLoading] = useState(false);
+
+  const loadUsers = async () => {
+    try {
+      setUserLoading(true);
+      const usersData = await userService.getUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    } finally {
+      setUserLoading(false);
+    }
+  };
+
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setIsUserModalOpen(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsUserModalOpen(true);
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+      try {
+        await userService.deleteUser(userId);
+        await loadUsers();
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+        alert('Gagal menghapus user');
+      }
+    }
+  };
+
+  const handleUserCreated = () => {
+    loadUsers();
+  };
+
+  const handleUserUpdated = () => {
+    loadUsers();
+  };
+
+  // Load users on component mount
+  React.useEffect(() => {
+    loadUsers();
+  }, []);
+
+  return (
+    <main className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-semibold text-gray-900">Manajemen User</h1>
+          <Button onClick={handleAddUser}>
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah User
+          </Button>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            {userLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Lengkap</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Dibuat</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge variant={user.role === 'admin' ? 'default' : user.role === 'petugas' ? 'success' : 'warning'}>
+                            {user.role === 'admin' ? 'Administrator' : 
+                             user.role === 'petugas' ? 'Petugas Lapangan' : 
+                             user.role === 'viewer' ? 'Viewer' : user.role}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(user.created_at).toLocaleDateString('id-ID')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                              title="Edit User"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id)}
+                              title="Hapus User"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {users.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                          Belum ada user yang terdaftar
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* User Management Modal */}
+      <UserManagementModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        onUserCreated={handleUserCreated}
+        onUserUpdated={handleUserUpdated}
+        editingUser={editingUser}
+      />
+    </main>
+  );
+};
 
 function App() {
   const {
@@ -234,6 +386,15 @@ function App() {
                   <History className="w-4 h-4 mr-1" />
                   Riwayat Gardu
                 </Link>
+                {isAdmin && (
+                  <Link 
+                    to="/users"
+                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    <Users className="w-4 h-4 mr-1" />
+                    Manajemen User
+                  </Link>
+                )}
               </div>
             </div>
             <Button
@@ -251,6 +412,7 @@ function App() {
 
       <Routes>
         <Route path="/riwayat" element={<RiwayatGarduPage />} />
+        <Route path="/users" element={<UserManagementPage />} />
         <Route path="/" element={
           <main className="container mx-auto px-4 py-8">
             {/* Stats Cards */}
@@ -341,6 +503,41 @@ function App() {
             {isAdmin && (
               <div className="mt-8">
                 <SubstationSimulationTable data={substations} />
+              </div>
+            )}
+
+            {/* Quick Actions for Admin */}
+            {isAdmin && (
+              <div className="mt-8">
+                <Card>
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <Button 
+                        variant="outline" 
+                        className="h-12"
+                        onClick={() => window.location.href = '/users'}
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        Manajemen User
+                      </Button>
+                      <Button variant="outline" className="h-12">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Tambah Gardu
+                      </Button>
+                      <Button variant="outline" className="h-12">
+                        <Activity className="w-4 h-4 mr-2" />
+                        Export Data
+                      </Button>
+                      <Button variant="outline" className="h-12">
+                        <Shield className="w-4 h-4 mr-2" />
+                        Settings
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
 
