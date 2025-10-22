@@ -93,23 +93,48 @@ export const useAuth = () => {
     });
   };
 
-  const loginPetugas = () => {
-    const petugasUser: User = {
-      id: 'petugas',
-      username: 'petugas',
-      role: 'petugas',
-      name: 'Petugas Lapangan'
-    };
+  const loginPetugas = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setAuthState(prev => ({ ...prev, loading: true }));
 
-    // Store in localStorage
-    localStorage.setItem('admin_token', 'petugas_token');
-    localStorage.setItem('admin_user', JSON.stringify(petugasUser));
+      const response = await fetch('/api/petugas/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    setAuthState({
-      user: petugasUser,
-      isAuthenticated: true,
-      loading: false,
-    });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Petugas login failed');
+      }
+
+      if (data.success && data.data) {
+        const { token, user } = data.data;
+
+        // Store in localStorage
+        localStorage.setItem('admin_token', token);
+        localStorage.setItem('admin_user', JSON.stringify(user));
+
+        setAuthState({
+          user,
+          isAuthenticated: true,
+          loading: false,
+        });
+
+        return { success: true };
+      } else {
+        throw new Error(data.error || 'Petugas login failed');
+      }
+    } catch (error) {
+      setAuthState(prev => ({ ...prev, loading: false }));
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Petugas login failed' 
+      };
+    }
   };
 
   const logout = () => {

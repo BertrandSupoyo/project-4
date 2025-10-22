@@ -1,16 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js';
+import { withAccelerate } from '@prisma/extension-accelerate';
 import crypto from 'crypto';
 
 let prisma;
 
 async function initPrisma() {
   if (!prisma) {
+    console.log('🔧 Initializing Prisma Client...');
     try {
-      prisma = new PrismaClient();
+      prisma = new PrismaClient().$extends(withAccelerate());
       await prisma.$connect();
-      console.log('✅ Prisma connected successfully');
+      console.log('✅ Database connected successfully');
     } catch (error) {
-      console.error('❌ Prisma connection failed:', error);
+      console.error('❌ Database connection failed:', error);
       throw error;
     }
   }
