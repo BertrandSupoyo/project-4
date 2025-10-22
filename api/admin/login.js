@@ -1,6 +1,7 @@
 import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 let prisma;
 
@@ -55,32 +56,49 @@ export default async function handler(req, res) {
     const { username, password } = req.body;
     console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
     
-    // Hash password using SHA-256 (same as createAdmin script)
-    const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
-    console.log('🔐 Password hash:', passwordHash);
-    
-    // Check if admin_users table exists
-    try {
-      const tableExists = await db.$queryRaw`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public' 
-          AND table_name = 'admin_users'
-        ) as exists
-      `;
-      console.log('📋 Admin users table exists:', tableExists[0]?.exists);
-    } catch (tableError) {
-      console.error('❌ Error checking table:', tableError);
-    }
-    
-    const user = await db.adminUser.findUnique({
+    // First try to find user in the new users table
+    let user = await db.user.findUnique({
       where: { username },
     });
 
-    console.log('👥 User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
-    console.log('🔐 Stored password hash:', user?.password_hash);
+    console.log('👥 User found in users table:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
 
-    if (!user || user.password_hash !== passwordHash) {
+    // If not found in users table, try admin_users table (for backward compatibility)
+    if (!user) {
+      console.log('🔍 Trying admin_users table...');
+      
+      // Hash password using SHA-256 (same as createAdmin script)
+      const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+      console.log('🔐 Password hash:', passwordHash);
+      
+      const adminUser = await db.adminUser.findUnique({
+        where: { username },
+      });
+
+      console.log('👥 Admin user found:', adminUser ? { id: adminUser.id, username: adminUser.username, role: adminUser.role } : 'null');
+
+      if (adminUser && adminUser.password_hash === passwordHash) {
+        // Convert admin user to user format
+        user = {
+          id: adminUser.id.toString(),
+          username: adminUser.username,
+          role: adminUser.role,
+          name: adminUser.username
+        };
+        console.log('✅ Admin user login successful');
+      }
+    } else {
+      // Verify password using bcrypt for new users table
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        console.log('❌ Invalid password for user');
+        user = null;
+      } else {
+        console.log('✅ User password verified');
+      }
+    }
+
+    if (!user) {
       console.log('❌ Invalid credentials');
       return res.status(401).json({
         success: false,
@@ -96,8 +114,9 @@ export default async function handler(req, res) {
           id: user.id,
           username: user.username,
           role: user.role,
+          name: user.name || user.username,
         },
-        token: 'admin_token',
+        token: 'user_token',
       },
       message: 'Login successful',
     });

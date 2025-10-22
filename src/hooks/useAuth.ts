@@ -93,24 +93,6 @@ export const useAuth = () => {
     });
   };
 
-  const loginPetugas = () => {
-    const petugasUser: User = {
-      id: 'petugas',
-      username: 'petugas',
-      role: 'petugas',
-      name: 'Petugas Lapangan'
-    };
-
-    // Store in localStorage
-    localStorage.setItem('admin_token', 'petugas_token');
-    localStorage.setItem('admin_user', JSON.stringify(petugasUser));
-
-    setAuthState({
-      user: petugasUser,
-      isAuthenticated: true,
-      loading: false,
-    });
-  };
 
   const logout = () => {
     localStorage.removeItem('admin_token');
@@ -133,7 +115,6 @@ export const useAuth = () => {
     loading: authState.loading,
     login,
     loginViewer,
-    loginPetugas,
     logout,
     checkAuth,
   };

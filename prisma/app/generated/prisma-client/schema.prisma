@@ -97,3 +97,15 @@ model AdminUser {
 
   @@map("admin_users")
 }
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  role      String   @default("viewer") // admin, petugas, pekerja, viewer
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}

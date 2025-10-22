@@ -9,6 +9,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
 import { PetugasDashboard } from './components/PetugasDashboard';
+import { PekerjaDashboard } from './components/PekerjaDashboard';
 import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
 import { useSubstations } from './hooks/useSubstations';
 import { useAuth } from './hooks/useAuth';
@@ -29,7 +30,7 @@ function App() {
     getSubstationById
   } = useSubstations();
 
-  const { user, isAuthenticated, loading: authLoading, login, loginViewer, loginPetugas, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, login, loginViewer, logout } = useAuth();
 
   const [selectedModal, setSelectedModal] = useState<{
     type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | null;
@@ -140,9 +141,6 @@ function App() {
     loginViewer();
   };
 
-  const handlePetugasLogin = () => {
-    loginPetugas();
-  };
 
   const handleLogout = () => {
     logout();
@@ -154,7 +152,6 @@ function App() {
       <AdminLogin 
         onLogin={handleAdminLogin}
         onViewerLogin={handleViewerLogin}
-        onPetugasLogin={handlePetugasLogin}
         loading={loginLoading}
         error={loginError || undefined}
       />
@@ -164,6 +161,11 @@ function App() {
   // Show petugas dashboard if user is petugas
   if (user?.role === 'petugas') {
     return <PetugasDashboard user={user} onLogout={handleLogout} />;
+  }
+
+  // Show pekerja dashboard if user is pekerja
+  if (user?.role === 'pekerja') {
+    return <PekerjaDashboard user={user} onLogout={handleLogout} />;
   }
 
   // Tampilkan loading spinner jika sedang memuat data
@@ -216,7 +218,7 @@ function App() {
               <div className="flex items-center text-gray-600">
                 <Shield className="w-5 h-5 mr-2" />
                 <span className="text-sm font-medium">
-                  {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : 'User'}
+                  {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : user?.role === 'pekerja' ? 'Pekerja' : 'User'}
                 </span>
               </div>
               <div className="flex space-x-4">
