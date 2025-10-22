@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
+import { UserManagementModal } from './UserManagementModal';
+import { userService, User } from '../services/userService';
 import { 
   Users, 
   Database, 
@@ -40,6 +42,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   currentUser
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [users, setUsers] = useState<User[]>([]);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Load users when users tab is active
+  useEffect(() => {
+    if (activeTab === 'users') {
+      loadUsers();
+    }
+  }, [activeTab]);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const usersData = await userService.getUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setIsUserModalOpen(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsUserModalOpen(true);
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+      try {
+        await userService.deleteUser(userId);
+        await loadUsers(); // Reload users list
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+        alert('Gagal menghapus user');
+      }
+    }
+  };
+
+  const handleUserCreated = () => {
+    loadUsers(); // Reload users list
+  };
+
+  const handleUserUpdated = () => {
+    loadUsers(); // Reload users list
+  };
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -151,7 +206,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <Download className="w-4 h-4 mr-2" />
                 Export Data
               </Button>
-              <Button variant="outline" className="h-12">
+              <Button variant="outline" className="h-12" onClick={handleAddUser}>
                 <Users className="w-4 h-4 mr-2" />
                 Tambah User
               </Button>
@@ -219,59 +274,87 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 
- /*  const renderUsers = () => (
+  const renderUsers = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900">Manajemen User</h2>
-        <Button>
+        <Button onClick={handleAddUser}>
           <Plus className="w-4 h-4 mr-2" />
           Tambah User
         </Button>
       </div>
 
-     <Card>
+      <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {[
-                  { username: 'admin', role: 'Administrator', status: 'Aktif' },
-                  { username: 'operator1', role: 'Operator', status: 'Aktif' },
-                  { username: 'viewer1', role: 'Viewer', status: 'Aktif' },
-                ].map((user, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.role}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="success">{user.status}</Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Lengkap</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal Dibuat</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.username}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant={user.role === 'admin' ? 'default' : user.role === 'petugas' ? 'success' : 'warning'}>
+                          {user.role === 'admin' ? 'Administrator' : 
+                           user.role === 'petugas' ? 'Petugas Lapangan' : 
+                           user.role === 'viewer' ? 'Viewer' : user.role}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(user.created_at).toLocaleDateString('id-ID')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                            title="Edit User"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id)}
+                            title="Hapus User"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {users.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        Belum ada user yang terdaftar
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
-  ); 
+  );
 
  /*  const renderLogs = () => (
     <div className="space-y-6">
@@ -353,7 +436,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'substations':
         return renderSubstations();
       case 'users':
-        //return renderUsers();
+        return renderUsers();
       case 'logs':
       //  return renderLogs();
       case 'settings':
@@ -416,6 +499,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* User Management Modal */}
+      <UserManagementModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        onUserCreated={handleUserCreated}
+        onUserUpdated={handleUserUpdated}
+        editingUser={editingUser}
+      />
     </div>
   );
 }; 
