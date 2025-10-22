@@ -1,12 +1,15 @@
-import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js';
-import { withAccelerate } from '@prisma/extension-accelerate';
-import crypto from 'crypto';
+import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js'
+import { withAccelerate } from '@prisma/extension-accelerate'
+import crypto from 'crypto'
 
 let prisma;
 
 async function initPrisma() {
   if (!prisma) {
     console.log('🔧 Initializing Prisma Client...');
+    console.log('📊 Environment:', process.env.NODE_ENV);
+    console.log('🔗 Database URL exists:', !!process.env.DATABASE_URL);
+    
     try {
       prisma = new PrismaClient().$extends(withAccelerate());
       await prisma.$connect();
@@ -42,84 +45,69 @@ export default async function handler(req, res) {
   try {
     console.log('🔍 Starting login process...');
     
+    // Test database connection first
     const db = await initPrisma();
-    const { username, password, loginType = 'admin' } = req.body;
     
-    console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined', loginType });
+    // Test query
+    const testQuery = await db.$queryRaw`SELECT 1 as test`;
+    console.log('✅ Database test query successful:', testQuery);
     
-    // Handle viewer login (no database check)
-    if (loginType === 'viewer') {
-      const viewerUser = {
-        id: 'viewer',
-        username: 'viewer',
-        name: 'Viewer',
-        role: 'viewer'
-      };
-
-      return res.json({
-        success: true,
-        data: {
-          user: viewerUser,
-          token: 'viewer_token',
-        },
-        message: 'Viewer login successful',
-      });
-    }
-
-    // Handle admin and petugas login with database
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Username and password are required'
-      });
-    }
-
-    // Hash password using SHA-256
+    const { username, password } = req.body;
+    console.log('👤 Login attempt:', { username, password: password ? '***' : 'undefined' });
+    
+    // Hash password using SHA-256 (same as createAdmin script)
     const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
     console.log('🔐 Password hash:', passwordHash);
     
-    // Find user based on login type
-    const whereClause = { username };
-    if (loginType === 'petugas') {
-      whereClause.role = 'petugas';
-    } else if (loginType === 'admin') {
-      whereClause.role = 'admin';
+    // Check if admin_users table exists
+    try {
+      const tableExists = await db.$queryRaw`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'admin_users'
+        ) as exists
+      `;
+      console.log('📋 Admin users table exists:', tableExists[0]?.exists);
+    } catch (tableError) {
+      console.error('❌ Error checking table:', tableError);
     }
-
-    const user = await db.adminUser.findFirst({
-      where: whereClause,
+    
+    const user = await db.adminUser.findUnique({
+      where: { username },
     });
 
     console.log('👥 User found:', user ? { id: user.id, username: user.username, role: user.role } : 'null');
+    console.log('🔐 Stored password hash:', user?.password_hash);
 
     if (!user || user.password_hash !== passwordHash) {
+      console.log('❌ Invalid credentials');
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials',
       });
     }
 
-    const token = loginType === 'admin' ? 'admin_token' : 'petugas_token';
-
+    console.log('✅ Login successful');
     res.json({
       success: true,
       data: {
         user: {
           id: user.id,
           username: user.username,
-          name: user.name || user.username,
           role: user.role,
         },
-        token,
+        token: 'admin_token',
       },
-      message: `${loginType} login successful`,
+      message: 'Login successful',
     });
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({
+  } catch (err) {
+    console.error('💥 Login error:', err);
+    res.status(500).json({
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
-}
+} 

@@ -292,17 +292,8 @@ function App() {
     loginViewer();
   };
 
-  const handlePetugasLogin = async (username: string, password: string) => {
-    setLoginLoading(true);
-    setLoginError(null);
-    
-    const result = await loginPetugas(username, password);
-    
-    if (!result.success) {
-      setLoginError(result.error || 'Login petugas gagal');
-    }
-    
-    setLoginLoading(false);
+  const handlePetugasLogin = () => {
+    loginPetugas();
   };
 
   const handleLogout = () => {

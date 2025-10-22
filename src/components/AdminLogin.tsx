@@ -6,7 +6,7 @@ import { Lock, User, Eye, EyeOff, Eye as ViewerIcon, Briefcase } from 'lucide-re
 interface AdminLoginProps {
   onLogin: (username: string, password: string) => Promise<void>;
   onViewerLogin: () => void;
-  onPetugasLogin: (username: string, password: string) => Promise<void>; // Update untuk petugas login dengan database
+  onPetugasLogin: () => void; // Tambah prop untuk petugas login
   loading?: boolean;
   error?: string;
 }
@@ -21,21 +21,11 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [petugasUsername, setPetugasUsername] = useState('');
-  const [petugasPassword, setPetugasPassword] = useState('');
-  const [showPetugasPassword, setShowPetugasPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim() && password.trim()) {
       await onLogin(username, password);
-    }
-  };
-
-  const handlePetugasSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (petugasUsername.trim() && petugasPassword.trim()) {
-      await onPetugasLogin(petugasUsername, petugasPassword);
     }
   };
 
@@ -65,59 +55,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             </p>
           </div>
 
-          {/* Form Login Petugas */}
+          {/* Tombol Login sebagai Petugas */}
           <div className="mb-6">
-            <form onSubmit={handlePetugasSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username Petugas
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    value={petugasUsername}
-                    onChange={(e) => setPetugasUsername(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Username petugas"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password Petugas
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type={showPetugasPassword ? 'text' : 'password'}
-                    value={petugasPassword}
-                    onChange={(e) => setPetugasPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Password petugas"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPetugasPassword(!showPetugasPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPetugasPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 text-sm"
-                disabled={loading || !petugasUsername.trim() || !petugasPassword.trim()}
-              >
-                <Briefcase className="w-4 h-4 mr-2" />
-                {loading ? 'Memproses...' : 'Login sebagai Petugas'}
-              </Button>
-            </form>
+            <Button
+              onClick={onPetugasLogin}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 text-base"
+              disabled={loading}
+            >
+              <Briefcase className="w-5 h-5 mr-2" />
+              Login sebagai Petugas
+            </Button>
             <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
               Masuk sebagai petugas lapangan untuk mengelola data gardu
             </p>

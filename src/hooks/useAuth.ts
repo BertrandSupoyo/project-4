@@ -34,12 +34,12 @@ export const useAuth = () => {
     try {
       setAuthState(prev => ({ ...prev, loading: true }));
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password, loginType: 'admin' }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
@@ -93,48 +93,23 @@ export const useAuth = () => {
     });
   };
 
-  const loginPetugas = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setAuthState(prev => ({ ...prev, loading: true }));
+  const loginPetugas = () => {
+    const petugasUser: User = {
+      id: 'petugas',
+      username: 'petugas',
+      role: 'petugas',
+      name: 'Petugas Lapangan'
+    };
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password, loginType: 'petugas' }),
-      });
+    // Store in localStorage
+    localStorage.setItem('admin_token', 'petugas_token');
+    localStorage.setItem('admin_user', JSON.stringify(petugasUser));
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Petugas login failed');
-      }
-
-      if (data.success && data.data) {
-        const { token, user } = data.data;
-
-        // Store in localStorage
-        localStorage.setItem('admin_token', token);
-        localStorage.setItem('admin_user', JSON.stringify(user));
-
-        setAuthState({
-          user,
-          isAuthenticated: true,
-          loading: false,
-        });
-
-        return { success: true };
-      } else {
-        throw new Error(data.error || 'Petugas login failed');
-      }
-    } catch (error) {
-      setAuthState(prev => ({ ...prev, loading: false }));
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Petugas login failed' 
-      };
-    }
+    setAuthState({
+      user: petugasUser,
+      isAuthenticated: true,
+      loading: false,
+    });
   };
 
   const logout = () => {
