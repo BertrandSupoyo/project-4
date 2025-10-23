@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
-import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Eye as ViewerIcon, Briefcase } from 'lucide-react';
 
 interface AdminLoginProps {
   onLogin: (username: string, password: string) => Promise<void>;
+  onViewerLogin: () => void;
+  onPetugasLogin: () => void; // Tambah prop untuk petugas login
   loading?: boolean;
   error?: string;
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ 
   onLogin, 
+  onViewerLogin,
+  onPetugasLogin, // Tambah prop
   loading = false, 
   error 
 }) => {
@@ -32,11 +36,51 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
           <div className="mx-auto w-14 h-14 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
             <Lock className="w-7 h-7 md:w-6 md:h-6 text-white" />
           </div>
-          <h2 className="text-3xl md:text-2xl font-bold text-gray-900">PowerGrid Monitor</h2>
-          <p className="text-base md:text-sm text-gray-600">Masuk dengan akun Anda</p>
+          <h2 className="text-3xl md:text-2xl font-bold text-gray-900">Login</h2>
+          <p className="text-base md:text-sm text-gray-600">Pilih cara login yang sesuai</p>
         </CardHeader>
         <CardContent>
-          {/* Form Login */}
+          {/* Tombol Login sebagai Viewer */}
+          <div className="mb-4">
+            <Button
+              onClick={onViewerLogin}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-base"
+              disabled={loading}
+            >
+              <ViewerIcon className="w-5 h-5 mr-2" />
+              Login sebagai Viewer
+            </Button>
+            <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
+              Masuk tanpa password untuk melihat data gardu distribusi
+            </p>
+          </div>
+
+          {/* Tombol Login sebagai Petugas */}
+          <div className="mb-6">
+            <Button
+              onClick={onPetugasLogin}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 text-base"
+              disabled={loading}
+            >
+              <Briefcase className="w-5 h-5 mr-2" />
+              Login sebagai Petugas
+            </Button>
+            <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
+              Masuk sebagai petugas lapangan untuk mengelola data gardu
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Atau</span>
+            </div>
+          </div>
+
+          {/* Form Login Admin */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -90,7 +134,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
               className="w-full py-3 text-base"
               disabled={loading || !username.trim() || !password.trim()}
             >
-              {loading ? 'Memproses...' : 'Login'}
+              {loading ? 'Memproses...' : 'Login sebagai Admin'}
             </Button>
           </form>
         </CardContent>

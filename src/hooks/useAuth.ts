@@ -13,13 +13,9 @@ export const useAuth = () => {
     const token = localStorage.getItem('admin_token');
     const userData = localStorage.getItem('admin_user');
     
-    console.log('🔍 Auth check - Token:', token ? 'exists' : 'missing');
-    console.log('🔍 Auth check - UserData:', userData ? 'exists' : 'missing');
-    
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
-        console.log('🔍 Parsed user:', user);
         setAuthState({
           user,
           isAuthenticated: true,
@@ -76,11 +72,6 @@ export const useAuth = () => {
         error: error instanceof Error ? error.message : 'Login failed' 
       };
     }
-  };
-
-  // Unified login function for all roles
-  const loginUser = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    return login(username, password);
   };
 
   const loginViewer = () => {
@@ -141,7 +132,6 @@ export const useAuth = () => {
     isAuthenticated: authState.isAuthenticated,
     loading: authState.loading,
     login,
-    loginUser, // Unified login function
     loginViewer,
     loginPetugas,
     logout,
