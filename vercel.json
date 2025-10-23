@@ -16,6 +16,9 @@
     "api/substations/import.js": {
       "maxDuration": 60
     },
+    "api/substations/export.js": {
+      "maxDuration": 60
+    },
     "api/substations/[id].js": {
       "maxDuration": 30
     },
