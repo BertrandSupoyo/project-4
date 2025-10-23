@@ -181,7 +181,7 @@ function App() {
     getSubstationById
   } = useSubstations();
 
-  const { user, isAuthenticated, loading: authLoading, login, loginViewer, loginPetugas, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, loginUser, logout } = useAuth();
 
   const [selectedModal, setSelectedModal] = useState<{
     type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | null;
@@ -275,25 +275,17 @@ function App() {
     }
   };
 
-  const handleAdminLogin = async (username: string, password: string) => {
+  const handleLogin = async (username: string, password: string) => {
     setLoginLoading(true);
     setLoginError(null);
     
-    const result = await login(username, password);
+    const result = await loginUser(username, password);
     
     if (!result.success) {
       setLoginError(result.error || 'Login gagal');
     }
     
     setLoginLoading(false);
-  };
-
-  const handleViewerLogin = () => {
-    loginViewer();
-  };
-
-  const handlePetugasLogin = () => {
-    loginPetugas();
   };
 
   const handleLogout = () => {
@@ -304,9 +296,7 @@ function App() {
   if (!isAuthenticated && !authLoading) {
     return (
       <AdminLogin 
-        onLogin={handleAdminLogin}
-        onViewerLogin={handleViewerLogin}
-        onPetugasLogin={handlePetugasLogin}
+        onLogin={handleLogin}
         loading={loginLoading}
         error={loginError || undefined}
       />

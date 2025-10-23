@@ -88,6 +88,9 @@ export default async function handler(req, res) {
       });
     }
 
+    // Generate token based on role
+    const token = `${user.role}_token_${user.id}`;
+
     console.log('✅ Login successful');
     res.json({
       success: true,
@@ -95,9 +98,10 @@ export default async function handler(req, res) {
         user: {
           id: user.id,
           username: user.username,
+          name: user.name,
           role: user.role,
         },
-        token: 'admin_token',
+        token: token,
       },
       message: 'Login successful',
     });

@@ -74,6 +74,11 @@ export const useAuth = () => {
     }
   };
 
+  // Unified login function for all roles
+  const loginUser = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    return login(username, password);
+  };
+
   const loginViewer = () => {
     const viewerUser: User = {
       id: 'viewer',
@@ -132,6 +137,7 @@ export const useAuth = () => {
     isAuthenticated: authState.isAuthenticated,
     loading: authState.loading,
     login,
+    loginUser, // Unified login function
     loginViewer,
     loginPetugas,
     logout,
