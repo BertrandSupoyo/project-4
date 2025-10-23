@@ -139,19 +139,39 @@ export default async function handler(req, res) {
 
             console.log(`📊 Total rows in Excel: ${allRows.length}`);
             
-            // Skip header rows (rows 1-5, which is index 0-4)
-            const HEADER_ROWS = 5;
-            const dataStartRow = HEADER_ROWS;
+            // Find where data actually starts by looking for first non-empty NO or ULP
+            let dataStartRow = -1;
+            for (let i = 0; i < Math.min(10, allRows.length); i++) {
+                const row = allRows[i];
+                const ulp = String(row[1] || '').trim();
+                const noGardu = String(row[2] || '').trim();
+                // Check if this looks like data (not header)
+                if ((ulp && ulp !== 'ULP') || (noGardu && noGardu !== 'NO GARDU' && noGardu !== 'NO. GARDU')) {
+                    dataStartRow = i;
+                    console.log(`✅ Data starts at row ${i + 1} (index ${i})`);
+                    break;
+                }
+            }
             
-            if (allRows.length <= HEADER_ROWS) {
+            if (dataStartRow === -1) {
                 return res.status(400).json({ 
                     success: false, 
-                    error: `File hanya memiliki ${allRows.length} baris. Minimal ${HEADER_ROWS + 5} baris diperlukan.` 
+                    error: 'Tidak dapat menemukan baris data. Pastikan file Excel memiliki data yang valid.' 
                 });
             }
 
             const dataRows = allRows.slice(dataStartRow);
-            console.log(`📋 Data rows to process: ${dataRows.length}`);
+            console.log(`📋 Data rows to process: ${dataRows.length} (starting from Excel row ${dataStartRow + 1})`);
+            
+            // Debug: Log first few data rows
+            if (dataRows.length > 0) {
+                console.log('🔍 First data row [0] (first 20 columns):');
+                console.log(dataRows[0].slice(0, 20).map((val, idx) => `[${idx}]=${val}`).join(', '));
+                if (dataRows.length > 1) {
+                    console.log('🔍 Second data row [1] (columns 0-15):');
+                    console.log(dataRows[1].slice(0, 16).map((val, idx) => `[${idx}]=${val}`).join(', '));
+                }
+            }
 
             // Group every 5 rows as 1 substation
             const transformedData = [];
@@ -211,13 +231,31 @@ export default async function handler(req, res) {
                 for (let j = 0; j < ROWS_PER_SUBSTATION; j++) {
                     const row = substationRows[j];
                     
-                    // Column O (index 14) = JURUSAN
-                    const jurusanRaw = String(row[14] || '').toLowerCase().trim();
+                    // Try both column N (13) and O (14) for JURUSAN
+                    let jurusanRaw = String(row[14] || '').toLowerCase().trim(); // Try O first
+                    if (!jurusanRaw || jurusanRaw === '') {
+                        jurusanRaw = String(row[13] || '').toLowerCase().trim(); // Fallback to N
+                    }
+                    
                     const jurusanNormalized = jurusanRaw === 'induk' ? 'induk' : jurusanRaw;
                     
-                    if (!expectedJurusan.includes(jurusanNormalized)) {
-                        console.warn(`⚠️  Row ${i + j + dataStartRow + 1}: invalid jurusan "${jurusanRaw}"`);
+                    // More flexible validation - skip empty but warn invalid
+                    if (!jurusanRaw || jurusanRaw === '') {
+                        console.warn(`⚠️  Row ${i + j + dataStartRow + 1}: empty jurusan, skipping`);
                         continue;
+                    }
+                    
+                    if (!expectedJurusan.includes(jurusanNormalized)) {
+                        console.warn(`⚠️  Row ${i + j + dataStartRow + 1}: unexpected jurusan "${jurusanRaw}", accepting anyway`);
+                        // Don't skip - accept it anyway
+                    }
+
+                    // Debug first row
+                    if (i === 0 && j === 0) {
+                        console.log(`🔍 First measurement row [${i + j + dataStartRow + 1}]:`);
+                        console.log(`  - Jurusan [13]="${row[13]}", [14]="${row[14]}" -> normalized="${jurusanNormalized}"`);
+                        console.log(`  - Siang: [15-23]=${row.slice(15, 24).join(',')}`);
+                        console.log(`  - Malam: [24-32]=${row.slice(24, 33).join(',')}`);
                     }
 
                     // PENGUKURAN SIANG: Columns P-X (index 15-23)
@@ -314,10 +352,13 @@ export default async function handler(req, res) {
                         measurements_siang,
                         measurements_malam
                     });
+                    console.log(`  ✅ Added to import queue: ${measurements_siang.length} siang + ${measurements_malam.length} malam`);
                 } else {
-                    console.warn(`⚠️  No valid measurements for substation at row ${i + dataStartRow + 1}`);
+                    console.warn(`⚠️  No valid measurements for substation at row ${i + dataStartRow + 1}, SKIPPING`);
                 }
             }
+
+            console.log(`\n📊 Summary: ${transformedData.length} substation(s) out of ${Math.floor(dataRows.length / ROWS_PER_SUBSTATION)} groups will be imported`);
 
             if (transformedData.length === 0) {
                 return res.status(400).json({ 
