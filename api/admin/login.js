@@ -2,6 +2,11 @@ import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import crypto from 'crypto'
 
+// Set DATABASE_URL if not already set
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'postgresql://username:password@localhost:5432/substation_monitoring';
+}
+
 let prisma;
 
 async function initPrisma() {

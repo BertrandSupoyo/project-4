@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./app/generated/prisma-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Substation {
+  id                String   @id @default(uuid())
+  no                Int
+  ulp               String
+  noGardu           String
+  namaLokasiGardu   String
+  jenis             String
+  merek             String
+  daya              String
+  tahun             String
+  phasa             String
+  tap_trafo_max_tap String
+  penyulang         String
+  arahSequence      String
+  tanggal           DateTime
+  status            String   @default("normal")
+  lastUpdate        DateTime @default(now())
+  is_active         Int      @default(1)
+  ugb               Int      @default(0)
+  latitude          Float?
+  longitude         Float?
+
+  measurements_siang MeasurementSiang[]
+  measurements_malam MeasurementMalam[]
+
+  @@map("substations")
+}
+
+model MeasurementSiang {
+  id           Int      @id @default(autoincrement())
+  substationId String
+  month        String
+  r            Float    @default(0)
+  s            Float    @default(0)
+  t            Float    @default(0)
+  n            Float    @default(0)
+  rn           Float    @default(0)
+  sn           Float    @default(0)
+  tn           Float    @default(0)
+  pp           Float    @default(0)
+  pn           Float    @default(0)
+  row_name     String
+  rata2        Float?   @default(0)
+  kva          Float?   @default(0)
+  persen       Float?   @default(0)
+  unbalanced   Float?   @default(0)
+  lastUpdate   DateTime @default(now())
+
+  substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
+
+  @@unique([substationId, month, row_name])
+  @@map("measurements_siang")
+}
+
+model MeasurementMalam {
+  id           Int      @id @default(autoincrement())
+  substationId String
+  month        String
+  r            Float    @default(0)
+  s            Float    @default(0)
+  t            Float    @default(0)
+  n            Float    @default(0)
+  rn           Float    @default(0)
+  sn           Float    @default(0)
+  tn           Float    @default(0)
+  pp           Float    @default(0)
+  pn           Float    @default(0)
+  row_name     String
+  rata2        Float?   @default(0)
+  kva          Float?   @default(0)
+  persen       Float?   @default(0)
+  unbalanced   Float?   @default(0)
+  lastUpdate   DateTime @default(now())
+
+  substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
+
+  @@unique([substationId, month, row_name])
+  @@map("measurements_malam")
+}
+
+model AdminUser {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  password_hash String
+  name          String
+  role          String   @default("admin")
+  created_at    DateTime @default(now())
+
+  @@map("admin_users")
+}
