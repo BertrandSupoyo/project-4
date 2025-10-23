@@ -61,13 +61,21 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-    const allowedOrigins = ['http://localhost:3000', 'https://yourdomain.com'];
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
+    const origin = req.headers.origin || '';
+    const allowThisOrigin = (() => {
+        if (!origin) return false;
+        if (origin.startsWith('http://localhost:')) return true;
+        if (origin.endsWith('.vercel.app')) return true; // allow all vercel preview/prod domains
+        if (origin === 'https://project-4-vyl4.vercel.app') return true; // production
+        return false;
+    })();
+
+    if (allowThisOrigin) {
         res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
     }
-    
-    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
@@ -89,24 +97,46 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, error: 'Error parsing upload' });
         }
 
-        if (!files.file || !files.file[0]) {
+        // Handle formidable v3 shape: can be a single File or an array
+        const incoming = files.file;
+        const uploaded = Array.isArray(incoming) ? incoming[0] : incoming;
+        if (!uploaded || !uploaded.filepath) {
             return res.status(400).json({ success: false, error: 'No file uploaded' });
         }
 
-        const tempFilePath = files.file[0].filepath;
+        const tempFilePath = uploaded.filepath;
 
         try {
             console.log('📄 Mulai memproses file Excel di backend...');
             
-            const fileContent = fs.readFileSync(tempFilePath);
-            const workbook = XLSX.read(fileContent, { type: 'buffer' });
-            const sheetName = workbook.SheetNames[0];
+            let fileContent;
+            try {
+                fileContent = fs.readFileSync(tempFilePath);
+            } catch (readErr) {
+                console.error('📄 Failed to read uploaded file:', readErr);
+                return res.status(400).json({ success: false, error: 'File cannot be read', details: readErr.message });
+            }
+
+            let workbook;
+            try {
+                workbook = XLSX.read(fileContent, { type: 'buffer' });
+            } catch (parseErr) {
+                console.error('📄 Failed to parse Excel file:', parseErr);
+                return res.status(400).json({ success: false, error: 'Invalid Excel file', details: parseErr.message });
+            }
+
+            const sheetName = workbook.SheetNames?.[0];
+            if (!sheetName) {
+                return res.status(400).json({ success: false, error: 'Excel has no sheets' });
+            }
             const worksheet = workbook.Sheets[sheetName];
             const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true });
 
             const normalizeHeader = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const headerRowIdx = allRows.findIndex(row => row.some(cell => normalizeHeader(cell) === 'nogardu'));
-            if (headerRowIdx === -1) throw new Error('Header "nogardu" tidak ditemukan.');
+            if (headerRowIdx === -1) {
+                return res.status(400).json({ success: false, error: 'Header "nogardu" tidak ditemukan.' });
+            }
             
             const headerRow = allRows[headerRowIdx].map(normalizeHeader);
             const dataRows = allRows.slice(headerRowIdx + 1);
@@ -119,95 +149,99 @@ export default async function handler(req, res) {
                 return '';
             };
 
-            const transformedData = [];
-            for (let i = 0; i < dataRows.length; i += 5) {
-                const group = dataRows.slice(i, i + 5);
-                if (group.length < 5) continue;
+            // New row-oriented parser: group rows by (noGardu, month)
+            const groupsMap = new Map();
+            for (let i = 0; i < dataRows.length; i++) {
+                const rowArr = dataRows[i];
+                if (!rowArr || rowArr.length === 0) continue;
+                const rowObj = {};
+                headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
 
-                const rowObj0 = {};
-                headerRow.forEach((col, idx) => { rowObj0[col] = group[0]?.[idx]; });
+                const ulpVal = String(getField(rowObj, ['ulp'])).trim();
+                const noGarduVal = String(getField(rowObj, ['nogardu', 'no.gardu', 'no_gardu'])).trim();
+                const namaLokasiVal = String(getField(rowObj, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim();
+                if (!ulpVal && !noGarduVal && !namaLokasiVal) continue;
 
-                if (!getField(rowObj0, ['ulp', 'nogardu', 'namalokasi'])) continue;
-
-                const tanggalValue = parseSafeDate(getField(rowObj0, ['tanggal']));
+                const tanggalValue = parseSafeDate(getField(rowObj, ['tanggal']));
                 const monthValue = tanggalValue.toISOString().slice(0, 7);
+                const key = `${noGarduVal}__${monthValue}`;
 
-                const mainData = {
-                    no: parseInt(getField(rowObj0, ['no'])) || 0,
-                    ulp: String(getField(rowObj0, ['ulp'])).trim(),
-                    noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
-                    namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
-                    jenis: String(getField(rowObj0, ['jenis'])).trim(),
-                    merek: String(getField(rowObj0, ['merk', 'merek'])).trim(),
-                    daya: String(getField(rowObj0, ['daya'])).trim(),
-                    tahun: String(getField(rowObj0, ['tahun'])).trim(),
-                    phasa: String(getField(rowObj0, ['phasa'])).trim(),
-                    tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
-                    penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
-                    arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
-                    tanggal: tanggalValue,
+                if (!groupsMap.has(key)) {
+                    groupsMap.set(key, {
+                        main: {
+                            no: 0,
+                            ulp: ulpVal,
+                            noGardu: noGarduVal,
+                            namaLokasiGardu: namaLokasiVal,
+                            jenis: String(getField(rowObj, ['jenis'])).trim(),
+                            merek: String(getField(rowObj, ['merk', 'merek'])).trim(),
+                            daya: String(getField(rowObj, ['daya'])).trim(),
+                            tahun: String(getField(rowObj, ['tahun'])).trim(),
+                            phasa: String(getField(rowObj, ['phasa'])).trim(),
+                            tap_trafo_max_tap: String(getField(rowObj, ['taptrafomaxtap'])).trim(),
+                            penyulang: String(getField(rowObj, ['penyulang'])).trim(),
+                            arahSequence: String(getField(rowObj, ['arahsequence'])).trim(),
+                            tanggal: tanggalValue,
+                        },
+                        siang: [],
+                        malam: []
+                    });
+                }
+
+                const group = groupsMap.get(key);
+                const m = group.main;
+                m.ulp ||= ulpVal;
+                m.noGardu ||= noGarduVal;
+                m.namaLokasiGardu ||= namaLokasiVal;
+                m.jenis ||= String(getField(rowObj, ['jenis'])).trim();
+                m.merek ||= String(getField(rowObj, ['merk', 'merek'])).trim();
+                m.daya ||= String(getField(rowObj, ['daya'])).trim();
+                m.tahun ||= String(getField(rowObj, ['tahun'])).trim();
+                m.phasa ||= String(getField(rowObj, ['phasa'])).trim();
+                m.tap_trafo_max_tap ||= String(getField(rowObj, ['taptrafomaxtap'])).trim();
+                m.penyulang ||= String(getField(rowObj, ['penyulang'])).trim();
+                m.arahSequence ||= String(getField(rowObj, ['arahsequence'])).trim();
+
+                const jurusan = String(getField(rowObj, ['jurusan'])).toLowerCase().trim();
+                const allowRowNames = new Set(['induk','1','2','3','4']);
+                if (!jurusan || !allowRowNames.has(jurusan)) continue;
+
+                const powerRating = parseFloat(m.daya) || 0;
+                const extractFor = (timeOfDay) => {
+                    const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
+                    const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
+                    const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
+                    const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
+                    const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
+                    const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
+                    const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
+                    const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
+                    const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
+                    const calc = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
+                    return { month: monthValue, row_name: jurusan, r, s, t, n, rn, sn, tn, pp, pn, rata2: calc.rata2, kva: calc.kva, persen: calc.persen, unbalanced: calc.unbalanced };
                 };
-                
-                // Extract measurements with corrected calculations
-                const extractMeasurementsWithCalculations = (timeOfDay) => {
-                    const powerRating = parseFloat(mainData.daya) || 0;
-                    
-                    console.log(`🔍 Processing ${timeOfDay} measurements for gardu: ${mainData.noGardu}`);
-                    
-                    return group.map((rowArr, rowIndex) => {
-                        const rowObj = {};
-                        headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
-
-                        // Extract values for the specific time of day
-                        const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
-                        const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
-                        const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
-                        const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
-                        const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
-                        const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
-                        const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
-                        const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
-                        const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
-
-                        // DEBUG: Log the extracted values
-                        console.log(`Row ${rowIndex} ${timeOfDay}:`, { r, s, t, n, pp, pn });
-
-                        // Calculate using the EXACT same formula as measurementSiang/measurementMalam
-                        const calculations = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
-
-                        const measurementData = {
-                            month: monthValue,
-                            row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
-                            r: r,
-                            s: s,
-                            t: t,
-                            n: n,
-                            rn: rn,
-                            sn: sn,
-                            tn: tn,
-                            pp: pp,
-                            pn: pn,
-                            rata2: calculations.rata2,
-                            kva: calculations.kva,
-                            persen: calculations.persen,
-                            unbalanced: calculations.unbalanced,
-                        };
-
-                        return measurementData;
-                    }).filter(m => m.row_name !== 'unknown');
-                };
-        
-                const measurements_siang = extractMeasurementsWithCalculations('siang');
-                const measurements_malam = extractMeasurementsWithCalculations('malam');
-
-                // DEBUG: Log measurements
-                console.log(`Siang measurements count: ${measurements_siang.length}`);
-                console.log(`Malam measurements count: ${measurements_malam.length}`);
-
-                transformedData.push({ ...mainData, measurements_siang, measurements_malam });
+                const hasSiang = ['r','s','t','n','rn','sn','tn','pp','pn'].some(k => getField(rowObj, [`${k}siang`, `${k}(siang)`, `${k}_siang`]) !== '');
+                const hasMalam = ['r','s','t','n','rn','sn','tn','pp','pn'].some(k => getField(rowObj, [`${k}malam`, `${k}(malam)`, `${k}_malam`]) !== '');
+                if (hasSiang) group.siang.push(extractFor('siang'));
+                if (hasMalam) group.malam.push(extractFor('malam'));
             }
 
-            if (transformedData.length === 0) throw new Error('Tidak ada data valid untuk diimpor.');
+            const transformedData = [];
+            for (const [, g] of groupsMap) {
+                const dedupeByRow = (arr) => {
+                    const map = new Map();
+                    for (const it of arr) map.set(it.row_name, it);
+                    return Array.from(map.values());
+                };
+                const siang = dedupeByRow(g.siang);
+                const malam = dedupeByRow(g.malam);
+                if (!g.main.noGardu || (!siang.length && !malam.length)) continue;
+                transformedData.push({ ...g.main, measurements_siang: siang, measurements_malam: malam });
+            }
+
+            if (transformedData.length === 0) {
+                return res.status(400).json({ success: false, error: 'Tidak ada data valid untuk diimpor.' });
+            }
             
             console.log(`📊 Ditemukan ${transformedData.length} data gardu valid. Memulai transaksi database...`);
             
@@ -216,13 +250,62 @@ export default async function handler(req, res) {
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
                 for (const data of transformedData) {
-                    await tx.substation.create({
+                    // Generate next sequential `no` regardless of Excel content
+                    const agg = await tx.substation.aggregate({ _max: { no: true } });
+                    const maxNo = agg?._max?.no || 0;
+                    const safeNo = maxNo + 1;
+
+                    // Create substation first, then bulk insert measurements to avoid nested unique conflicts
+                    const created = await tx.substation.create({
                         data: {
-                            ...data, 
-                            measurements_siang: { create: data.measurements_siang },
-                            measurements_malam: { create: data.measurements_malam }
+                            no: safeNo,
+                            ulp: data.ulp,
+                            noGardu: data.noGardu,
+                            namaLokasiGardu: data.namaLokasiGardu,
+                            jenis: data.jenis,
+                            merek: data.merek,
+                            daya: data.daya,
+                            tahun: data.tahun,
+                            phasa: data.phasa,
+                            tap_trafo_max_tap: data.tap_trafo_max_tap || '',
+                            penyulang: data.penyulang || '',
+                            arahSequence: data.arahSequence || '',
+                            tanggal: data.tanggal,
+                            status: 'normal',
+                            is_active: 1,
+                            ugb: 0,
+                            latitude: null,
+                            longitude: null,
                         }
                     });
+
+                    if (data.measurements_siang?.length) {
+                        const siangRows = data.measurements_siang.map(m => ({
+                            substationId: created.id,
+                            month: m.month,
+                            row_name: m.row_name,
+                            r: m.r, s: m.s, t: m.t, n: m.n,
+                            rn: m.rn, sn: m.sn, tn: m.tn,
+                            pp: m.pp, pn: m.pn,
+                            rata2: m.rata2, kva: m.kva, persen: m.persen, unbalanced: m.unbalanced,
+                            lastUpdate: new Date()
+                        }));
+                        await tx.measurementSiang.createMany({ data: siangRows, skipDuplicates: true });
+                    }
+
+                    if (data.measurements_malam?.length) {
+                        const malamRows = data.measurements_malam.map(m => ({
+                            substationId: created.id,
+                            month: m.month,
+                            row_name: m.row_name,
+                            r: m.r, s: m.s, t: m.t, n: m.n,
+                            rn: m.rn, sn: m.sn, tn: m.tn,
+                            pp: m.pp, pn: m.pn,
+                            rata2: m.rata2, kva: m.kva, persen: m.persen, unbalanced: m.unbalanced,
+                            lastUpdate: new Date()
+                        }));
+                        await tx.measurementMalam.createMany({ data: malamRows, skipDuplicates: true });
+                    }
                     createdCount++;
                 }
                 return { createdCount };
@@ -236,11 +319,11 @@ export default async function handler(req, res) {
             });
 
         } catch (procError) {
-            console.error('💥 Terjadi kesalahan kritis:', procError);
+            console.error('💥 Terjadi kesalahan kritis:', procError?.stack || procError);
             res.status(500).json({ 
                 success: false, 
                 error: 'Gagal memproses file di server.', 
-                details: procError.message 
+                details: procError?.message || String(procError)
             });
         } finally {
             try {
