@@ -52,10 +52,12 @@ function parseSafeDate(dateInput) {
     return isNaN(date) ? new Date() : date;
 }
 
-// ✅ VALIDATION FUNCTIONS
+// ✅ IMPROVED VALIDATION FUNCTIONS
 function validateMainData(data, rowNumber) {
     const errors = [];
+    const warnings = [];
     
+    // Critical validations (will block import)
     if (!data.noGardu || data.noGardu.trim() === '') {
         errors.push(`Baris ${rowNumber}: No. Gardu wajib diisi`);
     }
@@ -68,40 +70,46 @@ function validateMainData(data, rowNumber) {
         errors.push(`Baris ${rowNumber}: ULP wajib diisi`);
     }
     
+    // Soft validations (will show warnings but allow import)
     if (data.daya && isNaN(parseFloat(data.daya))) {
-        errors.push(`Baris ${rowNumber}: Daya harus berupa angka`);
+        warnings.push(`Baris ${rowNumber}: Daya harus berupa angka (akan diset ke 0)`);
+        data.daya = '0'; // Fix it
     }
     
     if (data.tahun && !/^\d{4}$/.test(data.tahun)) {
-        errors.push(`Baris ${rowNumber}: Tahun harus 4 digit (misal: 2024)`);
+        warnings.push(`Baris ${rowNumber}: Tahun harus 4 digit (akan diset ke tahun sekarang)`);
+        data.tahun = new Date().getFullYear().toString();
     }
     
-    return errors;
+    return { errors, warnings };
 }
 
 function validateMeasurements(measurements, rowNumber, timeOfDay) {
     const errors = [];
+    const warnings = [];
     
     if (!measurements || measurements.length === 0) {
-        errors.push(`Baris ${rowNumber}: Data pengukuran ${timeOfDay} tidak ditemukan`);
-        return errors;
+        warnings.push(`Baris ${rowNumber}: Data pengukuran ${timeOfDay} kosong`);
+        return { errors, warnings };
     }
     
     measurements.forEach((m, idx) => {
-        if (m.row_name === 'unknown') {
-            errors.push(`Baris ${rowNumber}, Jurusan ${idx + 1}: Nama jurusan tidak valid`);
+        // Allow 'unknown' row names but warn about them
+        if (m.row_name === 'unknown' || !m.row_name) {
+            warnings.push(`Baris ${rowNumber}, ${timeOfDay}, Jurusan ${idx + 1}: Nama jurusan kosong (akan diabaikan)`);
         }
         
-        // Validate numeric values are not negative
+        // Convert negative values to 0 instead of rejecting
         const numericFields = ['r', 's', 't', 'n', 'rn', 'sn', 'tn', 'pp', 'pn'];
         numericFields.forEach(field => {
             if (m[field] < 0) {
-                errors.push(`Baris ${rowNumber}, ${timeOfDay}, ${m.row_name}: ${field} tidak boleh negatif`);
+                warnings.push(`Baris ${rowNumber}, ${timeOfDay}, ${m.row_name || 'unknown'}: ${field} negatif (akan diset ke 0)`);
+                m[field] = 0;
             }
         });
     });
     
-    return errors;
+    return { errors, warnings };
 }
 
 export const config = {
@@ -155,17 +163,15 @@ export default async function handler(req, res) {
         try {
             console.log('📄 Mulai memproses file Excel...');
             
-            // ✅ Validate file exists
             if (!fs.existsSync(tempFilePath)) {
                 throw new Error('File temporary tidak ditemukan');
             }
             
             const fileContent = fs.readFileSync(tempFilePath);
             
-            // ✅ Validate file is Excel
             let workbook;
             try {
-                workbook = XLSX.read(fileContent, { type: 'buffer' });
+                workbook = XLSX.read(fileContent, { type: 'buffer', cellDates: true });
             } catch (xlsxError) {
                 throw new Error('File bukan format Excel yang valid (.xlsx atau .xls)');
             }
@@ -176,168 +182,250 @@ export default async function handler(req, res) {
             
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true });
+            const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true, raw: false });
+
+            console.log(`📊 Total rows in Excel: ${allRows.length}`);
 
             if (!allRows || allRows.length === 0) {
                 throw new Error('File Excel kosong');
             }
 
-            const normalizeHeader = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const headerRowIdx = allRows.findIndex(row => row.some(cell => normalizeHeader(cell) === 'nogardu'));
+            // ✅ IMPROVED HEADER DETECTION
+            const normalizeHeader = (str) => String(str || '')
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '')
+                .replace(/[\/\-\.]/g, '');
             
-            if (headerRowIdx === -1) {
-                throw new Error('Header "No. Gardu" tidak ditemukan. Pastikan format file sesuai dengan template export.');
+            let headerRowIdx = -1;
+            let headerRow = [];
+            
+            // Try to find header row more flexibly
+            for (let i = 0; i < Math.min(10, allRows.length); i++) {
+                const row = allRows[i];
+                const normalizedRow = row.map(normalizeHeader);
+                
+                // Check for key columns
+                const hasNoGardu = normalizedRow.some(h => h.includes('nogardu') || h === 'no.gardu');
+                const hasULP = normalizedRow.some(h => h === 'ulp');
+                const hasNamaLokasi = normalizedRow.some(h => h.includes('nama') || h.includes('lokasi'));
+                
+                if (hasNoGardu || (hasULP && hasNamaLokasi)) {
+                    headerRowIdx = i;
+                    headerRow = normalizedRow;
+                    console.log(`✅ Header found at row ${i + 1}`);
+                    console.log(`📋 Headers:`, row);
+                    break;
+                }
             }
             
-            const headerRow = allRows[headerRowIdx].map(normalizeHeader);
+            if (headerRowIdx === -1) {
+                throw new Error(
+                    'Header tidak ditemukan. Pastikan baris pertama memiliki kolom: "No. Gardu", "ULP", "Nama/Lokasi Gardu", dll.\n' +
+                    'Preview baris pertama: ' + JSON.stringify(allRows[0])
+                );
+            }
+            
             const dataRows = allRows.slice(headerRowIdx + 1);
 
             if (dataRows.length === 0) {
                 throw new Error('Tidak ada data untuk diimport setelah header');
             }
 
+            // ✅ IMPROVED FIELD GETTER
             const getField = (rowObj, keys) => {
                 for (const key of keys) {
                     const val = rowObj[key];
-                    if (val !== undefined && val !== null && String(val).trim() !== '') return val;
+                    if (val !== undefined && val !== null && String(val).trim() !== '') {
+                        return String(val).trim();
+                    }
                 }
                 return '';
             };
 
-            // ✅ COLLECT ALL DATA WITH VALIDATION
+            // ✅ COLLECT ALL DATA WITH LENIENT VALIDATION
             const transformedData = [];
             const validationErrors = [];
+            const validationWarnings = [];
             const skippedRows = [];
 
-            console.log(`📊 Memproses ${Math.floor(dataRows.length / 5)} grup data...`);
+            console.log(`📊 Memproses ${dataRows.length} baris data...`);
 
-            for (let i = 0; i < dataRows.length; i += 5) {
-                const group = dataRows.slice(i, i + 5);
-                const rowNumber = headerRowIdx + 2 + i; // Actual Excel row number
+            // ✅ HANDLE BOTH GROUPED AND FLAT DATA
+            let i = 0;
+            while (i < dataRows.length) {
+                const rowNumber = headerRowIdx + 2 + i;
                 
-                if (group.length < 5) {
-                    skippedRows.push({
-                        row: rowNumber,
-                        reason: `Data tidak lengkap (hanya ${group.length} baris, seharusnya 5 baris per gardu)`
-                    });
-                    continue;
-                }
+                // Build row object
+                const rowObj = {};
+                headerRow.forEach((col, idx) => { 
+                    rowObj[col] = dataRows[i]?.[idx]; 
+                });
 
-                const rowObj0 = {};
-                headerRow.forEach((col, idx) => { rowObj0[col] = group[0]?.[idx]; });
-
-                // Check if row is completely empty
-                const hasAnyData = getField(rowObj0, ['ulp', 'nogardu', 'namalokasi']);
+                // Check if completely empty
+                const hasAnyData = Object.values(rowObj).some(val => 
+                    val !== undefined && val !== null && String(val).trim() !== ''
+                );
+                
                 if (!hasAnyData) {
-                    skippedRows.push({
-                        row: rowNumber,
-                        reason: 'Baris kosong'
-                    });
+                    console.log(`⏭️  Skipping empty row ${rowNumber}`);
+                    i++;
                     continue;
                 }
 
-                const tanggalValue = parseSafeDate(getField(rowObj0, ['tanggal']));
+                // Extract main data
+                const tanggalValue = parseSafeDate(getField(rowObj, ['tanggal', 'tgl']));
                 const monthValue = tanggalValue.toISOString().slice(0, 7);
 
                 const mainData = {
-                    no: parseInt(getField(rowObj0, ['no'])) || 0,
-                    ulp: String(getField(rowObj0, ['ulp'])).trim(),
-                    noGardu: String(getField(rowObj0, ['nogardu', 'no.gardu', 'no_gardu'])).trim(),
-                    namaLokasiGardu: String(getField(rowObj0, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim(),
-                    jenis: String(getField(rowObj0, ['jenis'])).trim(),
-                    merek: String(getField(rowObj0, ['merk', 'merek'])).trim(),
-                    daya: String(getField(rowObj0, ['daya'])).trim(),
-                    tahun: String(getField(rowObj0, ['tahun'])).trim(),
-                    phasa: String(getField(rowObj0, ['phasa'])).trim(),
-                    tap_trafo_max_tap: String(getField(rowObj0, ['taptrafomaxtap'])).trim(),
-                    penyulang: String(getField(rowObj0, ['penyulang'])).trim(),
-                    arahSequence: String(getField(rowObj0, ['arahsequence'])).trim(),
+                    no: parseInt(getField(rowObj, ['no'])) || 0,
+                    ulp: getField(rowObj, ['ulp']),
+                    noGardu: getField(rowObj, ['nogardu', 'no.gardu', 'no_gardu', 'gardu']),
+                    namaLokasiGardu: getField(rowObj, ['namalokasi', 'namalokasigardu', 'nama/lokasi', 'namagardu', 'lokasi']),
+                    jenis: getField(rowObj, ['jenis', 'jenisgardu']),
+                    merek: getField(rowObj, ['merk', 'merek', 'merktrafo']),
+                    daya: getField(rowObj, ['daya', 'dayatrafo', 'kva']) || '0',
+                    tahun: getField(rowObj, ['tahun', 'tahunpembuatan']) || new Date().getFullYear().toString(),
+                    phasa: getField(rowObj, ['phasa', 'phase']),
+                    tap_trafo_max_tap: getField(rowObj, ['taptrafomaxtap', 'tap', 'maxtap']),
+                    penyulang: getField(rowObj, ['penyulang', 'feeder']),
+                    arahSequence: getField(rowObj, ['arahsequence', 'sequence', 'arah']),
                     tanggal: tanggalValue,
                 };
 
-                // ✅ VALIDATE MAIN DATA
-                const mainErrors = validateMainData(mainData, rowNumber);
-                if (mainErrors.length > 0) {
-                    validationErrors.push(...mainErrors);
+                // ✅ VALIDATE with separate errors and warnings
+                const validation = validateMainData(mainData, rowNumber);
+                
+                if (validation.errors.length > 0) {
+                    validationErrors.push(...validation.errors);
+                    console.log(`❌ Row ${rowNumber} validation failed:`, validation.errors);
+                    i++;
                     continue;
                 }
                 
-                // Extract measurements
-                const extractMeasurementsWithCalculations = (timeOfDay) => {
+                if (validation.warnings.length > 0) {
+                    validationWarnings.push(...validation.warnings);
+                    console.log(`⚠️  Row ${rowNumber} warnings:`, validation.warnings);
+                }
+
+                // ✅ FLEXIBLE MEASUREMENT EXTRACTION
+                const extractMeasurements = (timeOfDay) => {
                     const powerRating = parseFloat(mainData.daya) || 0;
+                    const measurements = [];
                     
-                    return group.map((rowArr, rowIndex) => {
-                        const rowObj = {};
-                        headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
+                    // Try to find measurement data in current or next few rows
+                    const searchRows = dataRows.slice(i, i + 5);
+                    
+                    searchRows.forEach((rowArr, offset) => {
+                        const mRowObj = {};
+                        headerRow.forEach((col, idx) => { 
+                            mRowObj[col] = rowArr?.[idx]; 
+                        });
 
-                        const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
-                        const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
-                        const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
-                        const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
-                        const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
-                        const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
-                        const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
-                        const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
-                        const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
+                        // Check if this row has measurement data for this time of day
+                        const hasTimeData = headerRow.some(h => h.includes(timeOfDay));
+                        
+                        if (!hasTimeData) return; // Skip if no data for this time
 
-                        const calculations = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
+                        const r = parseFloat(getField(mRowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`, `rsiang`, `rmalam`])) || 0;
+                        const s = parseFloat(getField(mRowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`, `ssiang`, `smalam`])) || 0;
+                        const t = parseFloat(getField(mRowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`, `tsiang`, `tmalam`])) || 0;
+                        const n = parseFloat(getField(mRowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`, `nsiang`, `nmalam`])) || 0;
+                        const rn = parseFloat(getField(mRowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`, `rnsiang`, `rnmalam`])) || 0;
+                        const sn = parseFloat(getField(mRowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`, `snsiang`, `snmalam`])) || 0;
+                        const tn = parseFloat(getField(mRowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`, `tnsiang`, `tnmalam`])) || 0;
+                        const pp = parseFloat(getField(mRowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`, `ppsiang`, `ppmalam`])) || 0;
+                        const pn = parseFloat(getField(mRowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`, `pnsiang`, `pnmalam`])) || 0;
 
-                        const measurementData = {
-                            month: monthValue,
-                            row_name: String(getField(rowObj, ['jurusan'])).toLowerCase() || 'unknown',
-                            r, s, t, n, rn, sn, tn, pp, pn,
-                            rata2: calculations.rata2,
-                            kva: calculations.kva,
-                            persen: calculations.persen,
-                            unbalanced: calculations.unbalanced,
-                        };
+                        // Only add if has actual measurement data
+                        if (r > 0 || s > 0 || t > 0 || pp > 0 || pn > 0) {
+                            const calculations = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
 
-                        return measurementData;
+                            const jurusan = getField(mRowObj, ['jurusan', 'jur', 'outlet', 'feeder']).toLowerCase();
+                            
+                            measurements.push({
+                                month: monthValue,
+                                row_name: jurusan || `jurusan_${offset + 1}`,
+                                r, s, t, n, rn, sn, tn, pp, pn,
+                                rata2: calculations.rata2,
+                                kva: calculations.kva,
+                                persen: calculations.persen,
+                                unbalanced: calculations.unbalanced,
+                            });
+                        }
                     });
+                    
+                    return measurements;
                 };
-        
-                const measurements_siang = extractMeasurementsWithCalculations('siang');
-                const measurements_malam = extractMeasurementsWithCalculations('malam');
 
-                // ✅ VALIDATE MEASUREMENTS
-                const siangErrors = validateMeasurements(measurements_siang, rowNumber, 'siang');
-                const malamErrors = validateMeasurements(measurements_malam, rowNumber, 'malam');
+                const measurements_siang = extractMeasurements('siang');
+                const measurements_malam = extractMeasurements('malam');
+
+                console.log(`📊 Row ${rowNumber}: Found ${measurements_siang.length} siang, ${measurements_malam.length} malam measurements`);
+
+                // ✅ ALLOW DATA WITH OR WITHOUT MEASUREMENTS
+                const siangValidation = validateMeasurements(measurements_siang, rowNumber, 'siang');
+                const malamValidation = validateMeasurements(measurements_malam, rowNumber, 'malam');
                 
-                if (siangErrors.length > 0 || malamErrors.length > 0) {
-                    validationErrors.push(...siangErrors, ...malamErrors);
-                    continue;
+                if (siangValidation.warnings.length > 0) {
+                    validationWarnings.push(...siangValidation.warnings);
                 }
+                if (malamValidation.warnings.length > 0) {
+                    validationWarnings.push(...malamValidation.warnings);
+                }
+
+                // Filter out invalid measurements
+                const validSiang = measurements_siang.filter(m => m.row_name && m.row_name !== 'unknown');
+                const validMalam = measurements_malam.filter(m => m.row_name && m.row_name !== 'unknown');
 
                 transformedData.push({ 
                     ...mainData, 
-                    measurements_siang: measurements_siang.filter(m => m.row_name !== 'unknown'),
-                    measurements_malam: measurements_malam.filter(m => m.row_name !== 'unknown'),
+                    measurements_siang: validSiang,
+                    measurements_malam: validMalam,
                     rowNumber 
                 });
+
+                // Move to next gardu (skip grouped rows if detected, otherwise just next row)
+                const nextGarduRows = dataRows.slice(i + 1, i + 5);
+                const hasNextGroup = nextGarduRows.some(row => {
+                    const obj = {};
+                    headerRow.forEach((col, idx) => { obj[col] = row?.[idx]; });
+                    return getField(obj, ['nogardu']) === '';
+                });
+                
+                i += hasNextGroup ? 5 : 1;
             }
 
-            // ✅ REPORT IF NO VALID DATA
+            // ✅ BETTER ERROR REPORTING
             if (transformedData.length === 0) {
+                console.log('❌ No valid data found');
+                console.log(`Validation errors: ${validationErrors.length}`);
+                console.log(`Warnings: ${validationWarnings.length}`);
+                
                 const errorReport = {
                     success: false,
                     error: 'Tidak ada data valid untuk diimpor',
-                    validationErrors: validationErrors.slice(0, 50), // Limit to first 50 errors
-                    skippedRows: skippedRows.slice(0, 20),
+                    details: {
+                        message: 'Semua baris gagal validasi atau tidak memiliki data yang cukup',
+                        validationErrors: validationErrors.slice(0, 50),
+                        warnings: validationWarnings.slice(0, 30),
+                        hint: 'Pastikan minimal kolom "No. Gardu", "ULP", dan "Nama/Lokasi Gardu" terisi'
+                    },
                     summary: {
-                        totalRows: Math.floor(dataRows.length / 5),
+                        totalRows: dataRows.length,
                         validData: 0,
                         errorData: validationErrors.length,
-                        skippedData: skippedRows.length
+                        warnings: validationWarnings.length
                     }
                 };
                 return res.status(400).json(errorReport);
             }
             
-            console.log(`✅ ${transformedData.length} data valid siap diimport`);
+            console.log(`✅ ${transformedData.length} data valid ditemukan`);
             
             const db = await initPrisma();
             
-            // ✅ CHECK FOR DUPLICATES IN DATABASE
+            // ✅ CHECK FOR DUPLICATES
             const existingGardus = await db.substation.findMany({
                 where: {
                     noGardu: { in: transformedData.map(d => d.noGardu) }
@@ -361,14 +449,13 @@ export default async function handler(req, res) {
                 }
             });
 
-            // ✅ PARTIAL SUCCESS: Insert valid data
+            // ✅ INSERT DATA
             let createdCount = 0;
             const insertErrors = [];
 
             if (dataToInsert.length > 0) {
                 console.log(`💾 Menyimpan ${dataToInsert.length} data ke database...`);
                 
-                // Process in transaction but catch individual errors
                 for (const data of dataToInsert) {
                     try {
                         await db.substation.create({
@@ -386,11 +473,16 @@ export default async function handler(req, res) {
                                 penyulang: data.penyulang,
                                 arahSequence: data.arahSequence,
                                 tanggal: data.tanggal,
-                                measurements_siang: { create: data.measurements_siang },
-                                measurements_malam: { create: data.measurements_malam }
+                                measurements_siang: data.measurements_siang.length > 0 
+                                    ? { create: data.measurements_siang } 
+                                    : undefined,
+                                measurements_malam: data.measurements_malam.length > 0 
+                                    ? { create: data.measurements_malam } 
+                                    : undefined
                             }
                         });
                         createdCount++;
+                        console.log(`✅ Imported: ${data.noGardu}`);
                     } catch (dbError) {
                         insertErrors.push({
                             row: data.rowNumber,
@@ -406,20 +498,19 @@ export default async function handler(req, res) {
             const response = {
                 success: createdCount > 0,
                 message: createdCount > 0 
-                    ? `Import selesai. ${createdCount} gardu berhasil disimpan.`
-                    : 'Import gagal. Tidak ada data yang berhasil disimpan.',
+                    ? `✅ Import berhasil! ${createdCount} gardu telah disimpan ke database.`
+                    : '❌ Import gagal. Tidak ada data yang berhasil disimpan.',
                 summary: {
                     totalProcessed: transformedData.length,
                     successful: createdCount,
                     failed: insertErrors.length,
                     duplicates: duplicates.length,
                     validationErrors: validationErrors.length,
-                    skippedRows: skippedRows.length
+                    warnings: validationWarnings.length
                 },
                 details: {}
             };
 
-            // Add error details only if there are errors
             if (insertErrors.length > 0) {
                 response.details.insertErrors = insertErrors.slice(0, 20);
             }
@@ -429,28 +520,29 @@ export default async function handler(req, res) {
             if (validationErrors.length > 0) {
                 response.details.validationErrors = validationErrors.slice(0, 30);
             }
-            if (skippedRows.length > 0) {
-                response.details.skippedRows = skippedRows.slice(0, 10);
+            if (validationWarnings.length > 0) {
+                response.details.warnings = validationWarnings.slice(0, 20);
             }
 
-            console.log(`✅ Import selesai: ${createdCount} sukses, ${insertErrors.length} gagal`);
+            console.log(`✅ Import complete: ${createdCount} success, ${insertErrors.length} failed, ${duplicates.length} duplicates`);
             
             const statusCode = createdCount > 0 ? 200 : 400;
             res.status(statusCode).json(response);
 
         } catch (procError) {
-            console.error('💥 Terjadi kesalahan kritis:', procError);
+            console.error('💥 Critical error:', procError);
             res.status(500).json({ 
                 success: false, 
                 error: 'Gagal memproses file',
                 details: procError.message,
-                hint: 'Pastikan format file sesuai dengan template export dan semua kolom wajib terisi.'
+                stack: process.env.NODE_ENV === 'development' ? procError.stack : undefined,
+                hint: 'Pastikan format file sesuai dengan template export dan kolom wajib terisi (No. Gardu, ULP, Nama/Lokasi Gardu)'
             });
         } finally {
             try {
                 if (tempFilePath && fs.existsSync(tempFilePath)) {
                     fs.unlinkSync(tempFilePath);
-                    console.log('🧹 Temporary file cleaned up');
+                    console.log('🧹 Temporary file cleaned');
                 }
             } catch (cleanupError) {
                 console.warn('⚠️  Failed to cleanup temp file:', cleanupError);
