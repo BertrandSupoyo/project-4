@@ -31,10 +31,18 @@ const UserManagementPage = () => {
   const loadUsers = async () => {
     try {
       setUserLoading(true);
+      console.log('🔄 Loading users...');
       const usersData = await userService.getUsers();
+      console.log('✅ Users loaded:', usersData);
       setUsers(usersData);
     } catch (error) {
-      console.error('Failed to load users:', error);
+      console.error('❌ Failed to load users:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      alert('Gagal memuat data user. Silakan coba lagi.');
     } finally {
       setUserLoading(false);
     }
@@ -72,6 +80,7 @@ const UserManagementPage = () => {
 
   // Load users on component mount
   React.useEffect(() => {
+    console.log('🔄 UserManagementPage mounted, loading users...');
     loadUsers();
   }, []);
 
@@ -294,6 +303,7 @@ function App() {
 
   // Show login if not authenticated
   if (!isAuthenticated && !authLoading) {
+    console.log('🔍 Showing login - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     return (
       <AdminLogin 
         onLogin={handleLogin}
@@ -337,7 +347,8 @@ function App() {
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
-  console.log('isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
+  console.log('🔍 Auth Debug - isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
+  console.log('🔍 Auth Debug - isAuthenticated:', isAuthenticated, 'loading:', authLoading);
 
   // Hitung jumlah gardu kritis (unbalance > 80%)
   const criticalCount = substations.filter(substation => {
@@ -402,7 +413,7 @@ function App() {
 
       <Routes>
         <Route path="/riwayat" element={<RiwayatGarduPage />} />
-        <Route path="/users" element={<UserManagementPage />} />
+        <Route path="/users" element={isAdmin ? <UserManagementPage /> : <div className="container mx-auto px-4 py-8"><div className="text-center"><h1 className="text-2xl font-bold text-red-600">Access Denied</h1><p className="text-gray-600">You need admin privileges to access this page.</p></div></div>} />
         <Route path="/" element={
           <main className="container mx-auto px-4 py-8">
             {/* Stats Cards */}

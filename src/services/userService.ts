@@ -24,8 +24,12 @@ export interface UpdateUserData {
 export const userService = {
   // Get all users
   async getUsers(): Promise<User[]> {
+    console.log('🔄 Fetching users from /api/users');
     const response = await fetch('/api/users');
+    console.log('📡 Response status:', response.status);
+    
     const data = await response.json();
+    console.log('📦 Response data:', data);
     
     if (!response.ok) {
       throw new Error(data.error || 'Failed to fetch users');

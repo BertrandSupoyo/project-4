@@ -13,9 +13,13 @@ export const useAuth = () => {
     const token = localStorage.getItem('admin_token');
     const userData = localStorage.getItem('admin_user');
     
+    console.log('🔍 Auth check - Token:', token ? 'exists' : 'missing');
+    console.log('🔍 Auth check - UserData:', userData ? 'exists' : 'missing');
+    
     if (token && userData) {
       try {
         const user = JSON.parse(userData);
+        console.log('🔍 Parsed user:', user);
         setAuthState({
           user,
           isAuthenticated: true,

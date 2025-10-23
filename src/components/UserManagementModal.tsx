@@ -59,6 +59,8 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
         ? { id: editingUser.id, ...formData }
         : formData;
 
+      console.log('🔄 Submitting user data:', { method, body, url });
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -67,7 +69,9 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
         body: JSON.stringify(body),
       });
 
+      console.log('📡 Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save user');
@@ -89,6 +93,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
 
       onClose();
     } catch (err) {
+      console.error('❌ User management error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

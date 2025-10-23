@@ -92,6 +92,9 @@ export default async function handler(req, res) {
     const token = `${user.role}_token_${user.id}`;
 
     console.log('✅ Login successful');
+    console.log('👤 User data:', { id: user.id, username: user.username, name: user.name, role: user.role });
+    console.log('🔑 Generated token:', token);
+    
     res.json({
       success: true,
       data: {
