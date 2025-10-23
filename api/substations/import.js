@@ -21,13 +21,11 @@ async function initPrisma() {
     return prisma;
 }
 
-// FIXED: Corrected formula to exactly match measurementSiang/measurementMalam APIs
 function calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, daya) {
     const rata2 = (r + s + t) / 3;
     const kva = (rata2 * pp * 1.73) / 1000;
     const persen = daya ? (kva / daya) * 100 : 0;
     
-    // UNBALANCED: sesuai rumus Excel user - EXACT same formula as measurementSiang/measurementMalam
     const unbalanced = rata2 !== 0
         ? (Math.abs((r / rata2) - 1) + Math.abs((s / rata2) - 1) + Math.abs((t / rata2) - 1)) * 100
         : 0;
@@ -65,8 +63,8 @@ export default async function handler(req, res) {
     const allowThisOrigin = (() => {
         if (!origin) return false;
         if (origin.startsWith('http://localhost:')) return true;
-        if (origin.endsWith('.vercel.app')) return true; // allow all vercel preview/prod domains
-        if (origin === 'https://project-4-vyl4.vercel.app') return true; // production
+        if (origin.endsWith('.vercel.app')) return true;
+        if (origin === 'https://project-4-vyl4.vercel.app') return true;
         return false;
     })();
 
@@ -97,7 +95,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, error: 'Error parsing upload' });
         }
 
-        // Handle formidable v3 shape: can be a single File or an array
         const incoming = files.file;
         const uploaded = Array.isArray(incoming) ? incoming[0] : incoming;
         if (!uploaded || !uploaded.filepath) {
@@ -119,7 +116,7 @@ export default async function handler(req, res) {
 
             let workbook;
             try {
-                workbook = XLSX.read(fileContent, { type: 'buffer' });
+                workbook = XLSX.read(fileContent, { type: 'buffer', cellDates: true });
             } catch (parseErr) {
                 console.error('📄 Failed to parse Excel file:', parseErr);
                 return res.status(400).json({ success: false, error: 'Invalid Excel file', details: parseErr.message });
@@ -129,133 +126,220 @@ export default async function handler(req, res) {
             if (!sheetName) {
                 return res.status(400).json({ success: false, error: 'Excel has no sheets' });
             }
-            const worksheet = workbook.Sheets[sheetName];
-            const allRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, cellDates: true });
-
-            const normalizeHeader = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const headerRowIdx = allRows.findIndex(row => row.some(cell => normalizeHeader(cell) === 'nogardu'));
-            if (headerRowIdx === -1) {
-                return res.status(400).json({ success: false, error: 'Header "nogardu" tidak ditemukan.' });
-            }
             
-            const headerRow = allRows[headerRowIdx].map(normalizeHeader);
-            const dataRows = allRows.slice(headerRowIdx + 1);
+            const worksheet = workbook.Sheets[sheetName];
+            
+            // Read as array of arrays
+            const allRows = XLSX.utils.sheet_to_json(worksheet, { 
+                header: 1, 
+                defval: '',
+                raw: false,
+                cellDates: true
+            });
 
-            const getField = (rowObj, keys) => {
-                for (const key of keys) {
-                    const val = rowObj[key];
-                    if (val !== undefined && val !== null && String(val).trim() !== '') return val;
-                }
-                return '';
-            };
-
-            // New row-oriented parser: group rows by (noGardu, month)
-            const groupsMap = new Map();
-            for (let i = 0; i < dataRows.length; i++) {
-                const rowArr = dataRows[i];
-                if (!rowArr || rowArr.length === 0) continue;
-                const rowObj = {};
-                headerRow.forEach((col, idx) => { rowObj[col] = rowArr?.[idx]; });
-
-                const ulpVal = String(getField(rowObj, ['ulp'])).trim();
-                const noGarduVal = String(getField(rowObj, ['nogardu', 'no.gardu', 'no_gardu'])).trim();
-                const namaLokasiVal = String(getField(rowObj, ['namalokasi', 'namalokasigardu', 'nama/lokasi'])).trim();
-                if (!ulpVal && !noGarduVal && !namaLokasiVal) continue;
-
-                const tanggalValue = parseSafeDate(getField(rowObj, ['tanggal']));
-                const monthValue = tanggalValue.toISOString().slice(0, 7);
-                const key = `${noGarduVal}__${monthValue}`;
-
-                if (!groupsMap.has(key)) {
-                    groupsMap.set(key, {
-                        main: {
-                            no: 0,
-                            ulp: ulpVal,
-                            noGardu: noGarduVal,
-                            namaLokasiGardu: namaLokasiVal,
-                            jenis: String(getField(rowObj, ['jenis'])).trim(),
-                            merek: String(getField(rowObj, ['merk', 'merek'])).trim(),
-                            daya: String(getField(rowObj, ['daya'])).trim(),
-                            tahun: String(getField(rowObj, ['tahun'])).trim(),
-                            phasa: String(getField(rowObj, ['phasa'])).trim(),
-                            tap_trafo_max_tap: String(getField(rowObj, ['taptrafomaxtap'])).trim(),
-                            penyulang: String(getField(rowObj, ['penyulang'])).trim(),
-                            arahSequence: String(getField(rowObj, ['arahsequence'])).trim(),
-                            tanggal: tanggalValue,
-                        },
-                        siang: [],
-                        malam: []
-                    });
-                }
-
-                const group = groupsMap.get(key);
-                const m = group.main;
-                m.ulp ||= ulpVal;
-                m.noGardu ||= noGarduVal;
-                m.namaLokasiGardu ||= namaLokasiVal;
-                m.jenis ||= String(getField(rowObj, ['jenis'])).trim();
-                m.merek ||= String(getField(rowObj, ['merk', 'merek'])).trim();
-                m.daya ||= String(getField(rowObj, ['daya'])).trim();
-                m.tahun ||= String(getField(rowObj, ['tahun'])).trim();
-                m.phasa ||= String(getField(rowObj, ['phasa'])).trim();
-                m.tap_trafo_max_tap ||= String(getField(rowObj, ['taptrafomaxtap'])).trim();
-                m.penyulang ||= String(getField(rowObj, ['penyulang'])).trim();
-                m.arahSequence ||= String(getField(rowObj, ['arahsequence'])).trim();
-
-                const jurusan = String(getField(rowObj, ['jurusan'])).toLowerCase().trim();
-                const allowRowNames = new Set(['induk','1','2','3','4']);
-                if (!jurusan || !allowRowNames.has(jurusan)) continue;
-
-                const powerRating = parseFloat(m.daya) || 0;
-                const extractFor = (timeOfDay) => {
-                    const r = parseFloat(getField(rowObj, [`r${timeOfDay}`, `r(${timeOfDay})`, `r_${timeOfDay}`])) || 0;
-                    const s = parseFloat(getField(rowObj, [`s${timeOfDay}`, `s(${timeOfDay})`, `s_${timeOfDay}`])) || 0;
-                    const t = parseFloat(getField(rowObj, [`t${timeOfDay}`, `t(${timeOfDay})`, `t_${timeOfDay}`])) || 0;
-                    const n = parseFloat(getField(rowObj, [`n${timeOfDay}`, `n(${timeOfDay})`, `n_${timeOfDay}`])) || 0;
-                    const rn = parseFloat(getField(rowObj, [`rn${timeOfDay}`, `r-n(${timeOfDay})`, `rn_${timeOfDay}`])) || 0;
-                    const sn = parseFloat(getField(rowObj, [`sn${timeOfDay}`, `s-n(${timeOfDay})`, `sn_${timeOfDay}`])) || 0;
-                    const tn = parseFloat(getField(rowObj, [`tn${timeOfDay}`, `t-n(${timeOfDay})`, `tn_${timeOfDay}`])) || 0;
-                    const pp = parseFloat(getField(rowObj, [`pp${timeOfDay}`, `p-p(${timeOfDay})`, `pp_${timeOfDay}`])) || 0;
-                    const pn = parseFloat(getField(rowObj, [`pn${timeOfDay}`, `p-n(${timeOfDay})`, `pn_${timeOfDay}`])) || 0;
-                    const calc = calculateMeasurements(r, s, t, n, rn, sn, tn, pp, pn, powerRating);
-                    return { month: monthValue, row_name: jurusan, r, s, t, n, rn, sn, tn, pp, pn, rata2: calc.rata2, kva: calc.kva, persen: calc.persen, unbalanced: calc.unbalanced };
-                };
-                const hasSiang = ['r','s','t','n','rn','sn','tn','pp','pn'].some(k => getField(rowObj, [`${k}siang`, `${k}(siang)`, `${k}_siang`]) !== '');
-                const hasMalam = ['r','s','t','n','rn','sn','tn','pp','pn'].some(k => getField(rowObj, [`${k}malam`, `${k}(malam)`, `${k}_malam`]) !== '');
-                if (hasSiang) group.siang.push(extractFor('siang'));
-                if (hasMalam) group.malam.push(extractFor('malam'));
+            console.log(`📊 Total rows in Excel: ${allRows.length}`);
+            
+            // Skip header rows (rows 1-5, which is index 0-4)
+            const HEADER_ROWS = 5;
+            const dataStartRow = HEADER_ROWS;
+            
+            if (allRows.length <= HEADER_ROWS) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: `File hanya memiliki ${allRows.length} baris. Minimal ${HEADER_ROWS + 5} baris diperlukan.` 
+                });
             }
 
+            const dataRows = allRows.slice(dataStartRow);
+            console.log(`📋 Data rows to process: ${dataRows.length}`);
+
+            // Group every 5 rows as 1 substation
             const transformedData = [];
-            for (const [, g] of groupsMap) {
-                const dedupeByRow = (arr) => {
-                    const map = new Map();
-                    for (const it of arr) map.set(it.row_name, it);
-                    return Array.from(map.values());
-                };
-                const siang = dedupeByRow(g.siang);
-                const malam = dedupeByRow(g.malam);
-                if (!g.main.noGardu || (!siang.length && !malam.length)) continue;
-                transformedData.push({ ...g.main, measurements_siang: siang, measurements_malam: malam });
+            const ROWS_PER_SUBSTATION = 5;
+            const expectedJurusan = ['induk', '1', '2', '3', '4'];
+            
+            for (let i = 0; i < dataRows.length; i += ROWS_PER_SUBSTATION) {
+                const substationRows = dataRows.slice(i, i + ROWS_PER_SUBSTATION);
+                
+                if (substationRows.length < ROWS_PER_SUBSTATION) {
+                    console.warn(`⚠️  Skipping incomplete group at row ${i + dataStartRow + 1}: only ${substationRows.length} rows`);
+                    continue;
+                }
+
+                // Master data from first row (columns A-N / index 0-13)
+                // These are merged cells, so only first row has data
+                const masterRow = substationRows[0];
+                
+                // Column mapping based on your Excel:
+                // A=0:NO, B=1:ULP, C=2:NO_GARDU, D=3:NAMA/LOKASI, E=4:JENIS, 
+                // F=5:MEREK, G=6:DAYA, H=7:TAHUN, I=8:PHASA, J=9:TAP_TRAFO,
+                // K=10:ARAH_SEQ, L=11:PENYULANG, M=12:TANGGAL, N=13:JURUSAN(not used here)
+                
+                const noFromExcel = String(masterRow[0] || '').trim();
+                const ulp = String(masterRow[1] || '').trim();
+                const noGardu = String(masterRow[2] || '').trim();
+                const namaLokasiGardu = String(masterRow[3] || '').trim();
+                const jenis = String(masterRow[4] || '').trim();
+                const merek = String(masterRow[5] || '').trim();
+                const daya = String(masterRow[6] || '').trim();
+                const tahun = String(masterRow[7] || '').trim();
+                const phasa = String(masterRow[8] || '').trim();
+                const tap_trafo_max_tap = String(masterRow[9] || '').trim();
+                const arahSequence = String(masterRow[10] || '').trim();
+                const penyulang = String(masterRow[11] || '').trim();
+                const tanggalRaw = masterRow[12];
+                const tanggal = parseSafeDate(tanggalRaw);
+                const monthValue = tanggal.toISOString().slice(0, 7);
+
+                // Validate essential fields
+                if (!noGardu && !namaLokasiGardu) {
+                    console.warn(`⚠️  Skipping substation at row ${i + dataStartRow + 1}: no identifier`);
+                    continue;
+                }
+
+                const powerRating = parseFloat(daya) || 0;
+                
+                console.log(`\n📍 Processing: ${noGardu || namaLokasiGardu} (${ulp}) - rows ${i + dataStartRow + 1} to ${i + dataStartRow + 5}`);
+
+                // Extract measurements from all 5 rows
+                // Column O (index 14) = JURUSAN for each row
+                // Columns P-X (index 15-23) = PENGUKURAN SIANG (R,S,T,N,R-N,S-N,T-N,P-P,P-N)
+                // Columns Y-AG (index 24-32) = PENGUKURAN MALAM (R,S,T,N,R-N,S-N,T-N,P-P,P-N)
+                const measurements_siang = [];
+                const measurements_malam = [];
+
+                for (let j = 0; j < ROWS_PER_SUBSTATION; j++) {
+                    const row = substationRows[j];
+                    
+                    // Column O (index 14) = JURUSAN
+                    const jurusanRaw = String(row[14] || '').toLowerCase().trim();
+                    const jurusanNormalized = jurusanRaw === 'induk' ? 'induk' : jurusanRaw;
+                    
+                    if (!expectedJurusan.includes(jurusanNormalized)) {
+                        console.warn(`⚠️  Row ${i + j + dataStartRow + 1}: invalid jurusan "${jurusanRaw}"`);
+                        continue;
+                    }
+
+                    // PENGUKURAN SIANG: Columns P-X (index 15-23)
+                    // P=15:R, Q=16:S, R=17:T, S=18:N, T=19:R-N, U=20:S-N, V=21:T-N, W=22:P-P, X=23:P-N
+                    const r_siang = parseFloat(row[15]) || 0;
+                    const s_siang = parseFloat(row[16]) || 0;
+                    const t_siang = parseFloat(row[17]) || 0;
+                    const n_siang = parseFloat(row[18]) || 0;
+                    const rn_siang = parseFloat(row[19]) || 0;
+                    const sn_siang = parseFloat(row[20]) || 0;
+                    const tn_siang = parseFloat(row[21]) || 0;
+                    const pp_siang = parseFloat(row[22]) || 0;
+                    const pn_siang = parseFloat(row[23]) || 0;
+
+                    const calc_siang = calculateMeasurements(
+                        r_siang, s_siang, t_siang, n_siang,
+                        rn_siang, sn_siang, tn_siang,
+                        pp_siang, pn_siang, powerRating
+                    );
+
+                    measurements_siang.push({
+                        month: monthValue,
+                        row_name: jurusanNormalized,
+                        r: r_siang,
+                        s: s_siang,
+                        t: t_siang,
+                        n: n_siang,
+                        rn: rn_siang,
+                        sn: sn_siang,
+                        tn: tn_siang,
+                        pp: pp_siang,
+                        pn: pn_siang,
+                        rata2: calc_siang.rata2,
+                        kva: calc_siang.kva,
+                        persen: calc_siang.persen,
+                        unbalanced: calc_siang.unbalanced
+                    });
+
+                    // PENGUKURAN MALAM: Columns Y-AG (index 24-32)
+                    // Y=24:R, Z=25:S, AA=26:T, AB=27:N, AC=28:R-N, AD=29:S-N, AE=30:T-N, AF=31:P-P, AG=32:P-N
+                    const r_malam = parseFloat(row[24]) || 0;
+                    const s_malam = parseFloat(row[25]) || 0;
+                    const t_malam = parseFloat(row[26]) || 0;
+                    const n_malam = parseFloat(row[27]) || 0;
+                    const rn_malam = parseFloat(row[28]) || 0;
+                    const sn_malam = parseFloat(row[29]) || 0;
+                    const tn_malam = parseFloat(row[30]) || 0;
+                    const pp_malam = parseFloat(row[31]) || 0;
+                    const pn_malam = parseFloat(row[32]) || 0;
+
+                    const calc_malam = calculateMeasurements(
+                        r_malam, s_malam, t_malam, n_malam,
+                        rn_malam, sn_malam, tn_malam,
+                        pp_malam, pn_malam, powerRating
+                    );
+
+                    measurements_malam.push({
+                        month: monthValue,
+                        row_name: jurusanNormalized,
+                        r: r_malam,
+                        s: s_malam,
+                        t: t_malam,
+                        n: n_malam,
+                        rn: rn_malam,
+                        sn: sn_malam,
+                        tn: tn_malam,
+                        pp: pp_malam,
+                        pn: pn_malam,
+                        rata2: calc_malam.rata2,
+                        kva: calc_malam.kva,
+                        persen: calc_malam.persen,
+                        unbalanced: calc_malam.unbalanced
+                    });
+
+                    console.log(`  ✓ ${jurusanNormalized}: Siang=${r_siang}/${s_siang}/${t_siang}, Malam=${r_malam}/${s_malam}/${t_malam}`);
+                }
+
+                // Only add if we have valid measurements
+                if (measurements_siang.length > 0 || measurements_malam.length > 0) {
+                    transformedData.push({
+                        no: 0, // Will be set by database
+                        ulp,
+                        noGardu,
+                        namaLokasiGardu,
+                        jenis,
+                        merek,
+                        daya,
+                        tahun,
+                        phasa,
+                        tap_trafo_max_tap,
+                        penyulang,
+                        arahSequence,
+                        tanggal,
+                        measurements_siang,
+                        measurements_malam
+                    });
+                } else {
+                    console.warn(`⚠️  No valid measurements for substation at row ${i + dataStartRow + 1}`);
+                }
             }
 
             if (transformedData.length === 0) {
-                return res.status(400).json({ success: false, error: 'Tidak ada data valid untuk diimpor.' });
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Tidak ada data valid untuk diimpor. Pastikan format Excel sesuai dengan template.' 
+                });
             }
             
-            console.log(`📊 Ditemukan ${transformedData.length} data gardu valid. Memulai transaksi database...`);
+            console.log(`\n📊 Total ${transformedData.length} substation(s) siap diimpor ke database...`);
             
             const db = await initPrisma();
             
             const result = await db.$transaction(async (tx) => {
                 let createdCount = 0;
+                
                 for (const data of transformedData) {
-                    // Generate next sequential `no` regardless of Excel content
+                    // Generate sequential number
                     const agg = await tx.substation.aggregate({ _max: { no: true } });
                     const maxNo = agg?._max?.no || 0;
                     const safeNo = maxNo + 1;
 
-                    // Create substation first, then bulk insert measurements to avoid nested unique conflicts
+                    // Create substation
                     const created = await tx.substation.create({
                         data: {
                             no: safeNo,
@@ -279,6 +363,7 @@ export default async function handler(req, res) {
                         }
                     });
 
+                    // Bulk insert measurements
                     if (data.measurements_siang?.length) {
                         const siangRows = data.measurements_siang.map(m => ({
                             substationId: created.id,
@@ -306,33 +391,40 @@ export default async function handler(req, res) {
                         }));
                         await tx.measurementMalam.createMany({ data: malamRows, skipDuplicates: true });
                     }
+                    
                     createdCount++;
+                    console.log(`  ✅ Created: ${data.noGardu} with ${data.measurements_siang.length} siang + ${data.measurements_malam.length} malam measurements`);
                 }
+                
                 return { createdCount };
             });
 
-            console.log(`✅ Transaksi berhasil. ${result.createdCount} gardu berhasil dibuat WITH CORRECTED CALCULATIONS.`);
+            console.log(`\n🎉 Import berhasil! ${result.createdCount} substation telah dibuat.`);
+            
             res.status(200).json({
                 success: true,
-                message: `Impor selesai. ${result.createdCount} gardu berhasil dibuat dengan kalkulasi otomatis yang benar.`,
-                data: { createdCount: result.createdCount, errors: [] },
+                message: `Import berhasil! ${result.createdCount} substation dengan pengukuran telah ditambahkan.`,
+                data: { 
+                    createdCount: result.createdCount, 
+                    errors: [] 
+                },
             });
 
         } catch (procError) {
-            console.error('💥 Terjadi kesalahan kritis:', procError?.stack || procError);
+            console.error('💥 Error:', procError?.stack || procError);
             res.status(500).json({ 
                 success: false, 
-                error: 'Gagal memproses file di server.', 
+                error: 'Gagal memproses file.', 
                 details: procError?.message || String(procError)
             });
         } finally {
             try {
                 if (tempFilePath && fs.existsSync(tempFilePath)) {
                     fs.unlinkSync(tempFilePath);
-                    console.log('🧹 Temporary file cleaned up');
+                    console.log('🧹 Temp file cleaned');
                 }
             } catch (cleanupError) {
-                console.warn('⚠️  Failed to cleanup temp file:', cleanupError);
+                console.warn('⚠️  Cleanup warning:', cleanupError);
             }
         }
     });
