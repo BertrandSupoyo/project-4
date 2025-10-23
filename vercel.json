@@ -16,17 +16,17 @@
     "api/substations/import.js": {
       "maxDuration": 60
     },
+    "api/substations/[id].js": {
+      "maxDuration": 30
+    },
     "api/measurements_siang/bulk.js": {
       "maxDuration": 60
     },
     "api/measurements_malam/bulk.js": {
       "maxDuration": 60
     },
-    "api/export/riwayat.js": {
-      "maxDuration": 60
-    },
-    "api/export/substation-detail.js": {
-      "maxDuration": 60
+    "api/users/index.js": {
+      "maxDuration": 30
     },
     "api/fix-measurements-data.js": {
       "maxDuration": 120
