@@ -484,10 +484,21 @@ export default async function handler(req, res) {
 
         } catch (procError) {
             console.error('💥 Error:', procError?.stack || procError);
+            console.error('💥 Error message:', procError?.message);
+            console.error('💥 Error name:', procError?.name);
+            
+            // Log lebih detail untuk debugging
+            let errorDetail = procError?.message || String(procError);
+            if (procError?.stack) {
+                errorDetail += '\n' + procError.stack.split('\n').slice(0, 5).join('\n');
+            }
+            
             res.status(500).json({ 
                 success: false, 
                 error: 'Gagal memproses file.', 
-                details: procError?.message || String(procError)
+                message: procError?.message || 'Unknown error',
+                details: errorDetail,
+                type: procError?.constructor?.name
             });
         } finally {
             try {
