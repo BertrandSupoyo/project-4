@@ -1,4 +1,14 @@
-import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js';
+// PENGUKURAN SIANG: Columns O-W (index 14-22)
+                    // O=14:R, P=15:S, Q=16:T, R=17:N, S=18:R-N, T=19:S-N, U=20:T-N, V=21:P-P, W=22:P-N
+                    const r_siang = parseFloat(row[14]) || 0;
+                    const s_siang = parseFloat(row[15]) || 0;
+                    const t_siang = parseFloat(row[16]) || 0;
+                    const n_siang = parseFloat(row[17]) || 0;
+                    const rn_siang = parseFloat(row[18]) || 0;
+                    const sn_siang = parseFloat(row[19]) || 0;
+                    const tn_siang = parseFloat(row[20]) || 0;
+                    const pp_siang = parseFloat(row[21]) || 0;
+                    const pn_siang = parseFloat(row[22]) || 0;import { PrismaClient } from '../../prisma/app/generated/prisma-client/index.js';
 import { withAccelerate } from '@prisma/extension-accelerate';
 import { IncomingForm } from 'formidable';
 import * as XLSX from 'xlsx';
@@ -63,8 +73,8 @@ function validateFiveRows(substationRows, startRowNumber, expectedJurusan = ['in
         const row = substationRows[j];
         const currentRowNum = startRowNumber + j;
         
-        // Cek jurusan (column O / index 14) - WAJIB ada
-        const jurusanRaw = String(row[14] || '').toLowerCase().trim();
+        // Cek jurusan (column N / index 13) - WAJIB ada
+        const jurusanRaw = String(row[13] || '').toLowerCase().trim();
         
         if (!jurusanRaw || jurusanRaw === '') {
             errors.push(`  ❌ Row ${currentRowNum}: Jurusan kosong (column O)`);
@@ -318,16 +328,17 @@ export default async function handler(req, res) {
                         unbalanced: calc_siang.unbalanced
                     });
 
-                    // PENGUKURAN MALAM
-                    const r_malam = parseFloat(row[24]) || 0;
-                    const s_malam = parseFloat(row[25]) || 0;
-                    const t_malam = parseFloat(row[26]) || 0;
-                    const n_malam = parseFloat(row[27]) || 0;
-                    const rn_malam = parseFloat(row[28]) || 0;
-                    const sn_malam = parseFloat(row[29]) || 0;
-                    const tn_malam = parseFloat(row[30]) || 0;
-                    const pp_malam = parseFloat(row[31]) || 0;
-                    const pn_malam = parseFloat(row[32]) || 0;
+                    // PENGUKURAN MALAM: Columns X-AF (index 23-31)
+                    // X=23:R, Y=24:S, Z=25:T, AA=26:N, AB=27:R-N, AC=28:S-N, AD=29:T-N, AE=30:P-P, AF=31:P-N
+                    const r_malam = parseFloat(row[23]) || 0;
+                    const s_malam = parseFloat(row[24]) || 0;
+                    const t_malam = parseFloat(row[25]) || 0;
+                    const n_malam = parseFloat(row[26]) || 0;
+                    const rn_malam = parseFloat(row[27]) || 0;
+                    const sn_malam = parseFloat(row[28]) || 0;
+                    const tn_malam = parseFloat(row[29]) || 0;
+                    const pp_malam = parseFloat(row[30]) || 0;
+                    const pn_malam = parseFloat(row[31]) || 0;
 
                     const calc_malam = calculateMeasurements(
                         r_malam, s_malam, t_malam, n_malam,
@@ -380,10 +391,13 @@ export default async function handler(req, res) {
             console.log(`\n📊 Summary: ${transformedData.length} substation valid dari ${Math.ceil(dataRows.length / ROWS_PER_SUBSTATION)} group`);
 
             if (transformedData.length === 0) {
+                console.error('❌ All validation errors:', allValidationErrors);
                 return res.status(400).json({ 
                     success: false, 
                     error: 'Tidak ada data valid untuk diimpor.',
-                    validationErrors: allValidationErrors
+                    details: 'Periksa validationErrors di bawah',
+                    validationErrors: allValidationErrors,
+                    totalErrors: allValidationErrors.length
                 });
             }
             
