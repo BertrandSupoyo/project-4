@@ -198,17 +198,9 @@ export default async function handler(req, res) {
 
             console.log(`📊 Total rows in Excel: ${allRows.length}`);
             
-            let dataStartRow = -1;
-            for (let i = 0; i < Math.min(10, allRows.length); i++) {
-                const row = allRows[i];
-                const ulp = String(row[1] || '').trim();
-                const noGardu = String(row[2] || '').trim();
-                if ((ulp && ulp !== 'ULP') || (noGardu && noGardu !== 'NO GARDU' && noGardu !== 'NO. GARDU')) {
-                    dataStartRow = i;
-                    console.log(`✅ Data starts at row ${i + 1} (index ${i})`);
-                    break;
-                }
-            }
+            // Data mulai dari row 6 (index 5)
+            const dataStartRow = 5;
+            console.log(`✅ Data starts at row 6 (index 5)`);
             
             if (dataStartRow === -1) {
                 return res.status(400).json({ 
