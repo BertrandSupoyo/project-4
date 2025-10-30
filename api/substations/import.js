@@ -63,7 +63,7 @@ function validateFiveRows(substationRows, startRowNumber, expectedJurusan = ['in
         const row = substationRows[j];
         const currentRowNum = startRowNumber + j;
         
-        // Cek jurusan (column O / index 14)
+        // Cek jurusan (column O / index 14) - WAJIB ada
         const jurusanRaw = String(row[14] || '').toLowerCase().trim();
         
         if (!jurusanRaw || jurusanRaw === '') {
@@ -78,29 +78,18 @@ function validateFiveRows(substationRows, startRowNumber, expectedJurusan = ['in
             continue;
         }
 
-        // Cek minimal ada data siang (columns P-X / index 15-23)
+        // Data kosong = default 0 (tidak perlu error)
         const r_siang = parseFloat(row[15]) || 0;
         const s_siang = parseFloat(row[16]) || 0;
         const t_siang = parseFloat(row[17]) || 0;
         const pp_siang = parseFloat(row[22]) || 0;
 
-        if (r_siang === 0 && s_siang === 0 && t_siang === 0) {
-            errors.push(`  ❌ Row ${currentRowNum}: Data siang kosong/nol semua (R,S,T)`);
-            continue;
-        }
-
-        // Cek minimal ada data malam (columns Y-AG / index 24-32)
         const r_malam = parseFloat(row[24]) || 0;
         const s_malam = parseFloat(row[25]) || 0;
         const t_malam = parseFloat(row[26]) || 0;
         const pp_malam = parseFloat(row[31]) || 0;
 
-        if (r_malam === 0 && s_malam === 0 && t_malam === 0) {
-            errors.push(`  ❌ Row ${currentRowNum}: Data malam kosong/nol semua (R,S,T)`);
-            continue;
-        }
-
-        // Row valid
+        // Row valid (jurusan valid sudah cukup, data bisa 0)
         validRows.push({
             rowNumber: currentRowNum,
             jurusan: jurusanNormalized,
