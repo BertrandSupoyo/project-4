@@ -52,6 +52,67 @@ function parseSafeDate(dateInput) {
     return isNaN(date) ? new Date() : date;
 }
 
+// Validasi 5 row data untuk 1 substation
+function validateFiveRows(substationRows, startRowNumber, expectedJurusan = ['induk', '1', '2', '3', '4']) {
+    const errors = [];
+    const validRows = [];
+
+    console.log(`\n🔍 Validasi 5 row: baris ${startRowNumber} s/d ${startRowNumber + 4}`);
+
+    for (let j = 0; j < 5; j++) {
+        const row = substationRows[j];
+        const currentRowNum = startRowNumber + j;
+        
+        // Cek jurusan (column O / index 14)
+        const jurusanRaw = String(row[14] || '').toLowerCase().trim();
+        
+        if (!jurusanRaw || jurusanRaw === '') {
+            errors.push(`  ❌ Row ${currentRowNum}: Jurusan kosong (column O)`);
+            continue;
+        }
+
+        const jurusanNormalized = jurusanRaw === 'induk' ? 'induk' : jurusanRaw;
+        
+        if (!expectedJurusan.includes(jurusanNormalized)) {
+            errors.push(`  ⚠️  Row ${currentRowNum}: Jurusan tidak valid "${jurusanRaw}" (expected: ${expectedJurusan.join(', ')})`);
+            continue;
+        }
+
+        // Cek minimal ada data siang (columns P-X / index 15-23)
+        const r_siang = parseFloat(row[15]) || 0;
+        const s_siang = parseFloat(row[16]) || 0;
+        const t_siang = parseFloat(row[17]) || 0;
+        const pp_siang = parseFloat(row[22]) || 0;
+
+        if (r_siang === 0 && s_siang === 0 && t_siang === 0) {
+            errors.push(`  ❌ Row ${currentRowNum}: Data siang kosong/nol semua (R,S,T)`);
+            continue;
+        }
+
+        // Cek minimal ada data malam (columns Y-AG / index 24-32)
+        const r_malam = parseFloat(row[24]) || 0;
+        const s_malam = parseFloat(row[25]) || 0;
+        const t_malam = parseFloat(row[26]) || 0;
+        const pp_malam = parseFloat(row[31]) || 0;
+
+        if (r_malam === 0 && s_malam === 0 && t_malam === 0) {
+            errors.push(`  ❌ Row ${currentRowNum}: Data malam kosong/nol semua (R,S,T)`);
+            continue;
+        }
+
+        // Row valid
+        validRows.push({
+            rowNumber: currentRowNum,
+            jurusan: jurusanNormalized,
+            data: row
+        });
+        
+        console.log(`  ✅ Row ${currentRowNum}: ${jurusanNormalized} - Siang: ${r_siang}/${s_siang}/${t_siang}, Malam: ${r_malam}/${s_malam}/${t_malam}`);
+    }
+
+    return { validRows, errors };
+}
+
 export const config = {
     api: {
         bodyParser: false,
@@ -129,7 +190,6 @@ export default async function handler(req, res) {
             
             const worksheet = workbook.Sheets[sheetName];
             
-            // Read as array of arrays
             const allRows = XLSX.utils.sheet_to_json(worksheet, { 
                 header: 1, 
                 defval: '',
@@ -139,13 +199,11 @@ export default async function handler(req, res) {
 
             console.log(`📊 Total rows in Excel: ${allRows.length}`);
             
-            // Find where data actually starts by looking for first non-empty NO or ULP
             let dataStartRow = -1;
             for (let i = 0; i < Math.min(10, allRows.length); i++) {
                 const row = allRows[i];
                 const ulp = String(row[1] || '').trim();
                 const noGardu = String(row[2] || '').trim();
-                // Check if this looks like data (not header)
                 if ((ulp && ulp !== 'ULP') || (noGardu && noGardu !== 'NO GARDU' && noGardu !== 'NO. GARDU')) {
                     dataStartRow = i;
                     console.log(`✅ Data starts at row ${i + 1} (index ${i})`);
@@ -163,37 +221,44 @@ export default async function handler(req, res) {
             const dataRows = allRows.slice(dataStartRow);
             console.log(`📋 Data rows to process: ${dataRows.length} (starting from Excel row ${dataStartRow + 1})`);
             
-            // Debug: Log first few data rows
             if (dataRows.length > 0) {
                 console.log('🔍 First data row [0] (first 20 columns):');
                 console.log(dataRows[0].slice(0, 20).map((val, idx) => `[${idx}]=${val}`).join(', '));
-                if (dataRows.length > 1) {
-                    console.log('🔍 Second data row [1] (columns 0-15):');
-                    console.log(dataRows[1].slice(0, 16).map((val, idx) => `[${idx}]=${val}`).join(', '));
-                }
             }
 
-            // Group every 5 rows as 1 substation
             const transformedData = [];
             const ROWS_PER_SUBSTATION = 5;
             const expectedJurusan = ['induk', '1', '2', '3', '4'];
+            const allValidationErrors = [];
             
             for (let i = 0; i < dataRows.length; i += ROWS_PER_SUBSTATION) {
                 const substationRows = dataRows.slice(i, i + ROWS_PER_SUBSTATION);
+                const excelRowStart = i + dataStartRow + 1;
                 
                 if (substationRows.length < ROWS_PER_SUBSTATION) {
-                    console.warn(`⚠️  Skipping incomplete group at row ${i + dataStartRow + 1}: only ${substationRows.length} rows`);
+                    console.warn(`⚠️  Skipping incomplete group at row ${excelRowStart}: only ${substationRows.length} rows`);
+                    allValidationErrors.push(`Group at Excel row ${excelRowStart}: incomplete (${substationRows.length}/5 rows)`);
                     continue;
                 }
 
-                // Master data from first row (columns A-N / index 0-13)
-                // These are merged cells, so only first row has data
-                const masterRow = substationRows[0];
+                // Validasi 5 row dulu
+                const { validRows, errors } = validateFiveRows(substationRows, excelRowStart, expectedJurusan);
                 
-                // Column mapping based on your Excel:
-                // A=0:NO, B=1:ULP, C=2:NO_GARDU, D=3:NAMA/LOKASI, E=4:JENIS, 
-                // F=5:MEREK, G=6:DAYA, H=7:TAHUN, I=8:PHASA, J=9:TAP_TRAFO,
-                // K=10:ARAH_SEQ, L=11:PENYULANG, M=12:TANGGAL, N=13:JURUSAN(not used here)
+                if (errors.length > 0) {
+                    console.warn(`⚠️  Validasi gagal untuk baris ${excelRowStart}:`);
+                    errors.forEach(err => console.warn(err));
+                    allValidationErrors.push(`Row ${excelRowStart}: ${errors.join('; ')}`);
+                    continue; // Skip substation ini
+                }
+
+                if (validRows.length !== ROWS_PER_SUBSTATION) {
+                    console.warn(`⚠️  Row ${excelRowStart}: Hanya ${validRows.length}/5 row yang valid`);
+                    allValidationErrors.push(`Row ${excelRowStart}: hanya ${validRows.length}/5 row valid`);
+                    continue; // Skip substation ini jika tidak semua 5 row valid
+                }
+
+                // Jika semua 5 row valid, baru proses master data
+                const masterRow = substationRows[0];
                 
                 const noFromExcel = String(masterRow[0] || '').trim();
                 const ulp = String(masterRow[1] || '').trim();
@@ -211,55 +276,25 @@ export default async function handler(req, res) {
                 const tanggal = parseSafeDate(tanggalRaw);
                 const monthValue = tanggal.toISOString().slice(0, 7);
 
-                // Validate essential fields
                 if (!noGardu && !namaLokasiGardu) {
-                    console.warn(`⚠️  Skipping substation at row ${i + dataStartRow + 1}: no identifier`);
+                    console.warn(`⚠️  Skipping substation at row ${excelRowStart}: no identifier`);
+                    allValidationErrors.push(`Row ${excelRowStart}: tidak ada identitas substation`);
                     continue;
                 }
 
                 const powerRating = parseFloat(daya) || 0;
                 
-                console.log(`\n📍 Processing: ${noGardu || namaLokasiGardu} (${ulp}) - rows ${i + dataStartRow + 1} to ${i + dataStartRow + 5}`);
+                console.log(`\n📍 Processing: ${noGardu || namaLokasiGardu} (${ulp})`);
 
-                // Extract measurements from all 5 rows
-                // Column O (index 14) = JURUSAN for each row
-                // Columns P-X (index 15-23) = PENGUKURAN SIANG (R,S,T,N,R-N,S-N,T-N,P-P,P-N)
-                // Columns Y-AG (index 24-32) = PENGUKURAN MALAM (R,S,T,N,R-N,S-N,T-N,P-P,P-N)
                 const measurements_siang = [];
                 const measurements_malam = [];
 
-                for (let j = 0; j < ROWS_PER_SUBSTATION; j++) {
-                    const row = substationRows[j];
-                    
-                    // Try both column N (13) and O (14) for JURUSAN
-                    let jurusanRaw = String(row[14] || '').toLowerCase().trim(); // Try O first
-                    if (!jurusanRaw || jurusanRaw === '') {
-                        jurusanRaw = String(row[13] || '').toLowerCase().trim(); // Fallback to N
-                    }
-                    
-                    const jurusanNormalized = jurusanRaw === 'induk' ? 'induk' : jurusanRaw;
-                    
-                    // More flexible validation - skip empty but warn invalid
-                    if (!jurusanRaw || jurusanRaw === '') {
-                        console.warn(`⚠️  Row ${i + j + dataStartRow + 1}: empty jurusan, skipping`);
-                        continue;
-                    }
-                    
-                    if (!expectedJurusan.includes(jurusanNormalized)) {
-                        console.warn(`⚠️  Row ${i + j + dataStartRow + 1}: unexpected jurusan "${jurusanRaw}", accepting anyway`);
-                        // Don't skip - accept it anyway
-                    }
+                // Proses semua valid rows
+                for (const validRow of validRows) {
+                    const row = validRow.data;
+                    const jurusanNormalized = validRow.jurusan;
 
-                    // Debug first row
-                    if (i === 0 && j === 0) {
-                        console.log(`🔍 First measurement row [${i + j + dataStartRow + 1}]:`);
-                        console.log(`  - Jurusan [13]="${row[13]}", [14]="${row[14]}" -> normalized="${jurusanNormalized}"`);
-                        console.log(`  - Siang: [15-23]=${row.slice(15, 24).join(',')}`);
-                        console.log(`  - Malam: [24-32]=${row.slice(24, 33).join(',')}`);
-                    }
-
-                    // PENGUKURAN SIANG: Columns P-X (index 15-23)
-                    // P=15:R, Q=16:S, R=17:T, S=18:N, T=19:R-N, U=20:S-N, V=21:T-N, W=22:P-P, X=23:P-N
+                    // PENGUKURAN SIANG
                     const r_siang = parseFloat(row[15]) || 0;
                     const s_siang = parseFloat(row[16]) || 0;
                     const t_siang = parseFloat(row[17]) || 0;
@@ -294,8 +329,7 @@ export default async function handler(req, res) {
                         unbalanced: calc_siang.unbalanced
                     });
 
-                    // PENGUKURAN MALAM: Columns Y-AG (index 24-32)
-                    // Y=24:R, Z=25:S, AA=26:T, AB=27:N, AC=28:R-N, AD=29:S-N, AE=30:T-N, AF=31:P-P, AG=32:P-N
+                    // PENGUKURAN MALAM
                     const r_malam = parseFloat(row[24]) || 0;
                     const s_malam = parseFloat(row[25]) || 0;
                     const t_malam = parseFloat(row[26]) || 0;
@@ -333,41 +367,38 @@ export default async function handler(req, res) {
                     console.log(`  ✓ ${jurusanNormalized}: Siang=${r_siang}/${s_siang}/${t_siang}, Malam=${r_malam}/${s_malam}/${t_malam}`);
                 }
 
-                // Only add if we have valid measurements
-                if (measurements_siang.length > 0 || measurements_malam.length > 0) {
-                    transformedData.push({
-                        no: 0, // Will be set by database
-                        ulp,
-                        noGardu,
-                        namaLokasiGardu,
-                        jenis,
-                        merek,
-                        daya,
-                        tahun,
-                        phasa,
-                        tap_trafo_max_tap,
-                        penyulang,
-                        arahSequence,
-                        tanggal,
-                        measurements_siang,
-                        measurements_malam
-                    });
-                    console.log(`  ✅ Added to import queue: ${measurements_siang.length} siang + ${measurements_malam.length} malam`);
-                } else {
-                    console.warn(`⚠️  No valid measurements for substation at row ${i + dataStartRow + 1}, SKIPPING`);
-                }
+                // Semua 5 row valid, tambahkan ke transformedData
+                transformedData.push({
+                    no: 0,
+                    ulp,
+                    noGardu,
+                    namaLokasiGardu,
+                    jenis,
+                    merek,
+                    daya,
+                    tahun,
+                    phasa,
+                    tap_trafo_max_tap,
+                    penyulang,
+                    arahSequence,
+                    tanggal,
+                    measurements_siang,
+                    measurements_malam
+                });
+                console.log(`  ✅ Substation diterima: ${measurements_siang.length} siang + ${measurements_malam.length} malam`);
             }
 
-            console.log(`\n📊 Summary: ${transformedData.length} substation(s) out of ${Math.floor(dataRows.length / ROWS_PER_SUBSTATION)} groups will be imported`);
+            console.log(`\n📊 Summary: ${transformedData.length} substation valid dari ${Math.ceil(dataRows.length / ROWS_PER_SUBSTATION)} group`);
 
             if (transformedData.length === 0) {
                 return res.status(400).json({ 
                     success: false, 
-                    error: 'Tidak ada data valid untuk diimpor. Pastikan format Excel sesuai dengan template.' 
+                    error: 'Tidak ada data valid untuk diimpor.',
+                    validationErrors: allValidationErrors
                 });
             }
             
-            console.log(`\n📊 Total ${transformedData.length} substation(s) siap diimpor ke database...`);
+            console.log(`\n📊 Total ${transformedData.length} substation siap diimpor ke database...`);
             
             const db = await initPrisma();
             
@@ -375,12 +406,10 @@ export default async function handler(req, res) {
                 let createdCount = 0;
                 
                 for (const data of transformedData) {
-                    // Generate sequential number
                     const agg = await tx.substation.aggregate({ _max: { no: true } });
                     const maxNo = agg?._max?.no || 0;
                     const safeNo = maxNo + 1;
 
-                    // Create substation
                     const created = await tx.substation.create({
                         data: {
                             no: safeNo,
@@ -404,7 +433,6 @@ export default async function handler(req, res) {
                         }
                     });
 
-                    // Bulk insert measurements
                     if (data.measurements_siang?.length) {
                         const siangRows = data.measurements_siang.map(m => ({
                             substationId: created.id,
@@ -434,7 +462,7 @@ export default async function handler(req, res) {
                     }
                     
                     createdCount++;
-                    console.log(`  ✅ Created: ${data.noGardu} with ${data.measurements_siang.length} siang + ${data.measurements_malam.length} malam measurements`);
+                    console.log(`  ✅ Disimpan ke DB: ${data.noGardu}`);
                 }
                 
                 return { createdCount };
@@ -447,7 +475,7 @@ export default async function handler(req, res) {
                 message: `Import berhasil! ${result.createdCount} substation dengan pengukuran telah ditambahkan.`,
                 data: { 
                     createdCount: result.createdCount, 
-                    errors: [] 
+                    errors: allValidationErrors
                 },
             });
 
