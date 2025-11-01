@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { StatsCard } from './components/StatsCard';
 import { VoltageChart } from './components/VoltageChart';
@@ -22,7 +22,6 @@ function App() {
     substations,
     loading,
     error,
-    stats,
     updateSubstation,
     refreshData,
     addSubstation,
@@ -50,6 +49,48 @@ function App() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // 🔧 PERBAIKAN: Hitung stats dari substations data menggunakan useMemo
+  const calculatedStats = useMemo(() => {
+    if (!substations || substations.length === 0) {
+      return {
+        totalSubstations: 0,
+        activeSubstations: 0,
+        inactiveSubstations: 0,
+        criticalSubstations: 0,
+        ugbActive: 0,
+      };
+    }
+
+    // Total substations
+    const totalSubstations = substations.length;
+
+    // Gardu aktif (is_active === 1)
+    const activeSubstations = substations.filter(s => s.is_active === 1).length;
+
+    // Gardu non-aktif (is_active === 0)
+    const inactiveSubstations = substations.filter(s => s.is_active === 0).length;
+
+    // Gardu kritis (unbalance > 80%)
+    const criticalSubstations = substations.filter(substation => {
+      const siang = substation.measurements_siang || [];
+      const malam = substation.measurements_malam || [];
+      const hasUnstableSiang = siang.length > 0 && siang.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
+      const hasUnstableMalam = malam.length > 0 && malam.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
+      return hasUnstableSiang || hasUnstableMalam;
+    }).length;
+
+    // UGB aktif (ugb === 1)
+    const ugbActive = substations.filter(s => s.ugb === 1).length;
+
+    return {
+      totalSubstations,
+      activeSubstations,
+      inactiveSubstations,
+      criticalSubstations,
+      ugbActive,
+    };
+  }, [substations]); // Recalculate ketika substations berubah
+
   const handleUpdateSubstation = async (updatedSubstation: Partial<SubstationData>) => {
     try {
       if (!updatedSubstation.id) return;
@@ -75,7 +116,6 @@ function App() {
     });
   };
 
-  // Tambahkan fungsi untuk set page per tipe
   const handleSetModalPage = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active', page: number) => {
     setModalPages(prev => ({ 
       ...prev, 
@@ -195,16 +235,7 @@ function App() {
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
-  console.log('isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
-
-  // Hitung jumlah gardu kritis (unbalance > 80%)
-  const criticalCount = substations.filter(substation => {
-    const siang = substation.measurements_siang || [];
-    const malam = substation.measurements_malam || [];
-    const hasUnstableSiang = siang.length > 0 && siang.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
-    const hasUnstableMalam = malam.length > 0 && malam.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
-    return hasUnstableSiang || hasUnstableMalam;
-  }).length;
+  console.log('isAdmin:', isAdmin, 'user:', user);
 
   return (
     <Router>
@@ -253,11 +284,11 @@ function App() {
         <Route path="/riwayat" element={<RiwayatGarduPage />} />
         <Route path="/" element={
           <main className="container mx-auto px-4 py-8">
-            {/* Stats Cards */}
+            {/* Stats Cards - ✅ SEKARANG TERHUBUNG KE DATABASE */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
               <StatsCard
                 title="Total Gardu"
-                value={stats.totalSubstations}
+                value={calculatedStats.totalSubstations}
                 icon={Activity}
                 color="blue"
                 trend="+2.5%"
@@ -265,7 +296,7 @@ function App() {
               />
               <StatsCard
                 title="Gardu Aktif"
-                value={stats.activeSubstations}
+                value={calculatedStats.activeSubstations}
                 icon={Zap}
                 color="green"
                 trend="+1.2%"
@@ -273,7 +304,7 @@ function App() {
               />
               <StatsCard
                 title="Gardu Non-Aktif"
-                value={stats.totalSubstations - stats.activeSubstations}
+                value={calculatedStats.inactiveSubstations}
                 icon={PowerOff}
                 color="gray"
                 trend="-0.8%"
@@ -281,7 +312,7 @@ function App() {
               />
               <StatsCard
                 title="Issue Kritis"
-                value={criticalCount}
+                value={calculatedStats.criticalSubstations}
                 icon={AlertTriangle}
                 color="red"
                 trend="-5.2%"
@@ -289,7 +320,7 @@ function App() {
               />
               <StatsCard
                 title="UGB Aktif"
-                value={stats.ugbActive}
+                value={calculatedStats.ugbActive}
                 icon={Shield}
                 color="purple"
                 trend="+3.1%"
@@ -328,12 +359,12 @@ function App() {
             {/* Substation Table */}
             <SubstationTable
               data={substations}
-              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}} // Only admin can update
+              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}}
               loading={loading}
-              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}} // Only admin can add
-              isReadOnly={!isAdmin} // Pass read-only flag
-              currentUser={user ? { role: user.role } : undefined} // Kirim hanya role, undefined jika null
-              adminToken={'admin_token'} // Tambahkan ini, ganti jika pakai JWT
+              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}}
+              isReadOnly={!isAdmin}
+              currentUser={user ? { role: user.role } : undefined}
+              adminToken={'admin_token'}
               onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
             />
 
