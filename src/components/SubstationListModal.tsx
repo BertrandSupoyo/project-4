@@ -31,7 +31,24 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredSubstations = filter ? substations.filter(filter) : substations;
+  // 🔧 FIX: Add safety check untuk filter
+  let filteredSubstations: SubstationData[] = [];
+  try {
+    filteredSubstations = filter 
+      ? substations.filter((sub) => {
+          try {
+            return filter(sub);
+          } catch (e) {
+            console.error('Error in filter for substation:', sub?.id, e);
+            return false;
+          }
+        })
+      : substations;
+  } catch (e) {
+    console.error('Error filtering substations:', e);
+    filteredSubstations = substations;
+  }
+
   const totalPages = Math.ceil(filteredSubstations.length / pageSize);
   const paginatedSubstations = filteredSubstations.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -139,63 +156,73 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedSubstations.map((substation, idx) => (
-                  <tr key={substation.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {(currentPage - 1) * pageSize + idx + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{substation.ulp}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
-                        {substation.namaLokasiGardu}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">{substation.daya}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {onUpdateSubstation ? (
-                        <button
-                          onClick={() => handleToggleStatus(substation)}
-                          disabled={updating && updatingId === substation.id}
-                          className={`px-3 py-1 rounded text-white text-xs font-medium transition ${
-                            substation.is_active === 1
-                              ? 'bg-green-500 hover:bg-green-600'
-                              : 'bg-gray-500 hover:bg-gray-600'
-                          } ${
-                            updating && updatingId === substation.id
-                              ? 'opacity-50 cursor-not-allowed'
-                              : 'cursor-pointer'
-                          }`}
-                        >
-                          {updating && updatingId === substation.id ? '...' : (substation.is_active === 1 ? 'Aktif' : 'Nonaktif')}
-                        </button>
-                      ) : (
-                        getStatusBadge(substation.is_active)
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {onUpdateSubstation ? (
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={substation.ugb === 1}
-                            onChange={() => handleToggleUGB(substation)}
+                {paginatedSubstations.map((substation, idx) => {
+                  // 🔧 FIX: Safe property access dengan default values
+                  const ulp = substation?.ulp || '-';
+                  const namaLokasiGardu = substation?.namaLokasiGardu || '-';
+                  const daya = substation?.daya || '-';
+                  const isActive = substation?.is_active ?? 0;
+                  const ugb = substation?.ugb ?? 0;
+                  const id = substation?.id || `unknown-${idx}`;
+
+                  return (
+                    <tr key={id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {(currentPage - 1) * pageSize + idx + 1}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{ulp}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
+                          {namaLokasiGardu}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">{daya}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {onUpdateSubstation ? (
+                          <button
+                            onClick={() => handleToggleStatus(substation)}
                             disabled={updating && updatingId === substation.id}
-                            className="w-5 h-5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          />
-                          <span className="text-sm text-gray-600">
-                            {substation.ugb === 1 ? 'Aktif' : 'Nonaktif'}
-                          </span>
-                        </label>
-                      ) : (
-                        getUgbbadge(substation.ugb)
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                            className={`px-3 py-1 rounded text-white text-xs font-medium transition ${
+                              isActive === 1
+                                ? 'bg-green-500 hover:bg-green-600'
+                                : 'bg-gray-500 hover:bg-gray-600'
+                            } ${
+                              updating && updatingId === substation.id
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'cursor-pointer'
+                            }`}
+                          >
+                            {updating && updatingId === substation.id ? '...' : (isActive === 1 ? 'Aktif' : 'Nonaktif')}
+                          </button>
+                        ) : (
+                          getStatusBadge(isActive)
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {onUpdateSubstation ? (
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={ugb === 1}
+                              onChange={() => handleToggleUGB(substation)}
+                              disabled={updating && updatingId === substation.id}
+                              className="w-5 h-5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <span className="text-sm text-gray-600">
+                              {ugb === 1 ? 'Aktif' : 'Nonaktif'}
+                            </span>
+                          </label>
+                        ) : (
+                          getUgbbadge(ugb)
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
