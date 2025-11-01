@@ -8,13 +8,66 @@ interface VoltageChartProps {
 }
 
 export const VoltageChart: React.FC<VoltageChartProps> = ({ data }) => {
-  // Group substations by jenis
-  const portalSubstations = data.filter(s => s.jenis.toLowerCase() === 'portal');
-  const cantolSubstations = data.filter(s => s.jenis.toLowerCase() === 'cantol');
-  const betonSubstations = data.filter(s => s.jenis.toLowerCase() === 'beton');
-  const kiosSubstations = data.filter(s => s.jenis.toLowerCase() === 'kios');
-  const compactSubstations = data.filter(s => s.jenis.toLowerCase() === 'compact');
-  const otherJenis = data.filter(s => !['portal','cantol','beton','kios','compact'].includes(s.jenis.toLowerCase()));
+  // 🔧 FIX: Safe filtering dengan null/undefined check
+  const portalSubstations = data.filter(s => {
+    try {
+      const jenis = s?.jenis || '';
+      return jenis.toLowerCase() === 'portal';
+    } catch (e) {
+      console.error('Error filtering portal:', e);
+      return false;
+    }
+  });
+
+  const cantolSubstations = data.filter(s => {
+    try {
+      const jenis = s?.jenis || '';
+      return jenis.toLowerCase() === 'cantol';
+    } catch (e) {
+      console.error('Error filtering cantol:', e);
+      return false;
+    }
+  });
+
+  const betonSubstations = data.filter(s => {
+    try {
+      const jenis = s?.jenis || '';
+      return jenis.toLowerCase() === 'beton';
+    } catch (e) {
+      console.error('Error filtering beton:', e);
+      return false;
+    }
+  });
+
+  const kiosSubstations = data.filter(s => {
+    try {
+      const jenis = s?.jenis || '';
+      return jenis.toLowerCase() === 'kios';
+    } catch (e) {
+      console.error('Error filtering kios:', e);
+      return false;
+    }
+  });
+
+  const compactSubstations = data.filter(s => {
+    try {
+      const jenis = s?.jenis || '';
+      return jenis.toLowerCase() === 'compact';
+    } catch (e) {
+      console.error('Error filtering compact:', e);
+      return false;
+    }
+  });
+
+  const otherJenis = data.filter(s => {
+    try {
+      const jenis = s?.jenis || '';
+      return !['portal', 'cantol', 'beton', 'kios', 'compact'].includes(jenis.toLowerCase());
+    } catch (e) {
+      console.error('Error filtering other:', e);
+      return false;
+    }
+  });
 
   // Hitung total gardu per jenis
   const portalCount = portalSubstations.length;
@@ -137,8 +190,8 @@ export const VoltageChart: React.FC<VoltageChartProps> = ({ data }) => {
             onClose={handleCloseModal}
             substations={getListByJenis(selectedJenis)}
             title={`Daftar Gardu Jenis ${selectedJenis.charAt(0).toUpperCase() + selectedJenis.slice(1)}`}
-            page={modalPage}
-            setPage={setModalPage}
+            currentPage={modalPage}
+            onPageChange={setModalPage}
           />
         )}
       </CardContent>
