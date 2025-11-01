@@ -128,24 +128,40 @@ function App() {
     }
   };
 
+  // 🔧 PERBAIKAN: Fixed getModalFilter dengan null safety checks
   const getModalFilter = () => {
     switch (selectedModal.type) {
       case 'total':
         return undefined;
+      
       case 'active':
         return (substation: SubstationData) => substation.is_active === 1;
+      
       case 'non-active':
         return (substation: SubstationData) => substation.is_active === 0;
+      
       case 'critical':
         return (substation: SubstationData) => {
           const siang = substation.measurements_siang || [];
           const malam = substation.measurements_malam || [];
-          const hasUnstableSiang = siang.length > 0 && siang.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
-          const hasUnstableMalam = malam.length > 0 && malam.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
+          
+          // 🔧 FIX: Add proper null/undefined checks
+          const hasUnstableSiang = siang.length > 0 && siang.some((m: any) => {
+            const unbalanced = m?.unbalanced;
+            return unbalanced !== undefined && unbalanced !== null && Number(unbalanced) > 80;
+          });
+          
+          const hasUnstableMalam = malam.length > 0 && malam.some((m: any) => {
+            const unbalanced = m?.unbalanced;
+            return unbalanced !== undefined && unbalanced !== null && Number(unbalanced) > 80;
+          });
+          
           return hasUnstableSiang || hasUnstableMalam;
         };
+      
       case 'ugb-active':
         return (substation: SubstationData) => substation.ugb === 1;
+      
       default:
         return undefined;
     }
@@ -223,7 +239,7 @@ function App() {
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
-  console.log('isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
+  console.log('isAdmin:', isAdmin, 'user:', user);
 
   return (
     <Router>
@@ -347,12 +363,12 @@ function App() {
             {/* Substation Table */}
             <SubstationTable
               data={substations}
-              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}} // Only admin can update
+              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}}
               loading={loading}
-              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}} // Only admin can add
-              isReadOnly={!isAdmin} // Pass read-only flag
-              currentUser={user ? { role: user.role } : undefined} // Kirim hanya role, undefined jika null
-              adminToken={'admin_token'} // Tambahkan ini, ganti jika pakai JWT
+              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}}
+              isReadOnly={!isAdmin}
+              currentUser={user ? { role: user.role } : undefined}
+              adminToken={'admin_token'}
               onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
             />
 
