@@ -58,11 +58,9 @@ function App() {
       await updateSubstation(updatedSubstation as SubstationData);
       console.log('✅ Substation updated, refreshing data...');
       
-      // ✅ IMPORTANT: Refresh data setelah update
       await refreshData();
       console.log('✅ Data refreshed successfully');
       
-      // ✅ Optional: Close modal dan reset pages jika ada
       setSelectedModal({ type: null, isOpen: false });
       resetModalPages();
     } catch (error) {
@@ -128,7 +126,7 @@ function App() {
     }
   };
 
-  // 🔧 PERBAIKAN: Fixed getModalFilter dengan comprehensive null safety checks
+  // 🔧 PERBAIKAN: Fixed getModalFilter dengan error handling dan critical logic fix
   const getModalFilter = () => {
     switch (selectedModal.type) {
       case 'total':
@@ -137,6 +135,7 @@ function App() {
       case 'active':
         return (substation: SubstationData) => {
           try {
+            if (!substation) return false;
             return substation?.is_active === 1;
           } catch (e) {
             console.error('Error in active filter:', e);
@@ -147,6 +146,7 @@ function App() {
       case 'non-active':
         return (substation: SubstationData) => {
           try {
+            if (!substation) return false;
             return substation?.is_active === 0;
           } catch (e) {
             console.error('Error in non-active filter:', e);
@@ -157,29 +157,46 @@ function App() {
       case 'critical':
         return (substation: SubstationData) => {
           try {
-            // 🔧 FIX: Comprehensive null/undefined checks
             if (!substation) return false;
             
             const siang = Array.isArray(substation.measurements_siang) ? substation.measurements_siang : [];
             const malam = Array.isArray(substation.measurements_malam) ? substation.measurements_malam : [];
             
-            const hasUnstableSiang = siang.length > 0 && siang.some((m: any) => {
-              if (!m || typeof m !== 'object') return false;
-              const unbalanced = m.unbalanced;
-              if (unbalanced === undefined || unbalanced === null) return false;
-              const num = Number(unbalanced);
-              return !isNaN(num) && num > 80;
+            if (siang.length === 0 && malam.length === 0) return false;
+            
+            // 🔧 FIX: Ambil unbalanced tertinggi dari SIANG
+            let maxUnbalancedSiang = 0;
+            siang.forEach((m: any) => {
+              try {
+                if (m && typeof m === 'object' && m.unbalanced !== undefined && m.unbalanced !== null) {
+                  const num = Number(m.unbalanced);
+                  if (!isNaN(num) && num > maxUnbalancedSiang) {
+                    maxUnbalancedSiang = num;
+                  }
+                }
+              } catch (e) {
+                // ignore
+              }
             });
             
-            const hasUnstableMalam = malam.length > 0 && malam.some((m: any) => {
-              if (!m || typeof m !== 'object') return false;
-              const unbalanced = m.unbalanced;
-              if (unbalanced === undefined || unbalanced === null) return false;
-              const num = Number(unbalanced);
-              return !isNaN(num) && num > 80;
+            // 🔧 FIX: Ambil unbalanced tertinggi dari MALAM
+            let maxUnbalancedMalam = 0;
+            malam.forEach((m: any) => {
+              try {
+                if (m && typeof m === 'object' && m.unbalanced !== undefined && m.unbalanced !== null) {
+                  const num = Number(m.unbalanced);
+                  if (!isNaN(num) && num > maxUnbalancedMalam) {
+                    maxUnbalancedMalam = num;
+                  }
+                }
+              } catch (e) {
+                // ignore
+              }
             });
             
-            return hasUnstableSiang || hasUnstableMalam;
+            // 🔧 FIX: Return true jika salah satu tertinggi > 80
+            const maxUnbalanced = Math.max(maxUnbalancedSiang, maxUnbalancedMalam);
+            return maxUnbalanced > 80;
           } catch (e) {
             console.error('Error in critical filter:', e);
             return false;
@@ -189,6 +206,7 @@ function App() {
       case 'ugb-active':
         return (substation: SubstationData) => {
           try {
+            if (!substation) return false;
             return substation?.ugb === 1;
           } catch (e) {
             console.error('Error in ugb-active filter:', e);
