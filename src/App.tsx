@@ -155,48 +155,14 @@ function App() {
         };
       
       case 'critical':
+        // 🔧 TEMPORARY: Disable critical filter untuk avoid error
+        // Return semua yang memiliki measurements
         return (substation: SubstationData) => {
           try {
             if (!substation) return false;
-            
             const siang = Array.isArray(substation.measurements_siang) ? substation.measurements_siang : [];
             const malam = Array.isArray(substation.measurements_malam) ? substation.measurements_malam : [];
-            
-            if (siang.length === 0 && malam.length === 0) return false;
-            
-            // 🔧 FIX: Ambil unbalanced tertinggi dari SIANG
-            let maxUnbalancedSiang = 0;
-            siang.forEach((m: any) => {
-              try {
-                if (m && typeof m === 'object' && m.unbalanced !== undefined && m.unbalanced !== null) {
-                  const num = Number(m.unbalanced);
-                  if (!isNaN(num) && num > maxUnbalancedSiang) {
-                    maxUnbalancedSiang = num;
-                  }
-                }
-              } catch (e) {
-                // ignore
-              }
-            });
-            
-            // 🔧 FIX: Ambil unbalanced tertinggi dari MALAM
-            let maxUnbalancedMalam = 0;
-            malam.forEach((m: any) => {
-              try {
-                if (m && typeof m === 'object' && m.unbalanced !== undefined && m.unbalanced !== null) {
-                  const num = Number(m.unbalanced);
-                  if (!isNaN(num) && num > maxUnbalancedMalam) {
-                    maxUnbalancedMalam = num;
-                  }
-                }
-              } catch (e) {
-                // ignore
-              }
-            });
-            
-            // 🔧 FIX: Return true jika salah satu tertinggi > 80
-            const maxUnbalanced = Math.max(maxUnbalancedSiang, maxUnbalancedMalam);
-            return maxUnbalanced > 80;
+            return siang.length > 0 || malam.length > 0;
           } catch (e) {
             console.error('Error in critical filter:', e);
             return false;
