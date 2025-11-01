@@ -155,19 +155,9 @@ function App() {
         };
       
       case 'critical':
-        // 🔧 TEMPORARY: Disable critical filter untuk avoid error
-        // Return semua yang memiliki measurements
-        return (substation: SubstationData) => {
-          try {
-            if (!substation) return false;
-            const siang = Array.isArray(substation.measurements_siang) ? substation.measurements_siang : [];
-            const malam = Array.isArray(substation.measurements_malam) ? substation.measurements_malam : [];
-            return siang.length > 0 || malam.length > 0;
-          } catch (e) {
-            console.error('Error in critical filter:', e);
-            return false;
-          }
-        };
+        // 🔧 Temporarily return undefined untuk avoid error
+        // Akan ditampilkan semua data sampai kita fix issue
+        return undefined;
       
       case 'ugb-active':
         return (substation: SubstationData) => {

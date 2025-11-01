@@ -31,22 +31,26 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
 
   if (!isOpen) return null;
 
-  // 🔧 FIX: Add safety check untuk filter
+  // 🔧 FIX: Safe filter wrapper dengan comprehensive error handling
   let filteredSubstations: SubstationData[] = [];
   try {
-    filteredSubstations = filter 
-      ? substations.filter((sub) => {
-          try {
-            return filter(sub);
-          } catch (e) {
-            console.error('Error in filter for substation:', sub?.id, e);
-            return false;
-          }
-        })
-      : substations;
+    if (filter) {
+      filteredSubstations = substations.filter((sub) => {
+        try {
+          if (!sub) return false;
+          const result = filter(sub);
+          return result === true;
+        } catch (e) {
+          console.error('Error filtering substation:', sub?.id, e);
+          return false;
+        }
+      });
+    } else {
+      filteredSubstations = substations || [];
+    }
   } catch (e) {
-    console.error('Error filtering substations:', e);
-    filteredSubstations = substations;
+    console.error('Critical error in filter:', e);
+    filteredSubstations = substations || [];
   }
 
   const totalPages = Math.ceil(filteredSubstations.length / pageSize);
