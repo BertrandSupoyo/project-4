@@ -50,22 +50,45 @@ function App() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // 🔧 PERBAIKAN: Handle update dengan auto refresh
   const handleUpdateSubstation = async (updatedSubstation: Partial<SubstationData>) => {
     try {
       if (!updatedSubstation.id) return;
       console.log('🔄 Updating substation in App.tsx:', updatedSubstation.id, updatedSubstation);
       await updateSubstation(updatedSubstation as SubstationData);
       console.log('✅ Substation updated, refreshing data...');
+      
+      // ✅ IMPORTANT: Refresh data setelah update
       await refreshData();
       console.log('✅ Data refreshed successfully');
+      
+      // ✅ Optional: Close modal dan reset pages jika ada
+      setSelectedModal({ type: null, isOpen: false });
+      resetModalPages();
     } catch (error) {
       console.error('❌ Failed to update substation:', error);
     }
   };
 
   const handleAddSubstation = async (sub: Omit<SubstationData, 'id'>) => {
-    await addSubstation(sub);
-    await refreshData();
+    try {
+      await addSubstation(sub);
+      await refreshData();
+      console.log('✅ Substation added and data refreshed');
+    } catch (error) {
+      console.error('❌ Failed to add substation:', error);
+    }
+  };
+
+  // 🔧 PERBAIKAN: Reset modal pages
+  const resetModalPages = () => {
+    setModalPages({
+      total: 1,
+      active: 1,
+      nonActive: 1,
+      critical: 1,
+      ugbActive: 1,
+    });
   };
 
   const handleStatsCardClick = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active') => {
@@ -75,12 +98,17 @@ function App() {
     });
   };
 
-  // Tambahkan fungsi untuk set page per tipe
   const handleSetModalPage = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active', page: number) => {
     setModalPages(prev => ({ 
       ...prev, 
       [type === 'non-active' ? 'nonActive' : type === 'ugb-active' ? 'ugbActive' : type]: page 
     }));
+  };
+
+  // 🔧 PERBAIKAN: Close modal dengan cleanup
+  const handleCloseModal = () => {
+    setSelectedModal({ type: null, isOpen: false });
+    resetModalPages();
   };
 
   const getModalTitle = () => {
@@ -197,15 +225,6 @@ function App() {
   const isAdmin = user?.role === 'admin';
   console.log('isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
 
-  // Hitung jumlah gardu kritis (unbalance > 80%)
-  const criticalCount = substations.filter(substation => {
-    const siang = substation.measurements_siang || [];
-    const malam = substation.measurements_malam || [];
-    const hasUnstableSiang = siang.length > 0 && siang.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
-    const hasUnstableMalam = malam.length > 0 && malam.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
-    return hasUnstableSiang || hasUnstableMalam;
-  }).length;
-
   return (
     <Router>
       <Header />
@@ -253,7 +272,7 @@ function App() {
         <Route path="/riwayat" element={<RiwayatGarduPage />} />
         <Route path="/" element={
           <main className="container mx-auto px-4 py-8">
-            {/* Stats Cards */}
+            {/* Stats Cards - ✅ TERHUBUNG KE DATABASE REAL-TIME */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
               <StatsCard
                 title="Total Gardu"
@@ -273,7 +292,7 @@ function App() {
               />
               <StatsCard
                 title="Gardu Non-Aktif"
-                value={stats.totalSubstations - stats.activeSubstations}
+                value={stats.inactiveSubstations}
                 icon={PowerOff}
                 color="gray"
                 trend="-0.8%"
@@ -281,7 +300,7 @@ function App() {
               />
               <StatsCard
                 title="Issue Kritis"
-                value={criticalCount}
+                value={stats.criticalIssues}
                 icon={AlertTriangle}
                 color="red"
                 trend="-5.2%"
@@ -347,7 +366,7 @@ function App() {
             {/* Modal for displaying substation lists */}
             <SubstationListModal
               isOpen={selectedModal.isOpen}
-              onClose={() => setSelectedModal({ type: null, isOpen: false })}
+              onClose={handleCloseModal}
               title={getModalTitle()}
               substations={substations}
               filter={getModalFilter()}
