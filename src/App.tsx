@@ -128,39 +128,73 @@ function App() {
     }
   };
 
-  // 🔧 PERBAIKAN: Fixed getModalFilter dengan null safety checks
+  // 🔧 PERBAIKAN: Fixed getModalFilter dengan comprehensive null safety checks
   const getModalFilter = () => {
     switch (selectedModal.type) {
       case 'total':
         return undefined;
       
       case 'active':
-        return (substation: SubstationData) => substation.is_active === 1;
+        return (substation: SubstationData) => {
+          try {
+            return substation?.is_active === 1;
+          } catch (e) {
+            console.error('Error in active filter:', e);
+            return false;
+          }
+        };
       
       case 'non-active':
-        return (substation: SubstationData) => substation.is_active === 0;
+        return (substation: SubstationData) => {
+          try {
+            return substation?.is_active === 0;
+          } catch (e) {
+            console.error('Error in non-active filter:', e);
+            return false;
+          }
+        };
       
       case 'critical':
         return (substation: SubstationData) => {
-          const siang = substation.measurements_siang || [];
-          const malam = substation.measurements_malam || [];
-          
-          // 🔧 FIX: Add proper null/undefined checks
-          const hasUnstableSiang = siang.length > 0 && siang.some((m: any) => {
-            const unbalanced = m?.unbalanced;
-            return unbalanced !== undefined && unbalanced !== null && Number(unbalanced) > 80;
-          });
-          
-          const hasUnstableMalam = malam.length > 0 && malam.some((m: any) => {
-            const unbalanced = m?.unbalanced;
-            return unbalanced !== undefined && unbalanced !== null && Number(unbalanced) > 80;
-          });
-          
-          return hasUnstableSiang || hasUnstableMalam;
+          try {
+            // 🔧 FIX: Comprehensive null/undefined checks
+            if (!substation) return false;
+            
+            const siang = Array.isArray(substation.measurements_siang) ? substation.measurements_siang : [];
+            const malam = Array.isArray(substation.measurements_malam) ? substation.measurements_malam : [];
+            
+            const hasUnstableSiang = siang.length > 0 && siang.some((m: any) => {
+              if (!m || typeof m !== 'object') return false;
+              const unbalanced = m.unbalanced;
+              if (unbalanced === undefined || unbalanced === null) return false;
+              const num = Number(unbalanced);
+              return !isNaN(num) && num > 80;
+            });
+            
+            const hasUnstableMalam = malam.length > 0 && malam.some((m: any) => {
+              if (!m || typeof m !== 'object') return false;
+              const unbalanced = m.unbalanced;
+              if (unbalanced === undefined || unbalanced === null) return false;
+              const num = Number(unbalanced);
+              return !isNaN(num) && num > 80;
+            });
+            
+            return hasUnstableSiang || hasUnstableMalam;
+          } catch (e) {
+            console.error('Error in critical filter:', e);
+            return false;
+          }
         };
       
       case 'ugb-active':
-        return (substation: SubstationData) => substation.ugb === 1;
+        return (substation: SubstationData) => {
+          try {
+            return substation?.ugb === 1;
+          } catch (e) {
+            console.error('Error in ugb-active filter:', e);
+            return false;
+          }
+        };
       
       default:
         return undefined;
