@@ -197,6 +197,15 @@ function App() {
   const isAdmin = user?.role === 'admin';
   console.log('isAdmin:', isAdmin, 'user:', user); // DEBUG LOG
 
+  // Hitung jumlah gardu kritis (unbalance > 80%)
+  const criticalCount = substations.filter(substation => {
+    const siang = substation.measurements_siang || [];
+    const malam = substation.measurements_malam || [];
+    const hasUnstableSiang = siang.length > 0 && siang.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
+    const hasUnstableMalam = malam.length > 0 && malam.some(m => 'unbalanced' in m && Number(m.unbalanced) > 80);
+    return hasUnstableSiang || hasUnstableMalam;
+  }).length;
+
   return (
     <Router>
       <Header />
@@ -244,7 +253,7 @@ function App() {
         <Route path="/riwayat" element={<RiwayatGarduPage />} />
         <Route path="/" element={
           <main className="container mx-auto px-4 py-8">
-            {/* Stats Cards - ✅ TERHUBUNG KE DATABASE REAL-TIME */}
+            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
               <StatsCard
                 title="Total Gardu"
@@ -264,7 +273,7 @@ function App() {
               />
               <StatsCard
                 title="Gardu Non-Aktif"
-                value={stats.inactiveSubstations}
+                value={stats.totalSubstations - stats.activeSubstations}
                 icon={PowerOff}
                 color="gray"
                 trend="-0.8%"
@@ -272,7 +281,7 @@ function App() {
               />
               <StatsCard
                 title="Issue Kritis"
-                value={stats.criticalIssues}
+                value={criticalCount}
                 icon={AlertTriangle}
                 color="red"
                 trend="-5.2%"
