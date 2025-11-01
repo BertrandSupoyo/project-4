@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { SubstationData } from '../types';
 import { Button } from './ui/Button';
@@ -12,6 +12,7 @@ interface SubstationListModalProps {
   filter?: (substation: SubstationData) => boolean;
   currentPage: number;
   onPageChange: (page: number) => void;
+  onUpdateSubstation?: (updatedSubstation: Partial<SubstationData>) => Promise<void>;
 }
 
 export const SubstationListModal: React.FC<SubstationListModalProps> = ({
@@ -21,9 +22,12 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
   title,
   filter,
   currentPage,
-  onPageChange
+  onPageChange,
+  onUpdateSubstation
 }) => {
   const pageSize = 10;
+  const [updating, setUpdating] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -47,12 +51,77 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
     }
   };
 
+  // 🔧 PERBAIKAN: Handle status toggle
+  const handleToggleStatus = async (substation: SubstationData) => {
+    if (!onUpdateSubstation) {
+      console.warn('onUpdateSubstation callback not provided');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      setUpdatingId(substation.id);
+      
+      console.log(`🔄 Updating status for ${substation.namaLokasiGardu}...`);
+      
+      const newActiveStatus = substation.is_active === 1 ? 0 : 1;
+      
+      await onUpdateSubstation({
+        id: substation.id,
+        is_active: newActiveStatus,
+      });
+      
+      console.log(`✅ Status updated successfully`);
+    } catch (error) {
+      console.error('❌ Error updating status:', error);
+      alert('Gagal mengupdate status');
+    } finally {
+      setUpdating(false);
+      setUpdatingId(null);
+    }
+  };
+
+  // 🔧 PERBAIKAN: Handle UGB toggle
+  const handleToggleUGB = async (substation: SubstationData) => {
+    if (!onUpdateSubstation) {
+      console.warn('onUpdateSubstation callback not provided');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      setUpdatingId(substation.id);
+      
+      console.log(`🔄 Updating UGB for ${substation.namaLokasiGardu}...`);
+      
+      const newUGBStatus = substation.ugb === 1 ? 0 : 1;
+      
+      await onUpdateSubstation({
+        id: substation.id,
+        ugb: newUGBStatus,
+      });
+      
+      console.log(`✅ UGB updated successfully`);
+    } catch (error) {
+      console.error('❌ Error updating UGB:', error);
+      alert('Gagal mengupdate UGB');
+    } finally {
+      setUpdating(false);
+      setUpdatingId(null);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4 pointer-events-auto">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose}
+            disabled={updating}
+          >
             <X size={20} />
           </Button>
         </div>
@@ -87,10 +156,43 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
                       <div className="text-sm font-semibold text-gray-900">{substation.daya}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(substation.is_active)}
+                      {onUpdateSubstation ? (
+                        <button
+                          onClick={() => handleToggleStatus(substation)}
+                          disabled={updating && updatingId === substation.id}
+                          className={`px-3 py-1 rounded text-white text-xs font-medium transition ${
+                            substation.is_active === 1
+                              ? 'bg-green-500 hover:bg-green-600'
+                              : 'bg-gray-500 hover:bg-gray-600'
+                          } ${
+                            updating && updatingId === substation.id
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'cursor-pointer'
+                          }`}
+                        >
+                          {updating && updatingId === substation.id ? '...' : (substation.is_active === 1 ? 'Aktif' : 'Nonaktif')}
+                        </button>
+                      ) : (
+                        getStatusBadge(substation.is_active)
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getUgbbadge(substation.ugb)}
+                      {onUpdateSubstation ? (
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={substation.ugb === 1}
+                            onChange={() => handleToggleUGB(substation)}
+                            disabled={updating && updatingId === substation.id}
+                            className="w-5 h-5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                          <span className="text-sm text-gray-600">
+                            {substation.ugb === 1 ? 'Aktif' : 'Nonaktif'}
+                          </span>
+                        </label>
+                      ) : (
+                        getUgbbadge(substation.ugb)
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -104,7 +206,7 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || updating}
               >
                 Sebelumnya
               </Button>
@@ -115,7 +217,7 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || updating}
               >
                 Selanjutnya
               </Button>
@@ -130,4 +232,4 @@ export const SubstationListModal: React.FC<SubstationListModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

@@ -372,6 +372,7 @@ function App() {
               filter={getModalFilter()}
               currentPage={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
               onPageChange={(page) => handleSetModalPage(selectedModal.type!, page)}
+              onUpdateSubstation={handleUpdateSubstation}
             />
           </main>
         } />
