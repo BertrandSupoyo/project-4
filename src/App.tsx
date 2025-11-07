@@ -9,6 +9,8 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
 import { PetugasDashboard } from './components/PetugasDashboard';
+import { SessionWarningDialog } from './components/SessionWarningDialog';
+import { SessionTimeoutNotification } from './components/SessionTimeoutNotification';
 import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
 import { useSubstations } from './hooks/useSubstations';
 import { useAuth } from './hooks/useAuth';
@@ -29,7 +31,19 @@ function App() {
     getSubstationById
   } = useSubstations();
 
-  const { user, isAuthenticated, loading: authLoading, login, loginViewer, loginPetugas, logout } = useAuth();
+  // 🔧 TAMBAH PROPERTY BARU UNTUK SESSION
+  const { 
+    user, 
+    isAuthenticated, 
+    loading: authLoading, 
+    login, 
+    loginViewer, 
+    loginPetugas, 
+    logout,
+    sessionTimeRemaining,
+    showSessionWarning,
+    extendSession,
+  } = useAuth();
 
   const [selectedModal, setSelectedModal] = useState<{
     type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | null;
@@ -49,6 +63,11 @@ function App() {
 
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // 🔧 HANDLER UNTUK EXTEND SESSION
+  const handleExtendSession = () => {
+    extendSession();
+  };
 
   // 🔧 PERBAIKAN: Handle update dengan auto refresh
   const handleUpdateSubstation = async (updatedSubstation: Partial<SubstationData>) => {
@@ -203,19 +222,32 @@ function App() {
   // Show login if not authenticated
   if (!isAuthenticated && !authLoading) {
     return (
-      <AdminLogin 
-        onLogin={handleAdminLogin}
-        onViewerLogin={handleViewerLogin}
-        onPetugasLogin={handlePetugasLogin}
-        loading={loginLoading}
-        error={loginError || undefined}
-      />
+      <>
+        <SessionTimeoutNotification />
+        <AdminLogin 
+          onLogin={handleAdminLogin}
+          onViewerLogin={handleViewerLogin}
+          onPetugasLogin={handlePetugasLogin}
+          loading={loginLoading}
+          error={loginError || undefined}
+        />
+      </>
     );
   }
 
   // Show petugas dashboard if user is petugas
   if (user?.role === 'petugas') {
-    return <PetugasDashboard user={user} onLogout={handleLogout} />;
+    return (
+      <>
+        <SessionWarningDialog
+          isOpen={showSessionWarning}
+          timeRemaining={sessionTimeRemaining}
+          onExtend={handleExtendSession}
+          onLogout={handleLogout}
+        />
+        <PetugasDashboard user={user} onLogout={handleLogout} />
+      </>
+    );
   }
 
   // Tampilkan loading spinner jika sedang memuat data
@@ -250,158 +282,171 @@ function App() {
   console.log('isAdmin:', isAdmin, 'user:', user);
 
   return (
-    <Router>
-      <Header />
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-gray-600">
-                <Shield className="w-5 h-5 mr-2" />
-                <span className="text-sm font-medium">
-                  {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : 'User'}
-                </span>
+    <>
+      {/* 🔧 TAMBAH SESSION WARNING DIALOG */}
+      <SessionWarningDialog
+        isOpen={showSessionWarning}
+        timeRemaining={sessionTimeRemaining}
+        onExtend={handleExtendSession}
+        onLogout={handleLogout}
+      />
+
+      {/* 🔧 TAMBAH SESSION TIMEOUT NOTIFICATION */}
+      <SessionTimeoutNotification />
+
+      <Router>
+        <Header />
+        <div className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center text-gray-600">
+                  <Shield className="w-5 h-5 mr-2" />
+                  <span className="text-sm font-medium">
+                    {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : 'User'}
+                  </span>
+                </div>
+                <div className="flex space-x-4">
+                  <Link 
+                    to="/"
+                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-1" />
+                    Dashboard
+                  </Link>
+                  <Link 
+                    to="/riwayat"
+                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    <History className="w-4 h-4 mr-1" />
+                    Riwayat Gardu
+                  </Link>
+                </div>
               </div>
-              <div className="flex space-x-4">
-                <Link 
-                  to="/"
-                  className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  <LayoutDashboard className="w-4 h-4 mr-1" />
-                  Dashboard
-                </Link>
-                <Link 
-                  to="/riwayat"
-                  className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  <History className="w-4 h-4 mr-1" />
-                  Riwayat Gardu
-                </Link>
-              </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
           </div>
         </div>
-      </div>
 
-      <Routes>
-        <Route path="/riwayat" element={<RiwayatGarduPage />} />
-        <Route path="/" element={
-          <main className="container mx-auto px-4 py-8">
-            {/* Stats Cards - ✅ TERHUBUNG KE DATABASE REAL-TIME */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-              <StatsCard
-                title="Total Gardu"
-                value={stats.totalSubstations}
-                icon={Activity}
-                color="blue"
-                trend="+2.5%"
-                onClick={() => handleStatsCardClick('total')}
-              />
-              <StatsCard
-                title="Gardu Aktif"
-                value={stats.activeSubstations}
-                icon={Zap}
-                color="green"
-                trend="+1.2%"
-                onClick={() => handleStatsCardClick('active')}
-              />
-              <StatsCard
-                title="Gardu Non-Aktif"
-                value={stats.inactiveSubstations}
-                icon={PowerOff}
-                color="gray"
-                trend="-0.8%"
-                onClick={() => handleStatsCardClick('non-active')}
-              />
-              <StatsCard
-                title="Issue Kritis"
-                value={stats.criticalIssues}
-                icon={AlertTriangle}
-                color="red"
-                trend="-5.2%"
-                onClick={() => handleStatsCardClick('critical')}
-              />
-              <StatsCard
-                title="UGB Aktif"
-                value={stats.ugbActive}
-                icon={Shield}
-                color="purple"
-                trend="+3.1%"
-                onClick={() => handleStatsCardClick('ugb-active')}
-              />
-            </div>
+        <Routes>
+          <Route path="/riwayat" element={<RiwayatGarduPage />} />
+          <Route path="/" element={
+            <main className="container mx-auto px-4 py-8">
+              {/* Stats Cards - ✅ TERHUBUNG KE DATABASE REAL-TIME */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <StatsCard
+                  title="Total Gardu"
+                  value={stats.totalSubstations}
+                  icon={Activity}
+                  color="blue"
+                  trend="+2.5%"
+                  onClick={() => handleStatsCardClick('total')}
+                />
+                <StatsCard
+                  title="Gardu Aktif"
+                  value={stats.activeSubstations}
+                  icon={Zap}
+                  color="green"
+                  trend="+1.2%"
+                  onClick={() => handleStatsCardClick('active')}
+                />
+                <StatsCard
+                  title="Gardu Non-Aktif"
+                  value={stats.inactiveSubstations}
+                  icon={PowerOff}
+                  color="gray"
+                  trend="-0.8%"
+                  onClick={() => handleStatsCardClick('non-active')}
+                />
+                <StatsCard
+                  title="Issue Kritis"
+                  value={stats.criticalIssues}
+                  icon={AlertTriangle}
+                  color="red"
+                  trend="-5.2%"
+                  onClick={() => handleStatsCardClick('critical')}
+                />
+                <StatsCard
+                  title="UGB Aktif"
+                  value={stats.ugbActive}
+                  icon={Shield}
+                  color="purple"
+                  trend="+3.1%"
+                  onClick={() => handleStatsCardClick('ugb-active')}
+                />
+              </div>
 
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <VoltageChart data={substations} />
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold mb-4">Status Distribusi</h3>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Gardu Normal</span>
-                    <span className="font-semibold text-green-600">
-                      {substations.filter(s => s.status === 'normal').length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Gardu Warning</span>
-                    <span className="font-semibold text-yellow-600">
-                      {substations.filter(s => s.status === 'warning').length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Gardu Critical</span>
-                    <span className="font-semibold text-red-600">
-                      {substations.filter(s => s.status === 'critical').length}
-                    </span>
+              {/* Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <VoltageChart data={substations} />
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold mb-4">Status Distribusi</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Gardu Normal</span>
+                      <span className="font-semibold text-green-600">
+                        {substations.filter(s => s.status === 'normal').length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Gardu Warning</span>
+                      <span className="font-semibold text-yellow-600">
+                        {substations.filter(s => s.status === 'warning').length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Gardu Critical</span>
+                      <span className="font-semibold text-red-600">
+                        {substations.filter(s => s.status === 'critical').length}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Substation Table */}
-            <SubstationTable
-              data={substations}
-              onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}}
-              loading={loading}
-              onAddSubstation={isAdmin ? handleAddSubstation : async () => {}}
-              isReadOnly={!isAdmin}
-              currentUser={user ? { role: user.role } : undefined}
-              adminToken={'admin_token'}
-              onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
-            />
+              {/* Substation Table */}
+              <SubstationTable
+                data={substations}
+                onUpdateSubstation={isAdmin ? handleUpdateSubstation : async () => {}}
+                loading={loading}
+                onAddSubstation={isAdmin ? handleAddSubstation : async () => {}}
+                isReadOnly={!isAdmin}
+                currentUser={user ? { role: user.role } : undefined}
+                adminToken={'admin_token'}
+                onFetchSubstationDetail={async (id: string) => { await getSubstationById(id); }}
+              />
 
-            {/* Simulation Table - hanya tampil jika admin */}
-            {isAdmin && (
-              <div className="mt-8">
-                <SubstationSimulationTable data={substations} />
-              </div>
-            )}
+              {/* Simulation Table - hanya tampil jika admin */}
+              {isAdmin && (
+                <div className="mt-8">
+                  <SubstationSimulationTable data={substations} />
+                </div>
+              )}
 
-            {/* Modal for displaying substation lists */}
-            <SubstationListModal
-              isOpen={selectedModal.isOpen}
-              onClose={handleCloseModal}
-              title={getModalTitle()}
-              substations={substations}
-              filter={getModalFilter()}
-              currentPage={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
-              onPageChange={(page) => handleSetModalPage(selectedModal.type!, page)}
-              onUpdateSubstation={handleUpdateSubstation}
-            />
-          </main>
-        } />
-      </Routes>
-    </Router>
+              {/* Modal for displaying substation lists */}
+              <SubstationListModal
+                isOpen={selectedModal.isOpen}
+                onClose={handleCloseModal}
+                title={getModalTitle()}
+                substations={substations}
+                filter={getModalFilter()}
+                currentPage={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
+                onPageChange={(page) => handleSetModalPage(selectedModal.type!, page)}
+                onUpdateSubstation={handleUpdateSubstation}
+              />
+            </main>
+          } />
+        </Routes>
+      </Router>
+    </>
   );
 }
 
