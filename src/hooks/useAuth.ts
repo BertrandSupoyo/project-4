@@ -103,8 +103,8 @@ export const useAuth = () => {
 
   // Check if user is logged in on mount
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    const userData = localStorage.getItem('admin_user');
+    const token = sessionStorage.getItem('admin_token');
+    const userData = sessionStorage.getItem('admin_user');
     
     if (token && userData) {
       try {
