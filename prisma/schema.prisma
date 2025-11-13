@@ -64,6 +64,7 @@ model MeasurementSiang {
   status       MeasurementStatus @default(ACTIVE)
 
   substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  auditLogs  MeasurementSiangAuditLog[]
 
   @@unique([substationId, month, row_name])
   @@map("measurements_siang")
@@ -91,6 +92,7 @@ model MeasurementMalam {
   status       MeasurementStatus @default(ACTIVE)
 
   substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  auditLogs  MeasurementMalamAuditLog[]
 
   @@unique([substationId, month, row_name])
   @@map("measurements_malam")
