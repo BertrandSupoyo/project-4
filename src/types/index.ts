@@ -78,7 +78,7 @@ export interface DashboardStats {
   ugbActive: number;
 }
 
-export type UserRole = 'admin' | 'petugas' | 'viewer';
+export type UserRole = 'superadmin' | 'admin' | 'petugas' | 'viewer';
 
 export interface User {
   id: string;

@@ -17,7 +17,7 @@ async function seedAdminUsers() {
       {
         username: 'superadmin',
         password: 'superadmin123',
-        role: 'admin'
+        role: 'superadmin'
       }
     ];
     

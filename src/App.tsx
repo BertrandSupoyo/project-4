@@ -9,6 +9,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorMessage } from './components/ErrorMessage';
 import { AdminLogin } from './components/AdminLogin';
 import { PetugasDashboard } from './components/PetugasDashboard';
+import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { SessionWarningDialog } from './components/SessionWarningDialog';
 import { SessionTimeoutNotification } from './components/SessionTimeoutNotification';
 import { Activity, Zap, AlertTriangle, PowerOff, Shield, LogOut, LayoutDashboard, History } from 'lucide-react';
@@ -246,6 +247,24 @@ function App() {
           onLogout={handleLogout}
         />
         <PetugasDashboard user={user} onLogout={handleLogout} />
+      </>
+    );
+  }
+
+  // Show super admin dashboard if user is superadmin
+  if (user?.role === 'superadmin') {
+    return (
+      <>
+        <SessionWarningDialog
+          isOpen={showSessionWarning}
+          timeRemaining={sessionTimeRemaining}
+          onExtend={handleExtendSession}
+          onLogout={handleLogout}
+        />
+        <SuperAdminDashboard
+          onLogout={handleLogout}
+          stats={stats}
+        />
       </>
     );
   }
