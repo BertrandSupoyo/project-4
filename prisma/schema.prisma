@@ -8,6 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MeasurementStatus {
+  ACTIVE
+  SUPERSEDED
+  DELETED
+}
+
 model Substation {
   id                    String   @id @default(uuid())
   no                    Int
@@ -55,6 +61,7 @@ model MeasurementSiang {
   persen       Float?   @default(0)
   unbalanced   Float?   @default(0)
   lastUpdate   DateTime @default(now())
+  status       MeasurementStatus @default(ACTIVE)
 
   substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
 
@@ -81,6 +88,7 @@ model MeasurementMalam {
   persen       Float?   @default(0)
   unbalanced   Float?   @default(0)
   lastUpdate   DateTime @default(now())
+  status       MeasurementStatus @default(ACTIVE)
 
   substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
 
@@ -97,3 +105,29 @@ model AdminUser {
 
   @@map("admin_users")
 } 
+
+model MeasurementSiangAuditLog {
+  id             Int              @id @default(autoincrement())
+  measurementId  Int
+  oldValue       Float?
+  newValue       Float?
+  changedBy      String?          @db.VarChar(100)
+  changeReason   String?          @db.VarChar(255)
+  changedAt      DateTime         @default(now())
+  measurement    MeasurementSiang @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+
+  @@map("measurement_siang_audit_log")
+}
+
+model MeasurementMalamAuditLog {
+  id             Int              @id @default(autoincrement())
+  measurementId  Int
+  oldValue       Float?
+  newValue       Float?
+  changedBy      String?          @db.VarChar(100)
+  changeReason   String?          @db.VarChar(255)
+  changedAt      DateTime         @default(now())
+  measurement    MeasurementMalam @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+
+  @@map("measurement_malam_audit_log")
+}
