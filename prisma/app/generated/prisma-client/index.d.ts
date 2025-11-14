@@ -33,6 +33,34 @@ export type MeasurementMalam = $Result.DefaultSelection<Prisma.$MeasurementMalam
  * 
  */
 export type AdminUser = $Result.DefaultSelection<Prisma.$AdminUserPayload>
+/**
+ * Model MeasurementSiangAuditLog
+ * 
+ */
+export type MeasurementSiangAuditLog = $Result.DefaultSelection<Prisma.$MeasurementSiangAuditLogPayload>
+/**
+ * Model MeasurementMalamAuditLog
+ * 
+ */
+export type MeasurementMalamAuditLog = $Result.DefaultSelection<Prisma.$MeasurementMalamAuditLogPayload>
+
+/**
+ * Enums
+ */
+export namespace $Enums {
+  export const MeasurementStatus: {
+  ACTIVE: 'ACTIVE',
+  SUPERSEDED: 'SUPERSEDED',
+  DELETED: 'DELETED'
+};
+
+export type MeasurementStatus = (typeof MeasurementStatus)[keyof typeof MeasurementStatus]
+
+}
+
+export type MeasurementStatus = $Enums.MeasurementStatus
+
+export const MeasurementStatus: typeof $Enums.MeasurementStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -198,6 +226,26 @@ export class PrismaClient<
     * ```
     */
   get adminUser(): Prisma.AdminUserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.measurementSiangAuditLog`: Exposes CRUD operations for the **MeasurementSiangAuditLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MeasurementSiangAuditLogs
+    * const measurementSiangAuditLogs = await prisma.measurementSiangAuditLog.findMany()
+    * ```
+    */
+  get measurementSiangAuditLog(): Prisma.MeasurementSiangAuditLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.measurementMalamAuditLog`: Exposes CRUD operations for the **MeasurementMalamAuditLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MeasurementMalamAuditLogs
+    * const measurementMalamAuditLogs = await prisma.measurementMalamAuditLog.findMany()
+    * ```
+    */
+  get measurementMalamAuditLog(): Prisma.MeasurementMalamAuditLogDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -641,7 +689,9 @@ export namespace Prisma {
     Substation: 'Substation',
     MeasurementSiang: 'MeasurementSiang',
     MeasurementMalam: 'MeasurementMalam',
-    AdminUser: 'AdminUser'
+    AdminUser: 'AdminUser',
+    MeasurementSiangAuditLog: 'MeasurementSiangAuditLog',
+    MeasurementMalamAuditLog: 'MeasurementMalamAuditLog'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -660,7 +710,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "substation" | "measurementSiang" | "measurementMalam" | "adminUser"
+      modelProps: "substation" | "measurementSiang" | "measurementMalam" | "adminUser" | "measurementSiangAuditLog" | "measurementMalamAuditLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -960,6 +1010,154 @@ export namespace Prisma {
           }
         }
       }
+      MeasurementSiangAuditLog: {
+        payload: Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>
+        fields: Prisma.MeasurementSiangAuditLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MeasurementSiangAuditLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MeasurementSiangAuditLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>
+          }
+          findFirst: {
+            args: Prisma.MeasurementSiangAuditLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MeasurementSiangAuditLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>
+          }
+          findMany: {
+            args: Prisma.MeasurementSiangAuditLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>[]
+          }
+          create: {
+            args: Prisma.MeasurementSiangAuditLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>
+          }
+          createMany: {
+            args: Prisma.MeasurementSiangAuditLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MeasurementSiangAuditLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>[]
+          }
+          delete: {
+            args: Prisma.MeasurementSiangAuditLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>
+          }
+          update: {
+            args: Prisma.MeasurementSiangAuditLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.MeasurementSiangAuditLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MeasurementSiangAuditLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MeasurementSiangAuditLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.MeasurementSiangAuditLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementSiangAuditLogPayload>
+          }
+          aggregate: {
+            args: Prisma.MeasurementSiangAuditLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMeasurementSiangAuditLog>
+          }
+          groupBy: {
+            args: Prisma.MeasurementSiangAuditLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MeasurementSiangAuditLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MeasurementSiangAuditLogCountArgs<ExtArgs>
+            result: $Utils.Optional<MeasurementSiangAuditLogCountAggregateOutputType> | number
+          }
+        }
+      }
+      MeasurementMalamAuditLog: {
+        payload: Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>
+        fields: Prisma.MeasurementMalamAuditLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MeasurementMalamAuditLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MeasurementMalamAuditLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>
+          }
+          findFirst: {
+            args: Prisma.MeasurementMalamAuditLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MeasurementMalamAuditLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>
+          }
+          findMany: {
+            args: Prisma.MeasurementMalamAuditLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>[]
+          }
+          create: {
+            args: Prisma.MeasurementMalamAuditLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>
+          }
+          createMany: {
+            args: Prisma.MeasurementMalamAuditLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MeasurementMalamAuditLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>[]
+          }
+          delete: {
+            args: Prisma.MeasurementMalamAuditLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>
+          }
+          update: {
+            args: Prisma.MeasurementMalamAuditLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.MeasurementMalamAuditLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MeasurementMalamAuditLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MeasurementMalamAuditLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.MeasurementMalamAuditLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MeasurementMalamAuditLogPayload>
+          }
+          aggregate: {
+            args: Prisma.MeasurementMalamAuditLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMeasurementMalamAuditLog>
+          }
+          groupBy: {
+            args: Prisma.MeasurementMalamAuditLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MeasurementMalamAuditLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MeasurementMalamAuditLogCountArgs<ExtArgs>
+            result: $Utils.Optional<MeasurementMalamAuditLogCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1056,6 +1254,8 @@ export namespace Prisma {
     measurementSiang?: MeasurementSiangOmit
     measurementMalam?: MeasurementMalamOmit
     adminUser?: AdminUserOmit
+    measurementSiangAuditLog?: MeasurementSiangAuditLogOmit
+    measurementMalamAuditLog?: MeasurementMalamAuditLogOmit
   }
 
   /* Types for Logging */
@@ -1187,6 +1387,68 @@ export namespace Prisma {
    */
   export type SubstationCountOutputTypeCountMeasurements_malamArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MeasurementMalamWhereInput
+  }
+
+
+  /**
+   * Count Type MeasurementSiangCountOutputType
+   */
+
+  export type MeasurementSiangCountOutputType = {
+    auditLogs: number
+  }
+
+  export type MeasurementSiangCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    auditLogs?: boolean | MeasurementSiangCountOutputTypeCountAuditLogsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MeasurementSiangCountOutputType without action
+   */
+  export type MeasurementSiangCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangCountOutputType
+     */
+    select?: MeasurementSiangCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MeasurementSiangCountOutputType without action
+   */
+  export type MeasurementSiangCountOutputTypeCountAuditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MeasurementSiangAuditLogWhereInput
+  }
+
+
+  /**
+   * Count Type MeasurementMalamCountOutputType
+   */
+
+  export type MeasurementMalamCountOutputType = {
+    auditLogs: number
+  }
+
+  export type MeasurementMalamCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    auditLogs?: boolean | MeasurementMalamCountOutputTypeCountAuditLogsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MeasurementMalamCountOutputType without action
+   */
+  export type MeasurementMalamCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamCountOutputType
+     */
+    select?: MeasurementMalamCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MeasurementMalamCountOutputType without action
+   */
+  export type MeasurementMalamCountOutputTypeCountAuditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MeasurementMalamAuditLogWhereInput
   }
 
 
@@ -2602,6 +2864,7 @@ export namespace Prisma {
     persen: number | null
     unbalanced: number | null
     lastUpdate: Date | null
+    status: $Enums.MeasurementStatus | null
   }
 
   export type MeasurementSiangMaxAggregateOutputType = {
@@ -2623,6 +2886,7 @@ export namespace Prisma {
     persen: number | null
     unbalanced: number | null
     lastUpdate: Date | null
+    status: $Enums.MeasurementStatus | null
   }
 
   export type MeasurementSiangCountAggregateOutputType = {
@@ -2644,6 +2908,7 @@ export namespace Prisma {
     persen: number
     unbalanced: number
     lastUpdate: number
+    status: number
     _all: number
   }
 
@@ -2701,6 +2966,7 @@ export namespace Prisma {
     persen?: true
     unbalanced?: true
     lastUpdate?: true
+    status?: true
   }
 
   export type MeasurementSiangMaxAggregateInputType = {
@@ -2722,6 +2988,7 @@ export namespace Prisma {
     persen?: true
     unbalanced?: true
     lastUpdate?: true
+    status?: true
   }
 
   export type MeasurementSiangCountAggregateInputType = {
@@ -2743,6 +3010,7 @@ export namespace Prisma {
     persen?: true
     unbalanced?: true
     lastUpdate?: true
+    status?: true
     _all?: true
   }
 
@@ -2851,6 +3119,7 @@ export namespace Prisma {
     persen: number | null
     unbalanced: number | null
     lastUpdate: Date
+    status: $Enums.MeasurementStatus
     _count: MeasurementSiangCountAggregateOutputType | null
     _avg: MeasurementSiangAvgAggregateOutputType | null
     _sum: MeasurementSiangSumAggregateOutputType | null
@@ -2891,7 +3160,10 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
+    auditLogs?: boolean | MeasurementSiang$auditLogsArgs<ExtArgs>
+    _count?: boolean | MeasurementSiangCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["measurementSiang"]>
 
   export type MeasurementSiangSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2913,6 +3185,7 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["measurementSiang"]>
 
@@ -2935,6 +3208,7 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["measurementSiang"]>
 
@@ -2957,11 +3231,14 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
   }
 
-  export type MeasurementSiangOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "substationId" | "month" | "r" | "s" | "t" | "n" | "rn" | "sn" | "tn" | "pp" | "pn" | "row_name" | "rata2" | "kva" | "persen" | "unbalanced" | "lastUpdate", ExtArgs["result"]["measurementSiang"]>
+  export type MeasurementSiangOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "substationId" | "month" | "r" | "s" | "t" | "n" | "rn" | "sn" | "tn" | "pp" | "pn" | "row_name" | "rata2" | "kva" | "persen" | "unbalanced" | "lastUpdate" | "status", ExtArgs["result"]["measurementSiang"]>
   export type MeasurementSiangInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
+    auditLogs?: boolean | MeasurementSiang$auditLogsArgs<ExtArgs>
+    _count?: boolean | MeasurementSiangCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MeasurementSiangIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
@@ -2974,6 +3251,7 @@ export namespace Prisma {
     name: "MeasurementSiang"
     objects: {
       substation: Prisma.$SubstationPayload<ExtArgs>
+      auditLogs: Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2994,6 +3272,7 @@ export namespace Prisma {
       persen: number | null
       unbalanced: number | null
       lastUpdate: Date
+      status: $Enums.MeasurementStatus
     }, ExtArgs["result"]["measurementSiang"]>
     composites: {}
   }
@@ -3389,6 +3668,7 @@ export namespace Prisma {
   export interface Prisma__MeasurementSiangClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     substation<T extends SubstationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SubstationDefaultArgs<ExtArgs>>): Prisma__SubstationClient<$Result.GetResult<Prisma.$SubstationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    auditLogs<T extends MeasurementSiang$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, MeasurementSiang$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3436,6 +3716,7 @@ export namespace Prisma {
     readonly persen: FieldRef<"MeasurementSiang", 'Float'>
     readonly unbalanced: FieldRef<"MeasurementSiang", 'Float'>
     readonly lastUpdate: FieldRef<"MeasurementSiang", 'DateTime'>
+    readonly status: FieldRef<"MeasurementSiang", 'MeasurementStatus'>
   }
     
 
@@ -3832,6 +4113,30 @@ export namespace Prisma {
   }
 
   /**
+   * MeasurementSiang.auditLogs
+   */
+  export type MeasurementSiang$auditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    where?: MeasurementSiangAuditLogWhereInput
+    orderBy?: MeasurementSiangAuditLogOrderByWithRelationInput | MeasurementSiangAuditLogOrderByWithRelationInput[]
+    cursor?: MeasurementSiangAuditLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MeasurementSiangAuditLogScalarFieldEnum | MeasurementSiangAuditLogScalarFieldEnum[]
+  }
+
+  /**
    * MeasurementSiang without action
    */
   export type MeasurementSiangDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3915,6 +4220,7 @@ export namespace Prisma {
     persen: number | null
     unbalanced: number | null
     lastUpdate: Date | null
+    status: $Enums.MeasurementStatus | null
   }
 
   export type MeasurementMalamMaxAggregateOutputType = {
@@ -3936,6 +4242,7 @@ export namespace Prisma {
     persen: number | null
     unbalanced: number | null
     lastUpdate: Date | null
+    status: $Enums.MeasurementStatus | null
   }
 
   export type MeasurementMalamCountAggregateOutputType = {
@@ -3957,6 +4264,7 @@ export namespace Prisma {
     persen: number
     unbalanced: number
     lastUpdate: number
+    status: number
     _all: number
   }
 
@@ -4014,6 +4322,7 @@ export namespace Prisma {
     persen?: true
     unbalanced?: true
     lastUpdate?: true
+    status?: true
   }
 
   export type MeasurementMalamMaxAggregateInputType = {
@@ -4035,6 +4344,7 @@ export namespace Prisma {
     persen?: true
     unbalanced?: true
     lastUpdate?: true
+    status?: true
   }
 
   export type MeasurementMalamCountAggregateInputType = {
@@ -4056,6 +4366,7 @@ export namespace Prisma {
     persen?: true
     unbalanced?: true
     lastUpdate?: true
+    status?: true
     _all?: true
   }
 
@@ -4164,6 +4475,7 @@ export namespace Prisma {
     persen: number | null
     unbalanced: number | null
     lastUpdate: Date
+    status: $Enums.MeasurementStatus
     _count: MeasurementMalamCountAggregateOutputType | null
     _avg: MeasurementMalamAvgAggregateOutputType | null
     _sum: MeasurementMalamSumAggregateOutputType | null
@@ -4204,7 +4516,10 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
+    auditLogs?: boolean | MeasurementMalam$auditLogsArgs<ExtArgs>
+    _count?: boolean | MeasurementMalamCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["measurementMalam"]>
 
   export type MeasurementMalamSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -4226,6 +4541,7 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["measurementMalam"]>
 
@@ -4248,6 +4564,7 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["measurementMalam"]>
 
@@ -4270,11 +4587,14 @@ export namespace Prisma {
     persen?: boolean
     unbalanced?: boolean
     lastUpdate?: boolean
+    status?: boolean
   }
 
-  export type MeasurementMalamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "substationId" | "month" | "r" | "s" | "t" | "n" | "rn" | "sn" | "tn" | "pp" | "pn" | "row_name" | "rata2" | "kva" | "persen" | "unbalanced" | "lastUpdate", ExtArgs["result"]["measurementMalam"]>
+  export type MeasurementMalamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "substationId" | "month" | "r" | "s" | "t" | "n" | "rn" | "sn" | "tn" | "pp" | "pn" | "row_name" | "rata2" | "kva" | "persen" | "unbalanced" | "lastUpdate" | "status", ExtArgs["result"]["measurementMalam"]>
   export type MeasurementMalamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
+    auditLogs?: boolean | MeasurementMalam$auditLogsArgs<ExtArgs>
+    _count?: boolean | MeasurementMalamCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MeasurementMalamIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     substation?: boolean | SubstationDefaultArgs<ExtArgs>
@@ -4287,6 +4607,7 @@ export namespace Prisma {
     name: "MeasurementMalam"
     objects: {
       substation: Prisma.$SubstationPayload<ExtArgs>
+      auditLogs: Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -4307,6 +4628,7 @@ export namespace Prisma {
       persen: number | null
       unbalanced: number | null
       lastUpdate: Date
+      status: $Enums.MeasurementStatus
     }, ExtArgs["result"]["measurementMalam"]>
     composites: {}
   }
@@ -4702,6 +5024,7 @@ export namespace Prisma {
   export interface Prisma__MeasurementMalamClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     substation<T extends SubstationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SubstationDefaultArgs<ExtArgs>>): Prisma__SubstationClient<$Result.GetResult<Prisma.$SubstationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    auditLogs<T extends MeasurementMalam$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, MeasurementMalam$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4749,6 +5072,7 @@ export namespace Prisma {
     readonly persen: FieldRef<"MeasurementMalam", 'Float'>
     readonly unbalanced: FieldRef<"MeasurementMalam", 'Float'>
     readonly lastUpdate: FieldRef<"MeasurementMalam", 'DateTime'>
+    readonly status: FieldRef<"MeasurementMalam", 'MeasurementStatus'>
   }
     
 
@@ -5145,6 +5469,30 @@ export namespace Prisma {
   }
 
   /**
+   * MeasurementMalam.auditLogs
+   */
+  export type MeasurementMalam$auditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    where?: MeasurementMalamAuditLogWhereInput
+    orderBy?: MeasurementMalamAuditLogOrderByWithRelationInput | MeasurementMalamAuditLogOrderByWithRelationInput[]
+    cursor?: MeasurementMalamAuditLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MeasurementMalamAuditLogScalarFieldEnum | MeasurementMalamAuditLogScalarFieldEnum[]
+  }
+
+  /**
    * MeasurementMalam without action
    */
   export type MeasurementMalamDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5338,7 +5686,7 @@ export namespace Prisma {
     id: number
     username: string
     password_hash: string
-    name: string
+    name: string | null
     role: string
     created_at: Date
     _count: AdminUserCountAggregateOutputType | null
@@ -5407,7 +5755,7 @@ export namespace Prisma {
       id: number
       username: string
       password_hash: string
-      name: string
+      name: string | null
       role: string
       created_at: Date
     }, ExtArgs["result"]["adminUser"]>
@@ -6206,6 +6554,2266 @@ export namespace Prisma {
 
 
   /**
+   * Model MeasurementSiangAuditLog
+   */
+
+  export type AggregateMeasurementSiangAuditLog = {
+    _count: MeasurementSiangAuditLogCountAggregateOutputType | null
+    _avg: MeasurementSiangAuditLogAvgAggregateOutputType | null
+    _sum: MeasurementSiangAuditLogSumAggregateOutputType | null
+    _min: MeasurementSiangAuditLogMinAggregateOutputType | null
+    _max: MeasurementSiangAuditLogMaxAggregateOutputType | null
+  }
+
+  export type MeasurementSiangAuditLogAvgAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+  }
+
+  export type MeasurementSiangAuditLogSumAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+  }
+
+  export type MeasurementSiangAuditLogMinAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+    changedBy: string | null
+    changeReason: string | null
+    changedAt: Date | null
+  }
+
+  export type MeasurementSiangAuditLogMaxAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+    changedBy: string | null
+    changeReason: string | null
+    changedAt: Date | null
+  }
+
+  export type MeasurementSiangAuditLogCountAggregateOutputType = {
+    id: number
+    measurementId: number
+    oldValue: number
+    newValue: number
+    changedBy: number
+    changeReason: number
+    changedAt: number
+    _all: number
+  }
+
+
+  export type MeasurementSiangAuditLogAvgAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+  }
+
+  export type MeasurementSiangAuditLogSumAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+  }
+
+  export type MeasurementSiangAuditLogMinAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+    changedBy?: true
+    changeReason?: true
+    changedAt?: true
+  }
+
+  export type MeasurementSiangAuditLogMaxAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+    changedBy?: true
+    changeReason?: true
+    changedAt?: true
+  }
+
+  export type MeasurementSiangAuditLogCountAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+    changedBy?: true
+    changeReason?: true
+    changedAt?: true
+    _all?: true
+  }
+
+  export type MeasurementSiangAuditLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MeasurementSiangAuditLog to aggregate.
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementSiangAuditLogs to fetch.
+     */
+    orderBy?: MeasurementSiangAuditLogOrderByWithRelationInput | MeasurementSiangAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MeasurementSiangAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementSiangAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementSiangAuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MeasurementSiangAuditLogs
+    **/
+    _count?: true | MeasurementSiangAuditLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MeasurementSiangAuditLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MeasurementSiangAuditLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MeasurementSiangAuditLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MeasurementSiangAuditLogMaxAggregateInputType
+  }
+
+  export type GetMeasurementSiangAuditLogAggregateType<T extends MeasurementSiangAuditLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateMeasurementSiangAuditLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMeasurementSiangAuditLog[P]>
+      : GetScalarType<T[P], AggregateMeasurementSiangAuditLog[P]>
+  }
+
+
+
+
+  export type MeasurementSiangAuditLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MeasurementSiangAuditLogWhereInput
+    orderBy?: MeasurementSiangAuditLogOrderByWithAggregationInput | MeasurementSiangAuditLogOrderByWithAggregationInput[]
+    by: MeasurementSiangAuditLogScalarFieldEnum[] | MeasurementSiangAuditLogScalarFieldEnum
+    having?: MeasurementSiangAuditLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MeasurementSiangAuditLogCountAggregateInputType | true
+    _avg?: MeasurementSiangAuditLogAvgAggregateInputType
+    _sum?: MeasurementSiangAuditLogSumAggregateInputType
+    _min?: MeasurementSiangAuditLogMinAggregateInputType
+    _max?: MeasurementSiangAuditLogMaxAggregateInputType
+  }
+
+  export type MeasurementSiangAuditLogGroupByOutputType = {
+    id: number
+    measurementId: number
+    oldValue: number | null
+    newValue: number | null
+    changedBy: string | null
+    changeReason: string | null
+    changedAt: Date
+    _count: MeasurementSiangAuditLogCountAggregateOutputType | null
+    _avg: MeasurementSiangAuditLogAvgAggregateOutputType | null
+    _sum: MeasurementSiangAuditLogSumAggregateOutputType | null
+    _min: MeasurementSiangAuditLogMinAggregateOutputType | null
+    _max: MeasurementSiangAuditLogMaxAggregateOutputType | null
+  }
+
+  type GetMeasurementSiangAuditLogGroupByPayload<T extends MeasurementSiangAuditLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MeasurementSiangAuditLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MeasurementSiangAuditLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MeasurementSiangAuditLogGroupByOutputType[P]>
+            : GetScalarType<T[P], MeasurementSiangAuditLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MeasurementSiangAuditLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+    measurement?: boolean | MeasurementSiangDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["measurementSiangAuditLog"]>
+
+  export type MeasurementSiangAuditLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+    measurement?: boolean | MeasurementSiangDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["measurementSiangAuditLog"]>
+
+  export type MeasurementSiangAuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+    measurement?: boolean | MeasurementSiangDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["measurementSiangAuditLog"]>
+
+  export type MeasurementSiangAuditLogSelectScalar = {
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+  }
+
+  export type MeasurementSiangAuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "measurementId" | "oldValue" | "newValue" | "changedBy" | "changeReason" | "changedAt", ExtArgs["result"]["measurementSiangAuditLog"]>
+  export type MeasurementSiangAuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    measurement?: boolean | MeasurementSiangDefaultArgs<ExtArgs>
+  }
+  export type MeasurementSiangAuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    measurement?: boolean | MeasurementSiangDefaultArgs<ExtArgs>
+  }
+  export type MeasurementSiangAuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    measurement?: boolean | MeasurementSiangDefaultArgs<ExtArgs>
+  }
+
+  export type $MeasurementSiangAuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MeasurementSiangAuditLog"
+    objects: {
+      measurement: Prisma.$MeasurementSiangPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      measurementId: number
+      oldValue: number | null
+      newValue: number | null
+      changedBy: string | null
+      changeReason: string | null
+      changedAt: Date
+    }, ExtArgs["result"]["measurementSiangAuditLog"]>
+    composites: {}
+  }
+
+  type MeasurementSiangAuditLogGetPayload<S extends boolean | null | undefined | MeasurementSiangAuditLogDefaultArgs> = $Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload, S>
+
+  type MeasurementSiangAuditLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MeasurementSiangAuditLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MeasurementSiangAuditLogCountAggregateInputType | true
+    }
+
+  export interface MeasurementSiangAuditLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MeasurementSiangAuditLog'], meta: { name: 'MeasurementSiangAuditLog' } }
+    /**
+     * Find zero or one MeasurementSiangAuditLog that matches the filter.
+     * @param {MeasurementSiangAuditLogFindUniqueArgs} args - Arguments to find a MeasurementSiangAuditLog
+     * @example
+     * // Get one MeasurementSiangAuditLog
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MeasurementSiangAuditLogFindUniqueArgs>(args: SelectSubset<T, MeasurementSiangAuditLogFindUniqueArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MeasurementSiangAuditLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MeasurementSiangAuditLogFindUniqueOrThrowArgs} args - Arguments to find a MeasurementSiangAuditLog
+     * @example
+     * // Get one MeasurementSiangAuditLog
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MeasurementSiangAuditLogFindUniqueOrThrowArgs>(args: SelectSubset<T, MeasurementSiangAuditLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MeasurementSiangAuditLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogFindFirstArgs} args - Arguments to find a MeasurementSiangAuditLog
+     * @example
+     * // Get one MeasurementSiangAuditLog
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MeasurementSiangAuditLogFindFirstArgs>(args?: SelectSubset<T, MeasurementSiangAuditLogFindFirstArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MeasurementSiangAuditLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogFindFirstOrThrowArgs} args - Arguments to find a MeasurementSiangAuditLog
+     * @example
+     * // Get one MeasurementSiangAuditLog
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MeasurementSiangAuditLogFindFirstOrThrowArgs>(args?: SelectSubset<T, MeasurementSiangAuditLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MeasurementSiangAuditLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MeasurementSiangAuditLogs
+     * const measurementSiangAuditLogs = await prisma.measurementSiangAuditLog.findMany()
+     * 
+     * // Get first 10 MeasurementSiangAuditLogs
+     * const measurementSiangAuditLogs = await prisma.measurementSiangAuditLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const measurementSiangAuditLogWithIdOnly = await prisma.measurementSiangAuditLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MeasurementSiangAuditLogFindManyArgs>(args?: SelectSubset<T, MeasurementSiangAuditLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MeasurementSiangAuditLog.
+     * @param {MeasurementSiangAuditLogCreateArgs} args - Arguments to create a MeasurementSiangAuditLog.
+     * @example
+     * // Create one MeasurementSiangAuditLog
+     * const MeasurementSiangAuditLog = await prisma.measurementSiangAuditLog.create({
+     *   data: {
+     *     // ... data to create a MeasurementSiangAuditLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends MeasurementSiangAuditLogCreateArgs>(args: SelectSubset<T, MeasurementSiangAuditLogCreateArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MeasurementSiangAuditLogs.
+     * @param {MeasurementSiangAuditLogCreateManyArgs} args - Arguments to create many MeasurementSiangAuditLogs.
+     * @example
+     * // Create many MeasurementSiangAuditLogs
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MeasurementSiangAuditLogCreateManyArgs>(args?: SelectSubset<T, MeasurementSiangAuditLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MeasurementSiangAuditLogs and returns the data saved in the database.
+     * @param {MeasurementSiangAuditLogCreateManyAndReturnArgs} args - Arguments to create many MeasurementSiangAuditLogs.
+     * @example
+     * // Create many MeasurementSiangAuditLogs
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MeasurementSiangAuditLogs and only return the `id`
+     * const measurementSiangAuditLogWithIdOnly = await prisma.measurementSiangAuditLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MeasurementSiangAuditLogCreateManyAndReturnArgs>(args?: SelectSubset<T, MeasurementSiangAuditLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MeasurementSiangAuditLog.
+     * @param {MeasurementSiangAuditLogDeleteArgs} args - Arguments to delete one MeasurementSiangAuditLog.
+     * @example
+     * // Delete one MeasurementSiangAuditLog
+     * const MeasurementSiangAuditLog = await prisma.measurementSiangAuditLog.delete({
+     *   where: {
+     *     // ... filter to delete one MeasurementSiangAuditLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MeasurementSiangAuditLogDeleteArgs>(args: SelectSubset<T, MeasurementSiangAuditLogDeleteArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MeasurementSiangAuditLog.
+     * @param {MeasurementSiangAuditLogUpdateArgs} args - Arguments to update one MeasurementSiangAuditLog.
+     * @example
+     * // Update one MeasurementSiangAuditLog
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MeasurementSiangAuditLogUpdateArgs>(args: SelectSubset<T, MeasurementSiangAuditLogUpdateArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MeasurementSiangAuditLogs.
+     * @param {MeasurementSiangAuditLogDeleteManyArgs} args - Arguments to filter MeasurementSiangAuditLogs to delete.
+     * @example
+     * // Delete a few MeasurementSiangAuditLogs
+     * const { count } = await prisma.measurementSiangAuditLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MeasurementSiangAuditLogDeleteManyArgs>(args?: SelectSubset<T, MeasurementSiangAuditLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MeasurementSiangAuditLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MeasurementSiangAuditLogs
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MeasurementSiangAuditLogUpdateManyArgs>(args: SelectSubset<T, MeasurementSiangAuditLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MeasurementSiangAuditLogs and returns the data updated in the database.
+     * @param {MeasurementSiangAuditLogUpdateManyAndReturnArgs} args - Arguments to update many MeasurementSiangAuditLogs.
+     * @example
+     * // Update many MeasurementSiangAuditLogs
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MeasurementSiangAuditLogs and only return the `id`
+     * const measurementSiangAuditLogWithIdOnly = await prisma.measurementSiangAuditLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MeasurementSiangAuditLogUpdateManyAndReturnArgs>(args: SelectSubset<T, MeasurementSiangAuditLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MeasurementSiangAuditLog.
+     * @param {MeasurementSiangAuditLogUpsertArgs} args - Arguments to update or create a MeasurementSiangAuditLog.
+     * @example
+     * // Update or create a MeasurementSiangAuditLog
+     * const measurementSiangAuditLog = await prisma.measurementSiangAuditLog.upsert({
+     *   create: {
+     *     // ... data to create a MeasurementSiangAuditLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MeasurementSiangAuditLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MeasurementSiangAuditLogUpsertArgs>(args: SelectSubset<T, MeasurementSiangAuditLogUpsertArgs<ExtArgs>>): Prisma__MeasurementSiangAuditLogClient<$Result.GetResult<Prisma.$MeasurementSiangAuditLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MeasurementSiangAuditLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogCountArgs} args - Arguments to filter MeasurementSiangAuditLogs to count.
+     * @example
+     * // Count the number of MeasurementSiangAuditLogs
+     * const count = await prisma.measurementSiangAuditLog.count({
+     *   where: {
+     *     // ... the filter for the MeasurementSiangAuditLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends MeasurementSiangAuditLogCountArgs>(
+      args?: Subset<T, MeasurementSiangAuditLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MeasurementSiangAuditLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MeasurementSiangAuditLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MeasurementSiangAuditLogAggregateArgs>(args: Subset<T, MeasurementSiangAuditLogAggregateArgs>): Prisma.PrismaPromise<GetMeasurementSiangAuditLogAggregateType<T>>
+
+    /**
+     * Group by MeasurementSiangAuditLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementSiangAuditLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MeasurementSiangAuditLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MeasurementSiangAuditLogGroupByArgs['orderBy'] }
+        : { orderBy?: MeasurementSiangAuditLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MeasurementSiangAuditLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMeasurementSiangAuditLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MeasurementSiangAuditLog model
+   */
+  readonly fields: MeasurementSiangAuditLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MeasurementSiangAuditLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MeasurementSiangAuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    measurement<T extends MeasurementSiangDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MeasurementSiangDefaultArgs<ExtArgs>>): Prisma__MeasurementSiangClient<$Result.GetResult<Prisma.$MeasurementSiangPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MeasurementSiangAuditLog model
+   */
+  interface MeasurementSiangAuditLogFieldRefs {
+    readonly id: FieldRef<"MeasurementSiangAuditLog", 'Int'>
+    readonly measurementId: FieldRef<"MeasurementSiangAuditLog", 'Int'>
+    readonly oldValue: FieldRef<"MeasurementSiangAuditLog", 'Float'>
+    readonly newValue: FieldRef<"MeasurementSiangAuditLog", 'Float'>
+    readonly changedBy: FieldRef<"MeasurementSiangAuditLog", 'String'>
+    readonly changeReason: FieldRef<"MeasurementSiangAuditLog", 'String'>
+    readonly changedAt: FieldRef<"MeasurementSiangAuditLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MeasurementSiangAuditLog findUnique
+   */
+  export type MeasurementSiangAuditLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementSiangAuditLog to fetch.
+     */
+    where: MeasurementSiangAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementSiangAuditLog findUniqueOrThrow
+   */
+  export type MeasurementSiangAuditLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementSiangAuditLog to fetch.
+     */
+    where: MeasurementSiangAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementSiangAuditLog findFirst
+   */
+  export type MeasurementSiangAuditLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementSiangAuditLog to fetch.
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementSiangAuditLogs to fetch.
+     */
+    orderBy?: MeasurementSiangAuditLogOrderByWithRelationInput | MeasurementSiangAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MeasurementSiangAuditLogs.
+     */
+    cursor?: MeasurementSiangAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementSiangAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementSiangAuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MeasurementSiangAuditLogs.
+     */
+    distinct?: MeasurementSiangAuditLogScalarFieldEnum | MeasurementSiangAuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * MeasurementSiangAuditLog findFirstOrThrow
+   */
+  export type MeasurementSiangAuditLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementSiangAuditLog to fetch.
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementSiangAuditLogs to fetch.
+     */
+    orderBy?: MeasurementSiangAuditLogOrderByWithRelationInput | MeasurementSiangAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MeasurementSiangAuditLogs.
+     */
+    cursor?: MeasurementSiangAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementSiangAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementSiangAuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MeasurementSiangAuditLogs.
+     */
+    distinct?: MeasurementSiangAuditLogScalarFieldEnum | MeasurementSiangAuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * MeasurementSiangAuditLog findMany
+   */
+  export type MeasurementSiangAuditLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementSiangAuditLogs to fetch.
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementSiangAuditLogs to fetch.
+     */
+    orderBy?: MeasurementSiangAuditLogOrderByWithRelationInput | MeasurementSiangAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MeasurementSiangAuditLogs.
+     */
+    cursor?: MeasurementSiangAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementSiangAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementSiangAuditLogs.
+     */
+    skip?: number
+    distinct?: MeasurementSiangAuditLogScalarFieldEnum | MeasurementSiangAuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * MeasurementSiangAuditLog create
+   */
+  export type MeasurementSiangAuditLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MeasurementSiangAuditLog.
+     */
+    data: XOR<MeasurementSiangAuditLogCreateInput, MeasurementSiangAuditLogUncheckedCreateInput>
+  }
+
+  /**
+   * MeasurementSiangAuditLog createMany
+   */
+  export type MeasurementSiangAuditLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MeasurementSiangAuditLogs.
+     */
+    data: MeasurementSiangAuditLogCreateManyInput | MeasurementSiangAuditLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MeasurementSiangAuditLog createManyAndReturn
+   */
+  export type MeasurementSiangAuditLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many MeasurementSiangAuditLogs.
+     */
+    data: MeasurementSiangAuditLogCreateManyInput | MeasurementSiangAuditLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MeasurementSiangAuditLog update
+   */
+  export type MeasurementSiangAuditLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MeasurementSiangAuditLog.
+     */
+    data: XOR<MeasurementSiangAuditLogUpdateInput, MeasurementSiangAuditLogUncheckedUpdateInput>
+    /**
+     * Choose, which MeasurementSiangAuditLog to update.
+     */
+    where: MeasurementSiangAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementSiangAuditLog updateMany
+   */
+  export type MeasurementSiangAuditLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MeasurementSiangAuditLogs.
+     */
+    data: XOR<MeasurementSiangAuditLogUpdateManyMutationInput, MeasurementSiangAuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which MeasurementSiangAuditLogs to update
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * Limit how many MeasurementSiangAuditLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MeasurementSiangAuditLog updateManyAndReturn
+   */
+  export type MeasurementSiangAuditLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to update MeasurementSiangAuditLogs.
+     */
+    data: XOR<MeasurementSiangAuditLogUpdateManyMutationInput, MeasurementSiangAuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which MeasurementSiangAuditLogs to update
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * Limit how many MeasurementSiangAuditLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MeasurementSiangAuditLog upsert
+   */
+  export type MeasurementSiangAuditLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MeasurementSiangAuditLog to update in case it exists.
+     */
+    where: MeasurementSiangAuditLogWhereUniqueInput
+    /**
+     * In case the MeasurementSiangAuditLog found by the `where` argument doesn't exist, create a new MeasurementSiangAuditLog with this data.
+     */
+    create: XOR<MeasurementSiangAuditLogCreateInput, MeasurementSiangAuditLogUncheckedCreateInput>
+    /**
+     * In case the MeasurementSiangAuditLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MeasurementSiangAuditLogUpdateInput, MeasurementSiangAuditLogUncheckedUpdateInput>
+  }
+
+  /**
+   * MeasurementSiangAuditLog delete
+   */
+  export type MeasurementSiangAuditLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter which MeasurementSiangAuditLog to delete.
+     */
+    where: MeasurementSiangAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementSiangAuditLog deleteMany
+   */
+  export type MeasurementSiangAuditLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MeasurementSiangAuditLogs to delete
+     */
+    where?: MeasurementSiangAuditLogWhereInput
+    /**
+     * Limit how many MeasurementSiangAuditLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MeasurementSiangAuditLog without action
+   */
+  export type MeasurementSiangAuditLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementSiangAuditLog
+     */
+    select?: MeasurementSiangAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementSiangAuditLog
+     */
+    omit?: MeasurementSiangAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementSiangAuditLogInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MeasurementMalamAuditLog
+   */
+
+  export type AggregateMeasurementMalamAuditLog = {
+    _count: MeasurementMalamAuditLogCountAggregateOutputType | null
+    _avg: MeasurementMalamAuditLogAvgAggregateOutputType | null
+    _sum: MeasurementMalamAuditLogSumAggregateOutputType | null
+    _min: MeasurementMalamAuditLogMinAggregateOutputType | null
+    _max: MeasurementMalamAuditLogMaxAggregateOutputType | null
+  }
+
+  export type MeasurementMalamAuditLogAvgAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+  }
+
+  export type MeasurementMalamAuditLogSumAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+  }
+
+  export type MeasurementMalamAuditLogMinAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+    changedBy: string | null
+    changeReason: string | null
+    changedAt: Date | null
+  }
+
+  export type MeasurementMalamAuditLogMaxAggregateOutputType = {
+    id: number | null
+    measurementId: number | null
+    oldValue: number | null
+    newValue: number | null
+    changedBy: string | null
+    changeReason: string | null
+    changedAt: Date | null
+  }
+
+  export type MeasurementMalamAuditLogCountAggregateOutputType = {
+    id: number
+    measurementId: number
+    oldValue: number
+    newValue: number
+    changedBy: number
+    changeReason: number
+    changedAt: number
+    _all: number
+  }
+
+
+  export type MeasurementMalamAuditLogAvgAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+  }
+
+  export type MeasurementMalamAuditLogSumAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+  }
+
+  export type MeasurementMalamAuditLogMinAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+    changedBy?: true
+    changeReason?: true
+    changedAt?: true
+  }
+
+  export type MeasurementMalamAuditLogMaxAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+    changedBy?: true
+    changeReason?: true
+    changedAt?: true
+  }
+
+  export type MeasurementMalamAuditLogCountAggregateInputType = {
+    id?: true
+    measurementId?: true
+    oldValue?: true
+    newValue?: true
+    changedBy?: true
+    changeReason?: true
+    changedAt?: true
+    _all?: true
+  }
+
+  export type MeasurementMalamAuditLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MeasurementMalamAuditLog to aggregate.
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementMalamAuditLogs to fetch.
+     */
+    orderBy?: MeasurementMalamAuditLogOrderByWithRelationInput | MeasurementMalamAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MeasurementMalamAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementMalamAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementMalamAuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MeasurementMalamAuditLogs
+    **/
+    _count?: true | MeasurementMalamAuditLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MeasurementMalamAuditLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MeasurementMalamAuditLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MeasurementMalamAuditLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MeasurementMalamAuditLogMaxAggregateInputType
+  }
+
+  export type GetMeasurementMalamAuditLogAggregateType<T extends MeasurementMalamAuditLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateMeasurementMalamAuditLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMeasurementMalamAuditLog[P]>
+      : GetScalarType<T[P], AggregateMeasurementMalamAuditLog[P]>
+  }
+
+
+
+
+  export type MeasurementMalamAuditLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MeasurementMalamAuditLogWhereInput
+    orderBy?: MeasurementMalamAuditLogOrderByWithAggregationInput | MeasurementMalamAuditLogOrderByWithAggregationInput[]
+    by: MeasurementMalamAuditLogScalarFieldEnum[] | MeasurementMalamAuditLogScalarFieldEnum
+    having?: MeasurementMalamAuditLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MeasurementMalamAuditLogCountAggregateInputType | true
+    _avg?: MeasurementMalamAuditLogAvgAggregateInputType
+    _sum?: MeasurementMalamAuditLogSumAggregateInputType
+    _min?: MeasurementMalamAuditLogMinAggregateInputType
+    _max?: MeasurementMalamAuditLogMaxAggregateInputType
+  }
+
+  export type MeasurementMalamAuditLogGroupByOutputType = {
+    id: number
+    measurementId: number
+    oldValue: number | null
+    newValue: number | null
+    changedBy: string | null
+    changeReason: string | null
+    changedAt: Date
+    _count: MeasurementMalamAuditLogCountAggregateOutputType | null
+    _avg: MeasurementMalamAuditLogAvgAggregateOutputType | null
+    _sum: MeasurementMalamAuditLogSumAggregateOutputType | null
+    _min: MeasurementMalamAuditLogMinAggregateOutputType | null
+    _max: MeasurementMalamAuditLogMaxAggregateOutputType | null
+  }
+
+  type GetMeasurementMalamAuditLogGroupByPayload<T extends MeasurementMalamAuditLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MeasurementMalamAuditLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MeasurementMalamAuditLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MeasurementMalamAuditLogGroupByOutputType[P]>
+            : GetScalarType<T[P], MeasurementMalamAuditLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MeasurementMalamAuditLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+    measurement?: boolean | MeasurementMalamDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["measurementMalamAuditLog"]>
+
+  export type MeasurementMalamAuditLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+    measurement?: boolean | MeasurementMalamDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["measurementMalamAuditLog"]>
+
+  export type MeasurementMalamAuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+    measurement?: boolean | MeasurementMalamDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["measurementMalamAuditLog"]>
+
+  export type MeasurementMalamAuditLogSelectScalar = {
+    id?: boolean
+    measurementId?: boolean
+    oldValue?: boolean
+    newValue?: boolean
+    changedBy?: boolean
+    changeReason?: boolean
+    changedAt?: boolean
+  }
+
+  export type MeasurementMalamAuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "measurementId" | "oldValue" | "newValue" | "changedBy" | "changeReason" | "changedAt", ExtArgs["result"]["measurementMalamAuditLog"]>
+  export type MeasurementMalamAuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    measurement?: boolean | MeasurementMalamDefaultArgs<ExtArgs>
+  }
+  export type MeasurementMalamAuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    measurement?: boolean | MeasurementMalamDefaultArgs<ExtArgs>
+  }
+  export type MeasurementMalamAuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    measurement?: boolean | MeasurementMalamDefaultArgs<ExtArgs>
+  }
+
+  export type $MeasurementMalamAuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MeasurementMalamAuditLog"
+    objects: {
+      measurement: Prisma.$MeasurementMalamPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      measurementId: number
+      oldValue: number | null
+      newValue: number | null
+      changedBy: string | null
+      changeReason: string | null
+      changedAt: Date
+    }, ExtArgs["result"]["measurementMalamAuditLog"]>
+    composites: {}
+  }
+
+  type MeasurementMalamAuditLogGetPayload<S extends boolean | null | undefined | MeasurementMalamAuditLogDefaultArgs> = $Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload, S>
+
+  type MeasurementMalamAuditLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MeasurementMalamAuditLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MeasurementMalamAuditLogCountAggregateInputType | true
+    }
+
+  export interface MeasurementMalamAuditLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MeasurementMalamAuditLog'], meta: { name: 'MeasurementMalamAuditLog' } }
+    /**
+     * Find zero or one MeasurementMalamAuditLog that matches the filter.
+     * @param {MeasurementMalamAuditLogFindUniqueArgs} args - Arguments to find a MeasurementMalamAuditLog
+     * @example
+     * // Get one MeasurementMalamAuditLog
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MeasurementMalamAuditLogFindUniqueArgs>(args: SelectSubset<T, MeasurementMalamAuditLogFindUniqueArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MeasurementMalamAuditLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MeasurementMalamAuditLogFindUniqueOrThrowArgs} args - Arguments to find a MeasurementMalamAuditLog
+     * @example
+     * // Get one MeasurementMalamAuditLog
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MeasurementMalamAuditLogFindUniqueOrThrowArgs>(args: SelectSubset<T, MeasurementMalamAuditLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MeasurementMalamAuditLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogFindFirstArgs} args - Arguments to find a MeasurementMalamAuditLog
+     * @example
+     * // Get one MeasurementMalamAuditLog
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MeasurementMalamAuditLogFindFirstArgs>(args?: SelectSubset<T, MeasurementMalamAuditLogFindFirstArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MeasurementMalamAuditLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogFindFirstOrThrowArgs} args - Arguments to find a MeasurementMalamAuditLog
+     * @example
+     * // Get one MeasurementMalamAuditLog
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MeasurementMalamAuditLogFindFirstOrThrowArgs>(args?: SelectSubset<T, MeasurementMalamAuditLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MeasurementMalamAuditLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MeasurementMalamAuditLogs
+     * const measurementMalamAuditLogs = await prisma.measurementMalamAuditLog.findMany()
+     * 
+     * // Get first 10 MeasurementMalamAuditLogs
+     * const measurementMalamAuditLogs = await prisma.measurementMalamAuditLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const measurementMalamAuditLogWithIdOnly = await prisma.measurementMalamAuditLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MeasurementMalamAuditLogFindManyArgs>(args?: SelectSubset<T, MeasurementMalamAuditLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MeasurementMalamAuditLog.
+     * @param {MeasurementMalamAuditLogCreateArgs} args - Arguments to create a MeasurementMalamAuditLog.
+     * @example
+     * // Create one MeasurementMalamAuditLog
+     * const MeasurementMalamAuditLog = await prisma.measurementMalamAuditLog.create({
+     *   data: {
+     *     // ... data to create a MeasurementMalamAuditLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends MeasurementMalamAuditLogCreateArgs>(args: SelectSubset<T, MeasurementMalamAuditLogCreateArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MeasurementMalamAuditLogs.
+     * @param {MeasurementMalamAuditLogCreateManyArgs} args - Arguments to create many MeasurementMalamAuditLogs.
+     * @example
+     * // Create many MeasurementMalamAuditLogs
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MeasurementMalamAuditLogCreateManyArgs>(args?: SelectSubset<T, MeasurementMalamAuditLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MeasurementMalamAuditLogs and returns the data saved in the database.
+     * @param {MeasurementMalamAuditLogCreateManyAndReturnArgs} args - Arguments to create many MeasurementMalamAuditLogs.
+     * @example
+     * // Create many MeasurementMalamAuditLogs
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MeasurementMalamAuditLogs and only return the `id`
+     * const measurementMalamAuditLogWithIdOnly = await prisma.measurementMalamAuditLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MeasurementMalamAuditLogCreateManyAndReturnArgs>(args?: SelectSubset<T, MeasurementMalamAuditLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MeasurementMalamAuditLog.
+     * @param {MeasurementMalamAuditLogDeleteArgs} args - Arguments to delete one MeasurementMalamAuditLog.
+     * @example
+     * // Delete one MeasurementMalamAuditLog
+     * const MeasurementMalamAuditLog = await prisma.measurementMalamAuditLog.delete({
+     *   where: {
+     *     // ... filter to delete one MeasurementMalamAuditLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MeasurementMalamAuditLogDeleteArgs>(args: SelectSubset<T, MeasurementMalamAuditLogDeleteArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MeasurementMalamAuditLog.
+     * @param {MeasurementMalamAuditLogUpdateArgs} args - Arguments to update one MeasurementMalamAuditLog.
+     * @example
+     * // Update one MeasurementMalamAuditLog
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MeasurementMalamAuditLogUpdateArgs>(args: SelectSubset<T, MeasurementMalamAuditLogUpdateArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MeasurementMalamAuditLogs.
+     * @param {MeasurementMalamAuditLogDeleteManyArgs} args - Arguments to filter MeasurementMalamAuditLogs to delete.
+     * @example
+     * // Delete a few MeasurementMalamAuditLogs
+     * const { count } = await prisma.measurementMalamAuditLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MeasurementMalamAuditLogDeleteManyArgs>(args?: SelectSubset<T, MeasurementMalamAuditLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MeasurementMalamAuditLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MeasurementMalamAuditLogs
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MeasurementMalamAuditLogUpdateManyArgs>(args: SelectSubset<T, MeasurementMalamAuditLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MeasurementMalamAuditLogs and returns the data updated in the database.
+     * @param {MeasurementMalamAuditLogUpdateManyAndReturnArgs} args - Arguments to update many MeasurementMalamAuditLogs.
+     * @example
+     * // Update many MeasurementMalamAuditLogs
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MeasurementMalamAuditLogs and only return the `id`
+     * const measurementMalamAuditLogWithIdOnly = await prisma.measurementMalamAuditLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MeasurementMalamAuditLogUpdateManyAndReturnArgs>(args: SelectSubset<T, MeasurementMalamAuditLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MeasurementMalamAuditLog.
+     * @param {MeasurementMalamAuditLogUpsertArgs} args - Arguments to update or create a MeasurementMalamAuditLog.
+     * @example
+     * // Update or create a MeasurementMalamAuditLog
+     * const measurementMalamAuditLog = await prisma.measurementMalamAuditLog.upsert({
+     *   create: {
+     *     // ... data to create a MeasurementMalamAuditLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MeasurementMalamAuditLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MeasurementMalamAuditLogUpsertArgs>(args: SelectSubset<T, MeasurementMalamAuditLogUpsertArgs<ExtArgs>>): Prisma__MeasurementMalamAuditLogClient<$Result.GetResult<Prisma.$MeasurementMalamAuditLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MeasurementMalamAuditLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogCountArgs} args - Arguments to filter MeasurementMalamAuditLogs to count.
+     * @example
+     * // Count the number of MeasurementMalamAuditLogs
+     * const count = await prisma.measurementMalamAuditLog.count({
+     *   where: {
+     *     // ... the filter for the MeasurementMalamAuditLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends MeasurementMalamAuditLogCountArgs>(
+      args?: Subset<T, MeasurementMalamAuditLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MeasurementMalamAuditLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MeasurementMalamAuditLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MeasurementMalamAuditLogAggregateArgs>(args: Subset<T, MeasurementMalamAuditLogAggregateArgs>): Prisma.PrismaPromise<GetMeasurementMalamAuditLogAggregateType<T>>
+
+    /**
+     * Group by MeasurementMalamAuditLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MeasurementMalamAuditLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MeasurementMalamAuditLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MeasurementMalamAuditLogGroupByArgs['orderBy'] }
+        : { orderBy?: MeasurementMalamAuditLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MeasurementMalamAuditLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMeasurementMalamAuditLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MeasurementMalamAuditLog model
+   */
+  readonly fields: MeasurementMalamAuditLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MeasurementMalamAuditLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MeasurementMalamAuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    measurement<T extends MeasurementMalamDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MeasurementMalamDefaultArgs<ExtArgs>>): Prisma__MeasurementMalamClient<$Result.GetResult<Prisma.$MeasurementMalamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MeasurementMalamAuditLog model
+   */
+  interface MeasurementMalamAuditLogFieldRefs {
+    readonly id: FieldRef<"MeasurementMalamAuditLog", 'Int'>
+    readonly measurementId: FieldRef<"MeasurementMalamAuditLog", 'Int'>
+    readonly oldValue: FieldRef<"MeasurementMalamAuditLog", 'Float'>
+    readonly newValue: FieldRef<"MeasurementMalamAuditLog", 'Float'>
+    readonly changedBy: FieldRef<"MeasurementMalamAuditLog", 'String'>
+    readonly changeReason: FieldRef<"MeasurementMalamAuditLog", 'String'>
+    readonly changedAt: FieldRef<"MeasurementMalamAuditLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MeasurementMalamAuditLog findUnique
+   */
+  export type MeasurementMalamAuditLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementMalamAuditLog to fetch.
+     */
+    where: MeasurementMalamAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementMalamAuditLog findUniqueOrThrow
+   */
+  export type MeasurementMalamAuditLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementMalamAuditLog to fetch.
+     */
+    where: MeasurementMalamAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementMalamAuditLog findFirst
+   */
+  export type MeasurementMalamAuditLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementMalamAuditLog to fetch.
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementMalamAuditLogs to fetch.
+     */
+    orderBy?: MeasurementMalamAuditLogOrderByWithRelationInput | MeasurementMalamAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MeasurementMalamAuditLogs.
+     */
+    cursor?: MeasurementMalamAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementMalamAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementMalamAuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MeasurementMalamAuditLogs.
+     */
+    distinct?: MeasurementMalamAuditLogScalarFieldEnum | MeasurementMalamAuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * MeasurementMalamAuditLog findFirstOrThrow
+   */
+  export type MeasurementMalamAuditLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementMalamAuditLog to fetch.
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementMalamAuditLogs to fetch.
+     */
+    orderBy?: MeasurementMalamAuditLogOrderByWithRelationInput | MeasurementMalamAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MeasurementMalamAuditLogs.
+     */
+    cursor?: MeasurementMalamAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementMalamAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementMalamAuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MeasurementMalamAuditLogs.
+     */
+    distinct?: MeasurementMalamAuditLogScalarFieldEnum | MeasurementMalamAuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * MeasurementMalamAuditLog findMany
+   */
+  export type MeasurementMalamAuditLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MeasurementMalamAuditLogs to fetch.
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MeasurementMalamAuditLogs to fetch.
+     */
+    orderBy?: MeasurementMalamAuditLogOrderByWithRelationInput | MeasurementMalamAuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MeasurementMalamAuditLogs.
+     */
+    cursor?: MeasurementMalamAuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MeasurementMalamAuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MeasurementMalamAuditLogs.
+     */
+    skip?: number
+    distinct?: MeasurementMalamAuditLogScalarFieldEnum | MeasurementMalamAuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * MeasurementMalamAuditLog create
+   */
+  export type MeasurementMalamAuditLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MeasurementMalamAuditLog.
+     */
+    data: XOR<MeasurementMalamAuditLogCreateInput, MeasurementMalamAuditLogUncheckedCreateInput>
+  }
+
+  /**
+   * MeasurementMalamAuditLog createMany
+   */
+  export type MeasurementMalamAuditLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MeasurementMalamAuditLogs.
+     */
+    data: MeasurementMalamAuditLogCreateManyInput | MeasurementMalamAuditLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MeasurementMalamAuditLog createManyAndReturn
+   */
+  export type MeasurementMalamAuditLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many MeasurementMalamAuditLogs.
+     */
+    data: MeasurementMalamAuditLogCreateManyInput | MeasurementMalamAuditLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MeasurementMalamAuditLog update
+   */
+  export type MeasurementMalamAuditLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MeasurementMalamAuditLog.
+     */
+    data: XOR<MeasurementMalamAuditLogUpdateInput, MeasurementMalamAuditLogUncheckedUpdateInput>
+    /**
+     * Choose, which MeasurementMalamAuditLog to update.
+     */
+    where: MeasurementMalamAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementMalamAuditLog updateMany
+   */
+  export type MeasurementMalamAuditLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MeasurementMalamAuditLogs.
+     */
+    data: XOR<MeasurementMalamAuditLogUpdateManyMutationInput, MeasurementMalamAuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which MeasurementMalamAuditLogs to update
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * Limit how many MeasurementMalamAuditLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MeasurementMalamAuditLog updateManyAndReturn
+   */
+  export type MeasurementMalamAuditLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to update MeasurementMalamAuditLogs.
+     */
+    data: XOR<MeasurementMalamAuditLogUpdateManyMutationInput, MeasurementMalamAuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which MeasurementMalamAuditLogs to update
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * Limit how many MeasurementMalamAuditLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MeasurementMalamAuditLog upsert
+   */
+  export type MeasurementMalamAuditLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MeasurementMalamAuditLog to update in case it exists.
+     */
+    where: MeasurementMalamAuditLogWhereUniqueInput
+    /**
+     * In case the MeasurementMalamAuditLog found by the `where` argument doesn't exist, create a new MeasurementMalamAuditLog with this data.
+     */
+    create: XOR<MeasurementMalamAuditLogCreateInput, MeasurementMalamAuditLogUncheckedCreateInput>
+    /**
+     * In case the MeasurementMalamAuditLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MeasurementMalamAuditLogUpdateInput, MeasurementMalamAuditLogUncheckedUpdateInput>
+  }
+
+  /**
+   * MeasurementMalamAuditLog delete
+   */
+  export type MeasurementMalamAuditLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+    /**
+     * Filter which MeasurementMalamAuditLog to delete.
+     */
+    where: MeasurementMalamAuditLogWhereUniqueInput
+  }
+
+  /**
+   * MeasurementMalamAuditLog deleteMany
+   */
+  export type MeasurementMalamAuditLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MeasurementMalamAuditLogs to delete
+     */
+    where?: MeasurementMalamAuditLogWhereInput
+    /**
+     * Limit how many MeasurementMalamAuditLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MeasurementMalamAuditLog without action
+   */
+  export type MeasurementMalamAuditLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MeasurementMalamAuditLog
+     */
+    select?: MeasurementMalamAuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MeasurementMalamAuditLog
+     */
+    omit?: MeasurementMalamAuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MeasurementMalamAuditLogInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -6263,7 +8871,8 @@ export namespace Prisma {
     kva: 'kva',
     persen: 'persen',
     unbalanced: 'unbalanced',
-    lastUpdate: 'lastUpdate'
+    lastUpdate: 'lastUpdate',
+    status: 'status'
   };
 
   export type MeasurementSiangScalarFieldEnum = (typeof MeasurementSiangScalarFieldEnum)[keyof typeof MeasurementSiangScalarFieldEnum]
@@ -6287,7 +8896,8 @@ export namespace Prisma {
     kva: 'kva',
     persen: 'persen',
     unbalanced: 'unbalanced',
-    lastUpdate: 'lastUpdate'
+    lastUpdate: 'lastUpdate',
+    status: 'status'
   };
 
   export type MeasurementMalamScalarFieldEnum = (typeof MeasurementMalamScalarFieldEnum)[keyof typeof MeasurementMalamScalarFieldEnum]
@@ -6303,6 +8913,32 @@ export namespace Prisma {
   };
 
   export type AdminUserScalarFieldEnum = (typeof AdminUserScalarFieldEnum)[keyof typeof AdminUserScalarFieldEnum]
+
+
+  export const MeasurementSiangAuditLogScalarFieldEnum: {
+    id: 'id',
+    measurementId: 'measurementId',
+    oldValue: 'oldValue',
+    newValue: 'newValue',
+    changedBy: 'changedBy',
+    changeReason: 'changeReason',
+    changedAt: 'changedAt'
+  };
+
+  export type MeasurementSiangAuditLogScalarFieldEnum = (typeof MeasurementSiangAuditLogScalarFieldEnum)[keyof typeof MeasurementSiangAuditLogScalarFieldEnum]
+
+
+  export const MeasurementMalamAuditLogScalarFieldEnum: {
+    id: 'id',
+    measurementId: 'measurementId',
+    oldValue: 'oldValue',
+    newValue: 'newValue',
+    changedBy: 'changedBy',
+    changeReason: 'changeReason',
+    changedAt: 'changedAt'
+  };
+
+  export type MeasurementMalamAuditLogScalarFieldEnum = (typeof MeasurementMalamAuditLogScalarFieldEnum)[keyof typeof MeasurementMalamAuditLogScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -6387,6 +9023,20 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MeasurementStatus'
+   */
+  export type EnumMeasurementStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MeasurementStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MeasurementStatus[]'
+   */
+  export type ListEnumMeasurementStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MeasurementStatus[]'>
     
   /**
    * Deep Input Types
@@ -6550,7 +9200,9 @@ export namespace Prisma {
     persen?: FloatNullableFilter<"MeasurementSiang"> | number | null
     unbalanced?: FloatNullableFilter<"MeasurementSiang"> | number | null
     lastUpdate?: DateTimeFilter<"MeasurementSiang"> | Date | string
+    status?: EnumMeasurementStatusFilter<"MeasurementSiang"> | $Enums.MeasurementStatus
     substation?: XOR<SubstationScalarRelationFilter, SubstationWhereInput>
+    auditLogs?: MeasurementSiangAuditLogListRelationFilter
   }
 
   export type MeasurementSiangOrderByWithRelationInput = {
@@ -6572,7 +9224,9 @@ export namespace Prisma {
     persen?: SortOrderInput | SortOrder
     unbalanced?: SortOrderInput | SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
     substation?: SubstationOrderByWithRelationInput
+    auditLogs?: MeasurementSiangAuditLogOrderByRelationAggregateInput
   }
 
   export type MeasurementSiangWhereUniqueInput = Prisma.AtLeast<{
@@ -6598,7 +9252,9 @@ export namespace Prisma {
     persen?: FloatNullableFilter<"MeasurementSiang"> | number | null
     unbalanced?: FloatNullableFilter<"MeasurementSiang"> | number | null
     lastUpdate?: DateTimeFilter<"MeasurementSiang"> | Date | string
+    status?: EnumMeasurementStatusFilter<"MeasurementSiang"> | $Enums.MeasurementStatus
     substation?: XOR<SubstationScalarRelationFilter, SubstationWhereInput>
+    auditLogs?: MeasurementSiangAuditLogListRelationFilter
   }, "id" | "substationId_month_row_name">
 
   export type MeasurementSiangOrderByWithAggregationInput = {
@@ -6620,6 +9276,7 @@ export namespace Prisma {
     persen?: SortOrderInput | SortOrder
     unbalanced?: SortOrderInput | SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
     _count?: MeasurementSiangCountOrderByAggregateInput
     _avg?: MeasurementSiangAvgOrderByAggregateInput
     _max?: MeasurementSiangMaxOrderByAggregateInput
@@ -6649,6 +9306,7 @@ export namespace Prisma {
     persen?: FloatNullableWithAggregatesFilter<"MeasurementSiang"> | number | null
     unbalanced?: FloatNullableWithAggregatesFilter<"MeasurementSiang"> | number | null
     lastUpdate?: DateTimeWithAggregatesFilter<"MeasurementSiang"> | Date | string
+    status?: EnumMeasurementStatusWithAggregatesFilter<"MeasurementSiang"> | $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamWhereInput = {
@@ -6673,7 +9331,9 @@ export namespace Prisma {
     persen?: FloatNullableFilter<"MeasurementMalam"> | number | null
     unbalanced?: FloatNullableFilter<"MeasurementMalam"> | number | null
     lastUpdate?: DateTimeFilter<"MeasurementMalam"> | Date | string
+    status?: EnumMeasurementStatusFilter<"MeasurementMalam"> | $Enums.MeasurementStatus
     substation?: XOR<SubstationScalarRelationFilter, SubstationWhereInput>
+    auditLogs?: MeasurementMalamAuditLogListRelationFilter
   }
 
   export type MeasurementMalamOrderByWithRelationInput = {
@@ -6695,7 +9355,9 @@ export namespace Prisma {
     persen?: SortOrderInput | SortOrder
     unbalanced?: SortOrderInput | SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
     substation?: SubstationOrderByWithRelationInput
+    auditLogs?: MeasurementMalamAuditLogOrderByRelationAggregateInput
   }
 
   export type MeasurementMalamWhereUniqueInput = Prisma.AtLeast<{
@@ -6721,7 +9383,9 @@ export namespace Prisma {
     persen?: FloatNullableFilter<"MeasurementMalam"> | number | null
     unbalanced?: FloatNullableFilter<"MeasurementMalam"> | number | null
     lastUpdate?: DateTimeFilter<"MeasurementMalam"> | Date | string
+    status?: EnumMeasurementStatusFilter<"MeasurementMalam"> | $Enums.MeasurementStatus
     substation?: XOR<SubstationScalarRelationFilter, SubstationWhereInput>
+    auditLogs?: MeasurementMalamAuditLogListRelationFilter
   }, "id" | "substationId_month_row_name">
 
   export type MeasurementMalamOrderByWithAggregationInput = {
@@ -6743,6 +9407,7 @@ export namespace Prisma {
     persen?: SortOrderInput | SortOrder
     unbalanced?: SortOrderInput | SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
     _count?: MeasurementMalamCountOrderByAggregateInput
     _avg?: MeasurementMalamAvgOrderByAggregateInput
     _max?: MeasurementMalamMaxOrderByAggregateInput
@@ -6772,6 +9437,7 @@ export namespace Prisma {
     persen?: FloatNullableWithAggregatesFilter<"MeasurementMalam"> | number | null
     unbalanced?: FloatNullableWithAggregatesFilter<"MeasurementMalam"> | number | null
     lastUpdate?: DateTimeWithAggregatesFilter<"MeasurementMalam"> | Date | string
+    status?: EnumMeasurementStatusWithAggregatesFilter<"MeasurementMalam"> | $Enums.MeasurementStatus
   }
 
   export type AdminUserWhereInput = {
@@ -6781,7 +9447,7 @@ export namespace Prisma {
     id?: IntFilter<"AdminUser"> | number
     username?: StringFilter<"AdminUser"> | string
     password_hash?: StringFilter<"AdminUser"> | string
-    name?: StringFilter<"AdminUser"> | string
+    name?: StringNullableFilter<"AdminUser"> | string | null
     role?: StringFilter<"AdminUser"> | string
     created_at?: DateTimeFilter<"AdminUser"> | Date | string
   }
@@ -6790,7 +9456,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     password_hash?: SortOrder
-    name?: SortOrder
+    name?: SortOrderInput | SortOrder
     role?: SortOrder
     created_at?: SortOrder
   }
@@ -6802,7 +9468,7 @@ export namespace Prisma {
     OR?: AdminUserWhereInput[]
     NOT?: AdminUserWhereInput | AdminUserWhereInput[]
     password_hash?: StringFilter<"AdminUser"> | string
-    name?: StringFilter<"AdminUser"> | string
+    name?: StringNullableFilter<"AdminUser"> | string | null
     role?: StringFilter<"AdminUser"> | string
     created_at?: DateTimeFilter<"AdminUser"> | Date | string
   }, "id" | "username">
@@ -6811,7 +9477,7 @@ export namespace Prisma {
     id?: SortOrder
     username?: SortOrder
     password_hash?: SortOrder
-    name?: SortOrder
+    name?: SortOrderInput | SortOrder
     role?: SortOrder
     created_at?: SortOrder
     _count?: AdminUserCountOrderByAggregateInput
@@ -6828,9 +9494,143 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"AdminUser"> | number
     username?: StringWithAggregatesFilter<"AdminUser"> | string
     password_hash?: StringWithAggregatesFilter<"AdminUser"> | string
-    name?: StringWithAggregatesFilter<"AdminUser"> | string
+    name?: StringNullableWithAggregatesFilter<"AdminUser"> | string | null
     role?: StringWithAggregatesFilter<"AdminUser"> | string
     created_at?: DateTimeWithAggregatesFilter<"AdminUser"> | Date | string
+  }
+
+  export type MeasurementSiangAuditLogWhereInput = {
+    AND?: MeasurementSiangAuditLogWhereInput | MeasurementSiangAuditLogWhereInput[]
+    OR?: MeasurementSiangAuditLogWhereInput[]
+    NOT?: MeasurementSiangAuditLogWhereInput | MeasurementSiangAuditLogWhereInput[]
+    id?: IntFilter<"MeasurementSiangAuditLog"> | number
+    measurementId?: IntFilter<"MeasurementSiangAuditLog"> | number
+    oldValue?: FloatNullableFilter<"MeasurementSiangAuditLog"> | number | null
+    newValue?: FloatNullableFilter<"MeasurementSiangAuditLog"> | number | null
+    changedBy?: StringNullableFilter<"MeasurementSiangAuditLog"> | string | null
+    changeReason?: StringNullableFilter<"MeasurementSiangAuditLog"> | string | null
+    changedAt?: DateTimeFilter<"MeasurementSiangAuditLog"> | Date | string
+    measurement?: XOR<MeasurementSiangScalarRelationFilter, MeasurementSiangWhereInput>
+  }
+
+  export type MeasurementSiangAuditLogOrderByWithRelationInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrderInput | SortOrder
+    newValue?: SortOrderInput | SortOrder
+    changedBy?: SortOrderInput | SortOrder
+    changeReason?: SortOrderInput | SortOrder
+    changedAt?: SortOrder
+    measurement?: MeasurementSiangOrderByWithRelationInput
+  }
+
+  export type MeasurementSiangAuditLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: MeasurementSiangAuditLogWhereInput | MeasurementSiangAuditLogWhereInput[]
+    OR?: MeasurementSiangAuditLogWhereInput[]
+    NOT?: MeasurementSiangAuditLogWhereInput | MeasurementSiangAuditLogWhereInput[]
+    measurementId?: IntFilter<"MeasurementSiangAuditLog"> | number
+    oldValue?: FloatNullableFilter<"MeasurementSiangAuditLog"> | number | null
+    newValue?: FloatNullableFilter<"MeasurementSiangAuditLog"> | number | null
+    changedBy?: StringNullableFilter<"MeasurementSiangAuditLog"> | string | null
+    changeReason?: StringNullableFilter<"MeasurementSiangAuditLog"> | string | null
+    changedAt?: DateTimeFilter<"MeasurementSiangAuditLog"> | Date | string
+    measurement?: XOR<MeasurementSiangScalarRelationFilter, MeasurementSiangWhereInput>
+  }, "id">
+
+  export type MeasurementSiangAuditLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrderInput | SortOrder
+    newValue?: SortOrderInput | SortOrder
+    changedBy?: SortOrderInput | SortOrder
+    changeReason?: SortOrderInput | SortOrder
+    changedAt?: SortOrder
+    _count?: MeasurementSiangAuditLogCountOrderByAggregateInput
+    _avg?: MeasurementSiangAuditLogAvgOrderByAggregateInput
+    _max?: MeasurementSiangAuditLogMaxOrderByAggregateInput
+    _min?: MeasurementSiangAuditLogMinOrderByAggregateInput
+    _sum?: MeasurementSiangAuditLogSumOrderByAggregateInput
+  }
+
+  export type MeasurementSiangAuditLogScalarWhereWithAggregatesInput = {
+    AND?: MeasurementSiangAuditLogScalarWhereWithAggregatesInput | MeasurementSiangAuditLogScalarWhereWithAggregatesInput[]
+    OR?: MeasurementSiangAuditLogScalarWhereWithAggregatesInput[]
+    NOT?: MeasurementSiangAuditLogScalarWhereWithAggregatesInput | MeasurementSiangAuditLogScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"MeasurementSiangAuditLog"> | number
+    measurementId?: IntWithAggregatesFilter<"MeasurementSiangAuditLog"> | number
+    oldValue?: FloatNullableWithAggregatesFilter<"MeasurementSiangAuditLog"> | number | null
+    newValue?: FloatNullableWithAggregatesFilter<"MeasurementSiangAuditLog"> | number | null
+    changedBy?: StringNullableWithAggregatesFilter<"MeasurementSiangAuditLog"> | string | null
+    changeReason?: StringNullableWithAggregatesFilter<"MeasurementSiangAuditLog"> | string | null
+    changedAt?: DateTimeWithAggregatesFilter<"MeasurementSiangAuditLog"> | Date | string
+  }
+
+  export type MeasurementMalamAuditLogWhereInput = {
+    AND?: MeasurementMalamAuditLogWhereInput | MeasurementMalamAuditLogWhereInput[]
+    OR?: MeasurementMalamAuditLogWhereInput[]
+    NOT?: MeasurementMalamAuditLogWhereInput | MeasurementMalamAuditLogWhereInput[]
+    id?: IntFilter<"MeasurementMalamAuditLog"> | number
+    measurementId?: IntFilter<"MeasurementMalamAuditLog"> | number
+    oldValue?: FloatNullableFilter<"MeasurementMalamAuditLog"> | number | null
+    newValue?: FloatNullableFilter<"MeasurementMalamAuditLog"> | number | null
+    changedBy?: StringNullableFilter<"MeasurementMalamAuditLog"> | string | null
+    changeReason?: StringNullableFilter<"MeasurementMalamAuditLog"> | string | null
+    changedAt?: DateTimeFilter<"MeasurementMalamAuditLog"> | Date | string
+    measurement?: XOR<MeasurementMalamScalarRelationFilter, MeasurementMalamWhereInput>
+  }
+
+  export type MeasurementMalamAuditLogOrderByWithRelationInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrderInput | SortOrder
+    newValue?: SortOrderInput | SortOrder
+    changedBy?: SortOrderInput | SortOrder
+    changeReason?: SortOrderInput | SortOrder
+    changedAt?: SortOrder
+    measurement?: MeasurementMalamOrderByWithRelationInput
+  }
+
+  export type MeasurementMalamAuditLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: MeasurementMalamAuditLogWhereInput | MeasurementMalamAuditLogWhereInput[]
+    OR?: MeasurementMalamAuditLogWhereInput[]
+    NOT?: MeasurementMalamAuditLogWhereInput | MeasurementMalamAuditLogWhereInput[]
+    measurementId?: IntFilter<"MeasurementMalamAuditLog"> | number
+    oldValue?: FloatNullableFilter<"MeasurementMalamAuditLog"> | number | null
+    newValue?: FloatNullableFilter<"MeasurementMalamAuditLog"> | number | null
+    changedBy?: StringNullableFilter<"MeasurementMalamAuditLog"> | string | null
+    changeReason?: StringNullableFilter<"MeasurementMalamAuditLog"> | string | null
+    changedAt?: DateTimeFilter<"MeasurementMalamAuditLog"> | Date | string
+    measurement?: XOR<MeasurementMalamScalarRelationFilter, MeasurementMalamWhereInput>
+  }, "id">
+
+  export type MeasurementMalamAuditLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrderInput | SortOrder
+    newValue?: SortOrderInput | SortOrder
+    changedBy?: SortOrderInput | SortOrder
+    changeReason?: SortOrderInput | SortOrder
+    changedAt?: SortOrder
+    _count?: MeasurementMalamAuditLogCountOrderByAggregateInput
+    _avg?: MeasurementMalamAuditLogAvgOrderByAggregateInput
+    _max?: MeasurementMalamAuditLogMaxOrderByAggregateInput
+    _min?: MeasurementMalamAuditLogMinOrderByAggregateInput
+    _sum?: MeasurementMalamAuditLogSumOrderByAggregateInput
+  }
+
+  export type MeasurementMalamAuditLogScalarWhereWithAggregatesInput = {
+    AND?: MeasurementMalamAuditLogScalarWhereWithAggregatesInput | MeasurementMalamAuditLogScalarWhereWithAggregatesInput[]
+    OR?: MeasurementMalamAuditLogScalarWhereWithAggregatesInput[]
+    NOT?: MeasurementMalamAuditLogScalarWhereWithAggregatesInput | MeasurementMalamAuditLogScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"MeasurementMalamAuditLog"> | number
+    measurementId?: IntWithAggregatesFilter<"MeasurementMalamAuditLog"> | number
+    oldValue?: FloatNullableWithAggregatesFilter<"MeasurementMalamAuditLog"> | number | null
+    newValue?: FloatNullableWithAggregatesFilter<"MeasurementMalamAuditLog"> | number | null
+    changedBy?: StringNullableWithAggregatesFilter<"MeasurementMalamAuditLog"> | string | null
+    changeReason?: StringNullableWithAggregatesFilter<"MeasurementMalamAuditLog"> | string | null
+    changedAt?: DateTimeWithAggregatesFilter<"MeasurementMalamAuditLog"> | Date | string
   }
 
   export type SubstationCreateInput = {
@@ -7019,7 +9819,9 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
     substation: SubstationCreateNestedOneWithoutMeasurements_siangInput
+    auditLogs?: MeasurementSiangAuditLogCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementSiangUncheckedCreateInput = {
@@ -7041,6 +9843,8 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    auditLogs?: MeasurementSiangAuditLogUncheckedCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementSiangUpdateInput = {
@@ -7060,7 +9864,9 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
     substation?: SubstationUpdateOneRequiredWithoutMeasurements_siangNestedInput
+    auditLogs?: MeasurementSiangAuditLogUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementSiangUncheckedUpdateInput = {
@@ -7082,6 +9888,8 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    auditLogs?: MeasurementSiangAuditLogUncheckedUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementSiangCreateManyInput = {
@@ -7103,6 +9911,7 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
   }
 
   export type MeasurementSiangUpdateManyMutationInput = {
@@ -7122,6 +9931,7 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
   }
 
   export type MeasurementSiangUncheckedUpdateManyInput = {
@@ -7143,6 +9953,7 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamCreateInput = {
@@ -7162,7 +9973,9 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
     substation: SubstationCreateNestedOneWithoutMeasurements_malamInput
+    auditLogs?: MeasurementMalamAuditLogCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementMalamUncheckedCreateInput = {
@@ -7184,6 +9997,8 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    auditLogs?: MeasurementMalamAuditLogUncheckedCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementMalamUpdateInput = {
@@ -7203,7 +10018,9 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
     substation?: SubstationUpdateOneRequiredWithoutMeasurements_malamNestedInput
+    auditLogs?: MeasurementMalamAuditLogUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementMalamUncheckedUpdateInput = {
@@ -7225,6 +10042,8 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    auditLogs?: MeasurementMalamAuditLogUncheckedUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementMalamCreateManyInput = {
@@ -7246,6 +10065,7 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamUpdateManyMutationInput = {
@@ -7265,6 +10085,7 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamUncheckedUpdateManyInput = {
@@ -7286,12 +10107,13 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
   }
 
   export type AdminUserCreateInput = {
     username: string
     password_hash: string
-    name: string
+    name?: string | null
     role?: string
     created_at?: Date | string
   }
@@ -7300,7 +10122,7 @@ export namespace Prisma {
     id?: number
     username: string
     password_hash: string
-    name: string
+    name?: string | null
     role?: string
     created_at?: Date | string
   }
@@ -7308,7 +10130,7 @@ export namespace Prisma {
   export type AdminUserUpdateInput = {
     username?: StringFieldUpdateOperationsInput | string
     password_hash?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7317,7 +10139,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     password_hash?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7326,7 +10148,7 @@ export namespace Prisma {
     id?: number
     username: string
     password_hash: string
-    name: string
+    name?: string | null
     role?: string
     created_at?: Date | string
   }
@@ -7334,7 +10156,7 @@ export namespace Prisma {
   export type AdminUserUpdateManyMutationInput = {
     username?: StringFieldUpdateOperationsInput | string
     password_hash?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7343,9 +10165,141 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     password_hash?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementSiangAuditLogCreateInput = {
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+    measurement: MeasurementSiangCreateNestedOneWithoutAuditLogsInput
+  }
+
+  export type MeasurementSiangAuditLogUncheckedCreateInput = {
+    id?: number
+    measurementId: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementSiangAuditLogUpdateInput = {
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    measurement?: MeasurementSiangUpdateOneRequiredWithoutAuditLogsNestedInput
+  }
+
+  export type MeasurementSiangAuditLogUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    measurementId?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementSiangAuditLogCreateManyInput = {
+    id?: number
+    measurementId: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementSiangAuditLogUpdateManyMutationInput = {
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementSiangAuditLogUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    measurementId?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementMalamAuditLogCreateInput = {
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+    measurement: MeasurementMalamCreateNestedOneWithoutAuditLogsInput
+  }
+
+  export type MeasurementMalamAuditLogUncheckedCreateInput = {
+    id?: number
+    measurementId: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementMalamAuditLogUpdateInput = {
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    measurement?: MeasurementMalamUpdateOneRequiredWithoutAuditLogsNestedInput
+  }
+
+  export type MeasurementMalamAuditLogUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    measurementId?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementMalamAuditLogCreateManyInput = {
+    id?: number
+    measurementId: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementMalamAuditLogUpdateManyMutationInput = {
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementMalamAuditLogUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    measurementId?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -7581,9 +10535,26 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type EnumMeasurementStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MeasurementStatus | EnumMeasurementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMeasurementStatusFilter<$PrismaModel> | $Enums.MeasurementStatus
+  }
+
   export type SubstationScalarRelationFilter = {
     is?: SubstationWhereInput
     isNot?: SubstationWhereInput
+  }
+
+  export type MeasurementSiangAuditLogListRelationFilter = {
+    every?: MeasurementSiangAuditLogWhereInput
+    some?: MeasurementSiangAuditLogWhereInput
+    none?: MeasurementSiangAuditLogWhereInput
+  }
+
+  export type MeasurementSiangAuditLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type MeasurementSiangSubstationIdMonthRow_nameCompoundUniqueInput = {
@@ -7611,6 +10582,7 @@ export namespace Prisma {
     persen?: SortOrder
     unbalanced?: SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
   }
 
   export type MeasurementSiangAvgOrderByAggregateInput = {
@@ -7649,6 +10621,7 @@ export namespace Prisma {
     persen?: SortOrder
     unbalanced?: SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
   }
 
   export type MeasurementSiangMinOrderByAggregateInput = {
@@ -7670,6 +10643,7 @@ export namespace Prisma {
     persen?: SortOrder
     unbalanced?: SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
   }
 
   export type MeasurementSiangSumOrderByAggregateInput = {
@@ -7705,6 +10679,26 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type EnumMeasurementStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MeasurementStatus | EnumMeasurementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMeasurementStatusWithAggregatesFilter<$PrismaModel> | $Enums.MeasurementStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMeasurementStatusFilter<$PrismaModel>
+    _max?: NestedEnumMeasurementStatusFilter<$PrismaModel>
+  }
+
+  export type MeasurementMalamAuditLogListRelationFilter = {
+    every?: MeasurementMalamAuditLogWhereInput
+    some?: MeasurementMalamAuditLogWhereInput
+    none?: MeasurementMalamAuditLogWhereInput
+  }
+
+  export type MeasurementMalamAuditLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type MeasurementMalamSubstationIdMonthRow_nameCompoundUniqueInput = {
     substationId: string
     month: string
@@ -7730,6 +10724,7 @@ export namespace Prisma {
     persen?: SortOrder
     unbalanced?: SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
   }
 
   export type MeasurementMalamAvgOrderByAggregateInput = {
@@ -7768,6 +10763,7 @@ export namespace Prisma {
     persen?: SortOrder
     unbalanced?: SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
   }
 
   export type MeasurementMalamMinOrderByAggregateInput = {
@@ -7789,6 +10785,7 @@ export namespace Prisma {
     persen?: SortOrder
     unbalanced?: SortOrder
     lastUpdate?: SortOrder
+    status?: SortOrder
   }
 
   export type MeasurementMalamSumOrderByAggregateInput = {
@@ -7806,6 +10803,21 @@ export namespace Prisma {
     kva?: SortOrder
     persen?: SortOrder
     unbalanced?: SortOrder
+  }
+
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type AdminUserCountOrderByAggregateInput = {
@@ -7841,6 +10853,122 @@ export namespace Prisma {
 
   export type AdminUserSumOrderByAggregateInput = {
     id?: SortOrder
+  }
+
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type MeasurementSiangScalarRelationFilter = {
+    is?: MeasurementSiangWhereInput
+    isNot?: MeasurementSiangWhereInput
+  }
+
+  export type MeasurementSiangAuditLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+    changedBy?: SortOrder
+    changeReason?: SortOrder
+    changedAt?: SortOrder
+  }
+
+  export type MeasurementSiangAuditLogAvgOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+  }
+
+  export type MeasurementSiangAuditLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+    changedBy?: SortOrder
+    changeReason?: SortOrder
+    changedAt?: SortOrder
+  }
+
+  export type MeasurementSiangAuditLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+    changedBy?: SortOrder
+    changeReason?: SortOrder
+    changedAt?: SortOrder
+  }
+
+  export type MeasurementSiangAuditLogSumOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+  }
+
+  export type MeasurementMalamScalarRelationFilter = {
+    is?: MeasurementMalamWhereInput
+    isNot?: MeasurementMalamWhereInput
+  }
+
+  export type MeasurementMalamAuditLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+    changedBy?: SortOrder
+    changeReason?: SortOrder
+    changedAt?: SortOrder
+  }
+
+  export type MeasurementMalamAuditLogAvgOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+  }
+
+  export type MeasurementMalamAuditLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+    changedBy?: SortOrder
+    changeReason?: SortOrder
+    changedAt?: SortOrder
+  }
+
+  export type MeasurementMalamAuditLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
+    changedBy?: SortOrder
+    changeReason?: SortOrder
+    changedAt?: SortOrder
+  }
+
+  export type MeasurementMalamAuditLogSumOrderByAggregateInput = {
+    id?: SortOrder
+    measurementId?: SortOrder
+    oldValue?: SortOrder
+    newValue?: SortOrder
   }
 
   export type MeasurementSiangCreateNestedManyWithoutSubstationInput = {
@@ -7957,12 +11085,30 @@ export namespace Prisma {
     connect?: SubstationWhereUniqueInput
   }
 
+  export type MeasurementSiangAuditLogCreateNestedManyWithoutMeasurementInput = {
+    create?: XOR<MeasurementSiangAuditLogCreateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementSiangAuditLogCreateWithoutMeasurementInput[] | MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput[]
+    createMany?: MeasurementSiangAuditLogCreateManyMeasurementInputEnvelope
+    connect?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+  }
+
+  export type MeasurementSiangAuditLogUncheckedCreateNestedManyWithoutMeasurementInput = {
+    create?: XOR<MeasurementSiangAuditLogCreateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementSiangAuditLogCreateWithoutMeasurementInput[] | MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput[]
+    createMany?: MeasurementSiangAuditLogCreateManyMeasurementInputEnvelope
+    connect?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+  }
+
   export type FloatFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type EnumMeasurementStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MeasurementStatus
   }
 
   export type SubstationUpdateOneRequiredWithoutMeasurements_siangNestedInput = {
@@ -7973,10 +11119,52 @@ export namespace Prisma {
     update?: XOR<XOR<SubstationUpdateToOneWithWhereWithoutMeasurements_siangInput, SubstationUpdateWithoutMeasurements_siangInput>, SubstationUncheckedUpdateWithoutMeasurements_siangInput>
   }
 
+  export type MeasurementSiangAuditLogUpdateManyWithoutMeasurementNestedInput = {
+    create?: XOR<MeasurementSiangAuditLogCreateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementSiangAuditLogCreateWithoutMeasurementInput[] | MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput[]
+    upsert?: MeasurementSiangAuditLogUpsertWithWhereUniqueWithoutMeasurementInput | MeasurementSiangAuditLogUpsertWithWhereUniqueWithoutMeasurementInput[]
+    createMany?: MeasurementSiangAuditLogCreateManyMeasurementInputEnvelope
+    set?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    disconnect?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    delete?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    connect?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    update?: MeasurementSiangAuditLogUpdateWithWhereUniqueWithoutMeasurementInput | MeasurementSiangAuditLogUpdateWithWhereUniqueWithoutMeasurementInput[]
+    updateMany?: MeasurementSiangAuditLogUpdateManyWithWhereWithoutMeasurementInput | MeasurementSiangAuditLogUpdateManyWithWhereWithoutMeasurementInput[]
+    deleteMany?: MeasurementSiangAuditLogScalarWhereInput | MeasurementSiangAuditLogScalarWhereInput[]
+  }
+
+  export type MeasurementSiangAuditLogUncheckedUpdateManyWithoutMeasurementNestedInput = {
+    create?: XOR<MeasurementSiangAuditLogCreateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementSiangAuditLogCreateWithoutMeasurementInput[] | MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput[]
+    upsert?: MeasurementSiangAuditLogUpsertWithWhereUniqueWithoutMeasurementInput | MeasurementSiangAuditLogUpsertWithWhereUniqueWithoutMeasurementInput[]
+    createMany?: MeasurementSiangAuditLogCreateManyMeasurementInputEnvelope
+    set?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    disconnect?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    delete?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    connect?: MeasurementSiangAuditLogWhereUniqueInput | MeasurementSiangAuditLogWhereUniqueInput[]
+    update?: MeasurementSiangAuditLogUpdateWithWhereUniqueWithoutMeasurementInput | MeasurementSiangAuditLogUpdateWithWhereUniqueWithoutMeasurementInput[]
+    updateMany?: MeasurementSiangAuditLogUpdateManyWithWhereWithoutMeasurementInput | MeasurementSiangAuditLogUpdateManyWithWhereWithoutMeasurementInput[]
+    deleteMany?: MeasurementSiangAuditLogScalarWhereInput | MeasurementSiangAuditLogScalarWhereInput[]
+  }
+
   export type SubstationCreateNestedOneWithoutMeasurements_malamInput = {
     create?: XOR<SubstationCreateWithoutMeasurements_malamInput, SubstationUncheckedCreateWithoutMeasurements_malamInput>
     connectOrCreate?: SubstationCreateOrConnectWithoutMeasurements_malamInput
     connect?: SubstationWhereUniqueInput
+  }
+
+  export type MeasurementMalamAuditLogCreateNestedManyWithoutMeasurementInput = {
+    create?: XOR<MeasurementMalamAuditLogCreateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementMalamAuditLogCreateWithoutMeasurementInput[] | MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput[]
+    createMany?: MeasurementMalamAuditLogCreateManyMeasurementInputEnvelope
+    connect?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+  }
+
+  export type MeasurementMalamAuditLogUncheckedCreateNestedManyWithoutMeasurementInput = {
+    create?: XOR<MeasurementMalamAuditLogCreateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementMalamAuditLogCreateWithoutMeasurementInput[] | MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput[]
+    createMany?: MeasurementMalamAuditLogCreateManyMeasurementInputEnvelope
+    connect?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
   }
 
   export type SubstationUpdateOneRequiredWithoutMeasurements_malamNestedInput = {
@@ -7985,6 +11173,66 @@ export namespace Prisma {
     upsert?: SubstationUpsertWithoutMeasurements_malamInput
     connect?: SubstationWhereUniqueInput
     update?: XOR<XOR<SubstationUpdateToOneWithWhereWithoutMeasurements_malamInput, SubstationUpdateWithoutMeasurements_malamInput>, SubstationUncheckedUpdateWithoutMeasurements_malamInput>
+  }
+
+  export type MeasurementMalamAuditLogUpdateManyWithoutMeasurementNestedInput = {
+    create?: XOR<MeasurementMalamAuditLogCreateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementMalamAuditLogCreateWithoutMeasurementInput[] | MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput[]
+    upsert?: MeasurementMalamAuditLogUpsertWithWhereUniqueWithoutMeasurementInput | MeasurementMalamAuditLogUpsertWithWhereUniqueWithoutMeasurementInput[]
+    createMany?: MeasurementMalamAuditLogCreateManyMeasurementInputEnvelope
+    set?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    disconnect?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    delete?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    connect?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    update?: MeasurementMalamAuditLogUpdateWithWhereUniqueWithoutMeasurementInput | MeasurementMalamAuditLogUpdateWithWhereUniqueWithoutMeasurementInput[]
+    updateMany?: MeasurementMalamAuditLogUpdateManyWithWhereWithoutMeasurementInput | MeasurementMalamAuditLogUpdateManyWithWhereWithoutMeasurementInput[]
+    deleteMany?: MeasurementMalamAuditLogScalarWhereInput | MeasurementMalamAuditLogScalarWhereInput[]
+  }
+
+  export type MeasurementMalamAuditLogUncheckedUpdateManyWithoutMeasurementNestedInput = {
+    create?: XOR<MeasurementMalamAuditLogCreateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput> | MeasurementMalamAuditLogCreateWithoutMeasurementInput[] | MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput[]
+    connectOrCreate?: MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput | MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput[]
+    upsert?: MeasurementMalamAuditLogUpsertWithWhereUniqueWithoutMeasurementInput | MeasurementMalamAuditLogUpsertWithWhereUniqueWithoutMeasurementInput[]
+    createMany?: MeasurementMalamAuditLogCreateManyMeasurementInputEnvelope
+    set?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    disconnect?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    delete?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    connect?: MeasurementMalamAuditLogWhereUniqueInput | MeasurementMalamAuditLogWhereUniqueInput[]
+    update?: MeasurementMalamAuditLogUpdateWithWhereUniqueWithoutMeasurementInput | MeasurementMalamAuditLogUpdateWithWhereUniqueWithoutMeasurementInput[]
+    updateMany?: MeasurementMalamAuditLogUpdateManyWithWhereWithoutMeasurementInput | MeasurementMalamAuditLogUpdateManyWithWhereWithoutMeasurementInput[]
+    deleteMany?: MeasurementMalamAuditLogScalarWhereInput | MeasurementMalamAuditLogScalarWhereInput[]
+  }
+
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
+  }
+
+  export type MeasurementSiangCreateNestedOneWithoutAuditLogsInput = {
+    create?: XOR<MeasurementSiangCreateWithoutAuditLogsInput, MeasurementSiangUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: MeasurementSiangCreateOrConnectWithoutAuditLogsInput
+    connect?: MeasurementSiangWhereUniqueInput
+  }
+
+  export type MeasurementSiangUpdateOneRequiredWithoutAuditLogsNestedInput = {
+    create?: XOR<MeasurementSiangCreateWithoutAuditLogsInput, MeasurementSiangUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: MeasurementSiangCreateOrConnectWithoutAuditLogsInput
+    upsert?: MeasurementSiangUpsertWithoutAuditLogsInput
+    connect?: MeasurementSiangWhereUniqueInput
+    update?: XOR<XOR<MeasurementSiangUpdateToOneWithWhereWithoutAuditLogsInput, MeasurementSiangUpdateWithoutAuditLogsInput>, MeasurementSiangUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type MeasurementMalamCreateNestedOneWithoutAuditLogsInput = {
+    create?: XOR<MeasurementMalamCreateWithoutAuditLogsInput, MeasurementMalamUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: MeasurementMalamCreateOrConnectWithoutAuditLogsInput
+    connect?: MeasurementMalamWhereUniqueInput
+  }
+
+  export type MeasurementMalamUpdateOneRequiredWithoutAuditLogsNestedInput = {
+    create?: XOR<MeasurementMalamCreateWithoutAuditLogsInput, MeasurementMalamUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: MeasurementMalamCreateOrConnectWithoutAuditLogsInput
+    upsert?: MeasurementMalamUpsertWithoutAuditLogsInput
+    connect?: MeasurementMalamWhereUniqueInput
+    update?: XOR<XOR<MeasurementMalamUpdateToOneWithWhereWithoutAuditLogsInput, MeasurementMalamUpdateWithoutAuditLogsInput>, MeasurementMalamUncheckedUpdateWithoutAuditLogsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -8119,6 +11367,13 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedEnumMeasurementStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MeasurementStatus | EnumMeasurementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMeasurementStatusFilter<$PrismaModel> | $Enums.MeasurementStatus
+  }
+
   export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
     in?: number[] | ListFloatFieldRefInput<$PrismaModel>
@@ -8133,6 +11388,47 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMeasurementStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MeasurementStatus | EnumMeasurementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MeasurementStatus[] | ListEnumMeasurementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMeasurementStatusWithAggregatesFilter<$PrismaModel> | $Enums.MeasurementStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMeasurementStatusFilter<$PrismaModel>
+    _max?: NestedEnumMeasurementStatusFilter<$PrismaModel>
+  }
+
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
   export type MeasurementSiangCreateWithoutSubstationInput = {
@@ -8152,6 +11448,8 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    auditLogs?: MeasurementSiangAuditLogCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementSiangUncheckedCreateWithoutSubstationInput = {
@@ -8172,6 +11470,8 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    auditLogs?: MeasurementSiangAuditLogUncheckedCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementSiangCreateOrConnectWithoutSubstationInput = {
@@ -8201,6 +11501,8 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    auditLogs?: MeasurementMalamAuditLogCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementMalamUncheckedCreateWithoutSubstationInput = {
@@ -8221,6 +11523,8 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    auditLogs?: MeasurementMalamAuditLogUncheckedCreateNestedManyWithoutMeasurementInput
   }
 
   export type MeasurementMalamCreateOrConnectWithoutSubstationInput = {
@@ -8271,6 +11575,7 @@ export namespace Prisma {
     persen?: FloatNullableFilter<"MeasurementSiang"> | number | null
     unbalanced?: FloatNullableFilter<"MeasurementSiang"> | number | null
     lastUpdate?: DateTimeFilter<"MeasurementSiang"> | Date | string
+    status?: EnumMeasurementStatusFilter<"MeasurementSiang"> | $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamUpsertWithWhereUniqueWithoutSubstationInput = {
@@ -8311,6 +11616,7 @@ export namespace Prisma {
     persen?: FloatNullableFilter<"MeasurementMalam"> | number | null
     unbalanced?: FloatNullableFilter<"MeasurementMalam"> | number | null
     lastUpdate?: DateTimeFilter<"MeasurementMalam"> | Date | string
+    status?: EnumMeasurementStatusFilter<"MeasurementMalam"> | $Enums.MeasurementStatus
   }
 
   export type SubstationCreateWithoutMeasurements_siangInput = {
@@ -8364,6 +11670,33 @@ export namespace Prisma {
   export type SubstationCreateOrConnectWithoutMeasurements_siangInput = {
     where: SubstationWhereUniqueInput
     create: XOR<SubstationCreateWithoutMeasurements_siangInput, SubstationUncheckedCreateWithoutMeasurements_siangInput>
+  }
+
+  export type MeasurementSiangAuditLogCreateWithoutMeasurementInput = {
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput = {
+    id?: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementSiangAuditLogCreateOrConnectWithoutMeasurementInput = {
+    where: MeasurementSiangAuditLogWhereUniqueInput
+    create: XOR<MeasurementSiangAuditLogCreateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput>
+  }
+
+  export type MeasurementSiangAuditLogCreateManyMeasurementInputEnvelope = {
+    data: MeasurementSiangAuditLogCreateManyMeasurementInput | MeasurementSiangAuditLogCreateManyMeasurementInput[]
+    skipDuplicates?: boolean
   }
 
   export type SubstationUpsertWithoutMeasurements_siangInput = {
@@ -8425,6 +11758,35 @@ export namespace Prisma {
     measurements_malam?: MeasurementMalamUncheckedUpdateManyWithoutSubstationNestedInput
   }
 
+  export type MeasurementSiangAuditLogUpsertWithWhereUniqueWithoutMeasurementInput = {
+    where: MeasurementSiangAuditLogWhereUniqueInput
+    update: XOR<MeasurementSiangAuditLogUpdateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedUpdateWithoutMeasurementInput>
+    create: XOR<MeasurementSiangAuditLogCreateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedCreateWithoutMeasurementInput>
+  }
+
+  export type MeasurementSiangAuditLogUpdateWithWhereUniqueWithoutMeasurementInput = {
+    where: MeasurementSiangAuditLogWhereUniqueInput
+    data: XOR<MeasurementSiangAuditLogUpdateWithoutMeasurementInput, MeasurementSiangAuditLogUncheckedUpdateWithoutMeasurementInput>
+  }
+
+  export type MeasurementSiangAuditLogUpdateManyWithWhereWithoutMeasurementInput = {
+    where: MeasurementSiangAuditLogScalarWhereInput
+    data: XOR<MeasurementSiangAuditLogUpdateManyMutationInput, MeasurementSiangAuditLogUncheckedUpdateManyWithoutMeasurementInput>
+  }
+
+  export type MeasurementSiangAuditLogScalarWhereInput = {
+    AND?: MeasurementSiangAuditLogScalarWhereInput | MeasurementSiangAuditLogScalarWhereInput[]
+    OR?: MeasurementSiangAuditLogScalarWhereInput[]
+    NOT?: MeasurementSiangAuditLogScalarWhereInput | MeasurementSiangAuditLogScalarWhereInput[]
+    id?: IntFilter<"MeasurementSiangAuditLog"> | number
+    measurementId?: IntFilter<"MeasurementSiangAuditLog"> | number
+    oldValue?: FloatNullableFilter<"MeasurementSiangAuditLog"> | number | null
+    newValue?: FloatNullableFilter<"MeasurementSiangAuditLog"> | number | null
+    changedBy?: StringNullableFilter<"MeasurementSiangAuditLog"> | string | null
+    changeReason?: StringNullableFilter<"MeasurementSiangAuditLog"> | string | null
+    changedAt?: DateTimeFilter<"MeasurementSiangAuditLog"> | Date | string
+  }
+
   export type SubstationCreateWithoutMeasurements_malamInput = {
     id?: string
     no: number
@@ -8476,6 +11838,33 @@ export namespace Prisma {
   export type SubstationCreateOrConnectWithoutMeasurements_malamInput = {
     where: SubstationWhereUniqueInput
     create: XOR<SubstationCreateWithoutMeasurements_malamInput, SubstationUncheckedCreateWithoutMeasurements_malamInput>
+  }
+
+  export type MeasurementMalamAuditLogCreateWithoutMeasurementInput = {
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput = {
+    id?: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementMalamAuditLogCreateOrConnectWithoutMeasurementInput = {
+    where: MeasurementMalamAuditLogWhereUniqueInput
+    create: XOR<MeasurementMalamAuditLogCreateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput>
+  }
+
+  export type MeasurementMalamAuditLogCreateManyMeasurementInputEnvelope = {
+    data: MeasurementMalamAuditLogCreateManyMeasurementInput | MeasurementMalamAuditLogCreateManyMeasurementInput[]
+    skipDuplicates?: boolean
   }
 
   export type SubstationUpsertWithoutMeasurements_malamInput = {
@@ -8537,6 +11926,239 @@ export namespace Prisma {
     measurements_siang?: MeasurementSiangUncheckedUpdateManyWithoutSubstationNestedInput
   }
 
+  export type MeasurementMalamAuditLogUpsertWithWhereUniqueWithoutMeasurementInput = {
+    where: MeasurementMalamAuditLogWhereUniqueInput
+    update: XOR<MeasurementMalamAuditLogUpdateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedUpdateWithoutMeasurementInput>
+    create: XOR<MeasurementMalamAuditLogCreateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedCreateWithoutMeasurementInput>
+  }
+
+  export type MeasurementMalamAuditLogUpdateWithWhereUniqueWithoutMeasurementInput = {
+    where: MeasurementMalamAuditLogWhereUniqueInput
+    data: XOR<MeasurementMalamAuditLogUpdateWithoutMeasurementInput, MeasurementMalamAuditLogUncheckedUpdateWithoutMeasurementInput>
+  }
+
+  export type MeasurementMalamAuditLogUpdateManyWithWhereWithoutMeasurementInput = {
+    where: MeasurementMalamAuditLogScalarWhereInput
+    data: XOR<MeasurementMalamAuditLogUpdateManyMutationInput, MeasurementMalamAuditLogUncheckedUpdateManyWithoutMeasurementInput>
+  }
+
+  export type MeasurementMalamAuditLogScalarWhereInput = {
+    AND?: MeasurementMalamAuditLogScalarWhereInput | MeasurementMalamAuditLogScalarWhereInput[]
+    OR?: MeasurementMalamAuditLogScalarWhereInput[]
+    NOT?: MeasurementMalamAuditLogScalarWhereInput | MeasurementMalamAuditLogScalarWhereInput[]
+    id?: IntFilter<"MeasurementMalamAuditLog"> | number
+    measurementId?: IntFilter<"MeasurementMalamAuditLog"> | number
+    oldValue?: FloatNullableFilter<"MeasurementMalamAuditLog"> | number | null
+    newValue?: FloatNullableFilter<"MeasurementMalamAuditLog"> | number | null
+    changedBy?: StringNullableFilter<"MeasurementMalamAuditLog"> | string | null
+    changeReason?: StringNullableFilter<"MeasurementMalamAuditLog"> | string | null
+    changedAt?: DateTimeFilter<"MeasurementMalamAuditLog"> | Date | string
+  }
+
+  export type MeasurementSiangCreateWithoutAuditLogsInput = {
+    month: string
+    r?: number
+    s?: number
+    t?: number
+    n?: number
+    rn?: number
+    sn?: number
+    tn?: number
+    pp?: number
+    pn?: number
+    row_name: string
+    rata2?: number | null
+    kva?: number | null
+    persen?: number | null
+    unbalanced?: number | null
+    lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    substation: SubstationCreateNestedOneWithoutMeasurements_siangInput
+  }
+
+  export type MeasurementSiangUncheckedCreateWithoutAuditLogsInput = {
+    id?: number
+    substationId: string
+    month: string
+    r?: number
+    s?: number
+    t?: number
+    n?: number
+    rn?: number
+    sn?: number
+    tn?: number
+    pp?: number
+    pn?: number
+    row_name: string
+    rata2?: number | null
+    kva?: number | null
+    persen?: number | null
+    unbalanced?: number | null
+    lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+  }
+
+  export type MeasurementSiangCreateOrConnectWithoutAuditLogsInput = {
+    where: MeasurementSiangWhereUniqueInput
+    create: XOR<MeasurementSiangCreateWithoutAuditLogsInput, MeasurementSiangUncheckedCreateWithoutAuditLogsInput>
+  }
+
+  export type MeasurementSiangUpsertWithoutAuditLogsInput = {
+    update: XOR<MeasurementSiangUpdateWithoutAuditLogsInput, MeasurementSiangUncheckedUpdateWithoutAuditLogsInput>
+    create: XOR<MeasurementSiangCreateWithoutAuditLogsInput, MeasurementSiangUncheckedCreateWithoutAuditLogsInput>
+    where?: MeasurementSiangWhereInput
+  }
+
+  export type MeasurementSiangUpdateToOneWithWhereWithoutAuditLogsInput = {
+    where?: MeasurementSiangWhereInput
+    data: XOR<MeasurementSiangUpdateWithoutAuditLogsInput, MeasurementSiangUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type MeasurementSiangUpdateWithoutAuditLogsInput = {
+    month?: StringFieldUpdateOperationsInput | string
+    r?: FloatFieldUpdateOperationsInput | number
+    s?: FloatFieldUpdateOperationsInput | number
+    t?: FloatFieldUpdateOperationsInput | number
+    n?: FloatFieldUpdateOperationsInput | number
+    rn?: FloatFieldUpdateOperationsInput | number
+    sn?: FloatFieldUpdateOperationsInput | number
+    tn?: FloatFieldUpdateOperationsInput | number
+    pp?: FloatFieldUpdateOperationsInput | number
+    pn?: FloatFieldUpdateOperationsInput | number
+    row_name?: StringFieldUpdateOperationsInput | string
+    rata2?: NullableFloatFieldUpdateOperationsInput | number | null
+    kva?: NullableFloatFieldUpdateOperationsInput | number | null
+    persen?: NullableFloatFieldUpdateOperationsInput | number | null
+    unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    substation?: SubstationUpdateOneRequiredWithoutMeasurements_siangNestedInput
+  }
+
+  export type MeasurementSiangUncheckedUpdateWithoutAuditLogsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    substationId?: StringFieldUpdateOperationsInput | string
+    month?: StringFieldUpdateOperationsInput | string
+    r?: FloatFieldUpdateOperationsInput | number
+    s?: FloatFieldUpdateOperationsInput | number
+    t?: FloatFieldUpdateOperationsInput | number
+    n?: FloatFieldUpdateOperationsInput | number
+    rn?: FloatFieldUpdateOperationsInput | number
+    sn?: FloatFieldUpdateOperationsInput | number
+    tn?: FloatFieldUpdateOperationsInput | number
+    pp?: FloatFieldUpdateOperationsInput | number
+    pn?: FloatFieldUpdateOperationsInput | number
+    row_name?: StringFieldUpdateOperationsInput | string
+    rata2?: NullableFloatFieldUpdateOperationsInput | number | null
+    kva?: NullableFloatFieldUpdateOperationsInput | number | null
+    persen?: NullableFloatFieldUpdateOperationsInput | number | null
+    unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+  }
+
+  export type MeasurementMalamCreateWithoutAuditLogsInput = {
+    month: string
+    r?: number
+    s?: number
+    t?: number
+    n?: number
+    rn?: number
+    sn?: number
+    tn?: number
+    pp?: number
+    pn?: number
+    row_name: string
+    rata2?: number | null
+    kva?: number | null
+    persen?: number | null
+    unbalanced?: number | null
+    lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+    substation: SubstationCreateNestedOneWithoutMeasurements_malamInput
+  }
+
+  export type MeasurementMalamUncheckedCreateWithoutAuditLogsInput = {
+    id?: number
+    substationId: string
+    month: string
+    r?: number
+    s?: number
+    t?: number
+    n?: number
+    rn?: number
+    sn?: number
+    tn?: number
+    pp?: number
+    pn?: number
+    row_name: string
+    rata2?: number | null
+    kva?: number | null
+    persen?: number | null
+    unbalanced?: number | null
+    lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
+  }
+
+  export type MeasurementMalamCreateOrConnectWithoutAuditLogsInput = {
+    where: MeasurementMalamWhereUniqueInput
+    create: XOR<MeasurementMalamCreateWithoutAuditLogsInput, MeasurementMalamUncheckedCreateWithoutAuditLogsInput>
+  }
+
+  export type MeasurementMalamUpsertWithoutAuditLogsInput = {
+    update: XOR<MeasurementMalamUpdateWithoutAuditLogsInput, MeasurementMalamUncheckedUpdateWithoutAuditLogsInput>
+    create: XOR<MeasurementMalamCreateWithoutAuditLogsInput, MeasurementMalamUncheckedCreateWithoutAuditLogsInput>
+    where?: MeasurementMalamWhereInput
+  }
+
+  export type MeasurementMalamUpdateToOneWithWhereWithoutAuditLogsInput = {
+    where?: MeasurementMalamWhereInput
+    data: XOR<MeasurementMalamUpdateWithoutAuditLogsInput, MeasurementMalamUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type MeasurementMalamUpdateWithoutAuditLogsInput = {
+    month?: StringFieldUpdateOperationsInput | string
+    r?: FloatFieldUpdateOperationsInput | number
+    s?: FloatFieldUpdateOperationsInput | number
+    t?: FloatFieldUpdateOperationsInput | number
+    n?: FloatFieldUpdateOperationsInput | number
+    rn?: FloatFieldUpdateOperationsInput | number
+    sn?: FloatFieldUpdateOperationsInput | number
+    tn?: FloatFieldUpdateOperationsInput | number
+    pp?: FloatFieldUpdateOperationsInput | number
+    pn?: FloatFieldUpdateOperationsInput | number
+    row_name?: StringFieldUpdateOperationsInput | string
+    rata2?: NullableFloatFieldUpdateOperationsInput | number | null
+    kva?: NullableFloatFieldUpdateOperationsInput | number | null
+    persen?: NullableFloatFieldUpdateOperationsInput | number | null
+    unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    substation?: SubstationUpdateOneRequiredWithoutMeasurements_malamNestedInput
+  }
+
+  export type MeasurementMalamUncheckedUpdateWithoutAuditLogsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    substationId?: StringFieldUpdateOperationsInput | string
+    month?: StringFieldUpdateOperationsInput | string
+    r?: FloatFieldUpdateOperationsInput | number
+    s?: FloatFieldUpdateOperationsInput | number
+    t?: FloatFieldUpdateOperationsInput | number
+    n?: FloatFieldUpdateOperationsInput | number
+    rn?: FloatFieldUpdateOperationsInput | number
+    sn?: FloatFieldUpdateOperationsInput | number
+    tn?: FloatFieldUpdateOperationsInput | number
+    pp?: FloatFieldUpdateOperationsInput | number
+    pn?: FloatFieldUpdateOperationsInput | number
+    row_name?: StringFieldUpdateOperationsInput | string
+    rata2?: NullableFloatFieldUpdateOperationsInput | number | null
+    kva?: NullableFloatFieldUpdateOperationsInput | number | null
+    persen?: NullableFloatFieldUpdateOperationsInput | number | null
+    unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+  }
+
   export type MeasurementSiangCreateManySubstationInput = {
     id?: number
     month: string
@@ -8555,6 +12177,7 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamCreateManySubstationInput = {
@@ -8575,6 +12198,7 @@ export namespace Prisma {
     persen?: number | null
     unbalanced?: number | null
     lastUpdate?: Date | string
+    status?: $Enums.MeasurementStatus
   }
 
   export type MeasurementSiangUpdateWithoutSubstationInput = {
@@ -8594,6 +12218,8 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    auditLogs?: MeasurementSiangAuditLogUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementSiangUncheckedUpdateWithoutSubstationInput = {
@@ -8614,6 +12240,8 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    auditLogs?: MeasurementSiangAuditLogUncheckedUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementSiangUncheckedUpdateManyWithoutSubstationInput = {
@@ -8634,6 +12262,7 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
   }
 
   export type MeasurementMalamUpdateWithoutSubstationInput = {
@@ -8653,6 +12282,8 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    auditLogs?: MeasurementMalamAuditLogUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementMalamUncheckedUpdateWithoutSubstationInput = {
@@ -8673,6 +12304,8 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+    auditLogs?: MeasurementMalamAuditLogUncheckedUpdateManyWithoutMeasurementNestedInput
   }
 
   export type MeasurementMalamUncheckedUpdateManyWithoutSubstationInput = {
@@ -8693,6 +12326,77 @@ export namespace Prisma {
     persen?: NullableFloatFieldUpdateOperationsInput | number | null
     unbalanced?: NullableFloatFieldUpdateOperationsInput | number | null
     lastUpdate?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumMeasurementStatusFieldUpdateOperationsInput | $Enums.MeasurementStatus
+  }
+
+  export type MeasurementSiangAuditLogCreateManyMeasurementInput = {
+    id?: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementSiangAuditLogUpdateWithoutMeasurementInput = {
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementSiangAuditLogUncheckedUpdateWithoutMeasurementInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementSiangAuditLogUncheckedUpdateManyWithoutMeasurementInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementMalamAuditLogCreateManyMeasurementInput = {
+    id?: number
+    oldValue?: number | null
+    newValue?: number | null
+    changedBy?: string | null
+    changeReason?: string | null
+    changedAt?: Date | string
+  }
+
+  export type MeasurementMalamAuditLogUpdateWithoutMeasurementInput = {
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementMalamAuditLogUncheckedUpdateWithoutMeasurementInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MeasurementMalamAuditLogUncheckedUpdateManyWithoutMeasurementInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    oldValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    newValue?: NullableFloatFieldUpdateOperationsInput | number | null
+    changedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    changeReason?: NullableStringFieldUpdateOperationsInput | string | null
+    changedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

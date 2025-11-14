@@ -11,17 +11,20 @@ async function seedAdminUsers() {
     const adminUsers = [
       {
         username: 'admin',
-        password: 'admin123',
+        password: 'pln123',
+        name: 'Administrator',
         role: 'admin'
       },
       {
         username: 'superadmin',
         password: 'superadmin123',
+        name: 'Super Administrator',
         role: 'superadmin'
       },
       {
         username: 'bertrand',
         password: 'Benben10921',
+        name: 'Bertrand',
         role: 'superadmin'
       }
     ];
@@ -46,6 +49,7 @@ async function seedAdminUsers() {
           data: {
             username: userData.username,
             password_hash: passwordHash,
+            name: userData.name,
             role: userData.role
           }
         });

@@ -161,7 +161,8 @@ exports.Prisma.MeasurementSiangScalarFieldEnum = {
   kva: 'kva',
   persen: 'persen',
   unbalanced: 'unbalanced',
-  lastUpdate: 'lastUpdate'
+  lastUpdate: 'lastUpdate',
+  status: 'status'
 };
 
 exports.Prisma.MeasurementMalamScalarFieldEnum = {
@@ -182,7 +183,8 @@ exports.Prisma.MeasurementMalamScalarFieldEnum = {
   kva: 'kva',
   persen: 'persen',
   unbalanced: 'unbalanced',
-  lastUpdate: 'lastUpdate'
+  lastUpdate: 'lastUpdate',
+  status: 'status'
 };
 
 exports.Prisma.AdminUserScalarFieldEnum = {
@@ -192,6 +194,26 @@ exports.Prisma.AdminUserScalarFieldEnum = {
   name: 'name',
   role: 'role',
   created_at: 'created_at'
+};
+
+exports.Prisma.MeasurementSiangAuditLogScalarFieldEnum = {
+  id: 'id',
+  measurementId: 'measurementId',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  changedBy: 'changedBy',
+  changeReason: 'changeReason',
+  changedAt: 'changedAt'
+};
+
+exports.Prisma.MeasurementMalamAuditLogScalarFieldEnum = {
+  id: 'id',
+  measurementId: 'measurementId',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
+  changedBy: 'changedBy',
+  changeReason: 'changeReason',
+  changedAt: 'changedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -208,13 +230,19 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-
+exports.MeasurementStatus = exports.$Enums.MeasurementStatus = {
+  ACTIVE: 'ACTIVE',
+  SUPERSEDED: 'SUPERSEDED',
+  DELETED: 'DELETED'
+};
 
 exports.Prisma.ModelName = {
   Substation: 'Substation',
   MeasurementSiang: 'MeasurementSiang',
   MeasurementMalam: 'MeasurementMalam',
-  AdminUser: 'AdminUser'
+  AdminUser: 'AdminUser',
+  MeasurementSiangAuditLog: 'MeasurementSiangAuditLog',
+  MeasurementMalamAuditLog: 'MeasurementMalamAuditLog'
 };
 
 /**

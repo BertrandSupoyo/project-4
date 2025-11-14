@@ -8,6 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MeasurementStatus {
+  ACTIVE
+  SUPERSEDED
+  DELETED
+}
+
 model Substation {
   id                String   @id @default(uuid())
   no                Int
@@ -37,52 +43,56 @@ model Substation {
 }
 
 model MeasurementSiang {
-  id           Int      @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   substationId String
   month        String
-  r            Float    @default(0)
-  s            Float    @default(0)
-  t            Float    @default(0)
-  n            Float    @default(0)
-  rn           Float    @default(0)
-  sn           Float    @default(0)
-  tn           Float    @default(0)
-  pp           Float    @default(0)
-  pn           Float    @default(0)
+  r            Float             @default(0)
+  s            Float             @default(0)
+  t            Float             @default(0)
+  n            Float             @default(0)
+  rn           Float             @default(0)
+  sn           Float             @default(0)
+  tn           Float             @default(0)
+  pp           Float             @default(0)
+  pn           Float             @default(0)
   row_name     String
-  rata2        Float?   @default(0)
-  kva          Float?   @default(0)
-  persen       Float?   @default(0)
-  unbalanced   Float?   @default(0)
-  lastUpdate   DateTime @default(now())
+  rata2        Float?            @default(0)
+  kva          Float?            @default(0)
+  persen       Float?            @default(0)
+  unbalanced   Float?            @default(0)
+  lastUpdate   DateTime          @default(now())
+  status       MeasurementStatus @default(ACTIVE)
 
-  substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  substation Substation                 @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  auditLogs  MeasurementSiangAuditLog[]
 
   @@unique([substationId, month, row_name])
   @@map("measurements_siang")
 }
 
 model MeasurementMalam {
-  id           Int      @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   substationId String
   month        String
-  r            Float    @default(0)
-  s            Float    @default(0)
-  t            Float    @default(0)
-  n            Float    @default(0)
-  rn           Float    @default(0)
-  sn           Float    @default(0)
-  tn           Float    @default(0)
-  pp           Float    @default(0)
-  pn           Float    @default(0)
+  r            Float             @default(0)
+  s            Float             @default(0)
+  t            Float             @default(0)
+  n            Float             @default(0)
+  rn           Float             @default(0)
+  sn           Float             @default(0)
+  tn           Float             @default(0)
+  pp           Float             @default(0)
+  pn           Float             @default(0)
   row_name     String
-  rata2        Float?   @default(0)
-  kva          Float?   @default(0)
-  persen       Float?   @default(0)
-  unbalanced   Float?   @default(0)
-  lastUpdate   DateTime @default(now())
+  rata2        Float?            @default(0)
+  kva          Float?            @default(0)
+  persen       Float?            @default(0)
+  unbalanced   Float?            @default(0)
+  lastUpdate   DateTime          @default(now())
+  status       MeasurementStatus @default(ACTIVE)
 
-  substation Substation @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  substation Substation                 @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  auditLogs  MeasurementMalamAuditLog[]
 
   @@unique([substationId, month, row_name])
   @@map("measurements_malam")
@@ -92,9 +102,35 @@ model AdminUser {
   id            Int      @id @default(autoincrement())
   username      String   @unique
   password_hash String
-  name          String
+  name          String?
   role          String   @default("admin")
   created_at    DateTime @default(now())
 
   @@map("admin_users")
+}
+
+model MeasurementSiangAuditLog {
+  id            Int              @id @default(autoincrement())
+  measurementId Int
+  oldValue      Float?
+  newValue      Float?
+  changedBy     String?          @db.VarChar(100)
+  changeReason  String?          @db.VarChar(255)
+  changedAt     DateTime         @default(now())
+  measurement   MeasurementSiang @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+
+  @@map("measurement_siang_audit_log")
+}
+
+model MeasurementMalamAuditLog {
+  id            Int              @id @default(autoincrement())
+  measurementId Int
+  oldValue      Float?
+  newValue      Float?
+  changedBy     String?          @db.VarChar(100)
+  changeReason  String?          @db.VarChar(255)
+  changedAt     DateTime         @default(now())
+  measurement   MeasurementMalam @relation(fields: [measurementId], references: [id], onDelete: Cascade)
+
+  @@map("measurement_malam_audit_log")
 }
