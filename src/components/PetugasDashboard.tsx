@@ -338,17 +338,17 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
       {/* Header */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex flex-col gap-3 sm:gap-3 sm:flex-row sm:justify-between sm:items-center py-2 sm:py-3">
-            <div className="space-y-0.5 sm:space-y-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center py-2 sm:py-3">
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
               <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
                 Dashboard Petugas
               </h1>
-              <p className="text-gray-600 text-[11px] sm:text-sm md:text-base">
+              <p className="text-gray-500 text-xs sm:text-sm md:text-base leading-tight">
                 Selamat datang, {user?.name}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-2 sm:gap-3">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 sm:justify-end">
                 <Button
                   variant={activeTab === 'dashboard' ? 'primary' : 'outline'}
                   onClick={() => setActiveTab('dashboard')}
