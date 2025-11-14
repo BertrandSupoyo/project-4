@@ -50,24 +50,53 @@ export default async function handler(req, res) {
     // GET - Get all users
     if (req.method === 'GET') {
       console.log('📋 Fetching all users...');
-      const users = await db.adminUser.findMany({
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          role: true,
-          created_at: true,
-        },
-        orderBy: {
-          created_at: 'desc'
-        }
-      });
+      try {
+        // Try to get all fields including name
+        const users = await db.adminUser.findMany({
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            role: true,
+            created_at: true,
+          },
+          orderBy: {
+            created_at: 'desc'
+          }
+        });
 
-      console.log('✅ Found users:', users.length);
-      return res.json({
-        success: true,
-        data: users
-      });
+        console.log('✅ Found users:', users.length);
+        return res.json({
+          success: true,
+          data: users
+        });
+      } catch (error) {
+        // If name column doesn't exist, try without it
+        if (error.message && error.message.includes('name') && error.message.includes('does not exist')) {
+          console.log('⚠️ Name column not found, fetching without name...');
+          const users = await db.adminUser.findMany({
+            select: {
+              id: true,
+              username: true,
+              role: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: 'desc'
+            }
+          });
+          
+          // Add null name for backward compatibility
+          const usersWithName = users.map(u => ({ ...u, name: null }));
+          
+          console.log('✅ Found users (without name):', usersWithName.length);
+          return res.json({
+            success: true,
+            data: usersWithName
+          });
+        }
+        throw error; // Re-throw if it's a different error
+      }
     }
 
     // POST - Create new user
