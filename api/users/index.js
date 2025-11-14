@@ -77,11 +77,11 @@ export default async function handler(req, res) {
       console.log('📝 User data:', { username, name, role, password: password ? '***' : 'undefined' });
 
       // Validation
-      if (!username || !password || !name) {
+      if (!username || !password) {
         console.log('❌ Validation failed: missing required fields');
         return res.status(400).json({
           success: false,
-          error: 'Username, password, and name are required'
+          error: 'Username and password are required'
         });
       }
 
@@ -105,13 +105,21 @@ export default async function handler(req, res) {
 
       // Create user
       console.log('👤 Creating user in database...');
+      
+      // Prepare data object
+      const userData = {
+        username,
+        password_hash: passwordHash,
+        role
+      };
+      
+      // Only add name if it exists (for backward compatibility)
+      if (name) {
+        userData.name = name;
+      }
+      
       const newUser = await db.adminUser.create({
-        data: {
-          username,
-          password_hash: passwordHash,
-          name,
-          role
-        },
+        data: userData,
         select: {
           id: true,
           username: true,
@@ -251,12 +259,27 @@ export default async function handler(req, res) {
     console.error('❌ Error details:', {
       message: error.message,
       name: error.name,
-      code: error.code
+      code: error.code,
+      meta: error.meta
     });
+    
+    // Provide more specific error messages
+    let errorMessage = 'Internal server error';
+    if (error.code === 'P2002') {
+      errorMessage = 'Username already exists';
+    } else if (error.code === 'P2025') {
+      errorMessage = 'Record not found';
+    } else if (error.message.includes('column') && error.message.includes('does not exist')) {
+      errorMessage = 'Database schema mismatch. Please run database migration.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      details: error.message,
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      code: error.code,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
