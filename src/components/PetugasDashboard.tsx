@@ -336,26 +336,46 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 md:py-4">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard Petugas</h1>
-              <p className="text-gray-600 text-sm md:text-base">Selamat datang, {user?.name}</p>
+      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex flex-col gap-4 sm:gap-3 sm:flex-row sm:justify-between sm:items-center py-3 md:py-4">
+            <div className="space-y-1">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+                Dashboard Petugas
+              </h1>
+              <p className="text-gray-600 text-xs sm:text-sm md:text-base">
+                Selamat datang, {user?.name}
+              </p>
             </div>
-              <div className="flex items-center space-x-2 md:space-x-4">
-              <div className="flex space-x-2 overflow-x-auto whitespace-nowrap no-scrollbar">
-                <Button variant={activeTab === 'dashboard' ? 'primary' : 'outline'} onClick={() => setActiveTab('dashboard')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-3">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={activeTab === 'dashboard' ? 'primary' : 'outline'}
+                  onClick={() => setActiveTab('dashboard')}
+                  className="px-3 py-2 text-xs font-medium sm:text-sm md:px-4 md:py-2"
+                >
                   Dashboard
                 </Button>
-                <Button variant={activeTab === 'add' ? 'primary' : 'outline'} onClick={() => setActiveTab('add')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                <Button
+                  variant={activeTab === 'add' ? 'primary' : 'outline'}
+                  onClick={() => setActiveTab('add')}
+                  className="px-3 py-2 text-xs font-medium sm:text-sm md:px-4 md:py-2"
+                >
                   Tambah Gardu
                 </Button>
-                <Button variant={activeTab === 'list' ? 'primary' : 'outline'} onClick={() => setActiveTab('list')} className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm">
+                <Button
+                  variant={activeTab === 'list' ? 'primary' : 'outline'}
+                  onClick={() => setActiveTab('list')}
+                  className="px-3 py-2 text-xs font-medium sm:text-sm md:px-4 md:py-2"
+                >
                   List Gardu
                 </Button>
               </div>
-              <Button onClick={onLogout} variant="outline" className="px-3 py-2 text-sm md:px-4 md:py-2 md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Button
+                onClick={onLogout}
+                variant="outline"
+                className="px-3 py-2 text-xs font-medium sm:text-sm md:px-4 md:py-2 text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center"
+              >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -364,7 +384,7 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6">
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
