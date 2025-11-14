@@ -316,26 +316,26 @@ function App() {
       <Router>
         <Header />
         <div className="bg-white shadow-sm border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row sm:justify-between sm:items-center">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4">
                 <div className="flex items-center text-gray-600">
-                  <Shield className="w-5 h-5 mr-2" />
-                  <span className="text-sm font-medium">
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-xs sm:text-sm font-medium">
                     {user?.role === 'admin' ? 'Administrator' : user?.role === 'viewer' ? 'Viewer' : 'User'}
                   </span>
                 </div>
-                <div className="flex space-x-4">
+                <div className="flex flex-wrap gap-2 sm:gap-4">
                   <Link 
                     to="/"
-                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    className="flex items-center text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                   >
                     <LayoutDashboard className="w-4 h-4 mr-1" />
                     Dashboard
                   </Link>
                   <Link 
                     to="/riwayat"
-                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    className="flex items-center text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
                   >
                     <History className="w-4 h-4 mr-1" />
                     Riwayat Gardu
@@ -346,7 +346,7 @@ function App() {
                 onClick={handleLogout}
                 variant="outline"
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
