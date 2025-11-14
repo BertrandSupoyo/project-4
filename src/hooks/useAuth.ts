@@ -103,8 +103,9 @@ export const useAuth = () => {
 
   // Check if user is logged in on mount
   useEffect(() => {
-    const token = sessionStorage.getItem('admin_token');
-    const userData = sessionStorage.getItem('admin_user');
+    // ✅ GUNAKAN localStorage BUKAN sessionStorage agar persist saat refresh
+    const token = localStorage.getItem('admin_token');
+    const userData = localStorage.getItem('admin_user');
     
     if (token && userData) {
       try {
@@ -114,11 +115,35 @@ export const useAuth = () => {
           isAuthenticated: true,
           loading: false,
         });
-        // ✅ START SESSION TIMER KETIKA LOGIN
-        startSessionTimer();
+        // ✅ START SESSION TIMER KETIKA RELOAD (jika masih dalam session)
+        // Cek apakah session timeout flag ada
+        const sessionTimeout = localStorage.getItem('sessionTimeout');
+        if (!sessionTimeout) {
+          startSessionTimer();
+        } else {
+          // Jika ada timeout flag, clear dan logout
+          localStorage.removeItem('sessionTimeout');
+          // Clear auth state
+          stopSessionTimer();
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          setAuthState({
+            user: null,
+            isAuthenticated: false,
+            loading: false,
+          });
+        }
       } catch (error) {
         console.error('Error parsing user data:', error);
-        logout();
+        // Clear invalid data
+        stopSessionTimer();
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          loading: false,
+        });
       }
     } else {
       setAuthState(prev => ({ ...prev, loading: false }));
@@ -128,6 +153,7 @@ export const useAuth = () => {
     return () => {
       stopSessionTimer();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 🔧 DETECT USER ACTIVITY
