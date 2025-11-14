@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const crypto = require('crypto');
+import { PrismaClient } from '../prisma/app/generated/prisma-client/index.js';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -17,6 +17,11 @@ async function seedAdminUsers() {
       {
         username: 'superadmin',
         password: 'superadmin123',
+        role: 'superadmin'
+      },
+      {
+        username: 'bertrand',
+        password: 'Benben10921',
         role: 'superadmin'
       }
     ];
