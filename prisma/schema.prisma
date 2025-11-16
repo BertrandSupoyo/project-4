@@ -35,6 +35,13 @@ model Substation {
   ugb                   Int      @default(0)
   latitude              Float?
   longitude             Float?
+  photoUrl              String?   @db.Text
+  photoUrlR             String?   @db.Text
+  photoUrlS             String?   @db.Text
+  photoUrlT             String?   @db.Text
+  photoUrlN             String?   @db.Text
+  photoUrlPP            String?   @db.Text
+  photoUrlPN            String?   @db.Text
 
   measurements_siang MeasurementSiang[]
   measurements_malam MeasurementMalam[]
