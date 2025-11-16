@@ -335,49 +335,55 @@ export const PetugasDashboard: React.FC<PetugasDashboardProps> = ({ user, onLogo
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header Section - Perbaikan untuk Mobile */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center py-2 sm:py-3">
-            <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+          <div className="py-3 sm:py-3 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+            {/* Title Section */}
+            <div className="flex flex-col gap-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
                 Dashboard Petugas
               </h1>
-              <p className="text-gray-500 text-xs sm:text-sm md:text-base leading-tight">
+              <p className="text-gray-500 text-xs sm:text-sm leading-tight">
                 Selamat datang, {user?.name}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-2 sm:gap-3">
-              <div className="flex flex-wrap gap-2 sm:justify-end">
+
+            {/* Buttons Section */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+              {/* Tab Buttons */}
+              <div className="flex gap-1.5 flex-wrap sm:gap-1">
                 <Button
                   variant={activeTab === 'dashboard' ? 'primary' : 'outline'}
                   onClick={() => setActiveTab('dashboard')}
-                  className="px-3 py-1.5 text-[11px] font-semibold sm:text-sm md:px-4 md:py-2"
+                  className="px-2.5 py-1.5 text-xs font-semibold sm:px-3 sm:py-2 sm:text-sm"
                 >
                   Dashboard
                 </Button>
                 <Button
                   variant={activeTab === 'add' ? 'primary' : 'outline'}
                   onClick={() => setActiveTab('add')}
-                  className="px-3 py-1.5 text-[11px] font-semibold sm:text-sm md:px-4 md:py-2"
+                  className="px-2.5 py-1.5 text-xs font-semibold sm:px-3 sm:py-2 sm:text-sm"
                 >
-                  Tambah Gardu
+                  Tambah
                 </Button>
                 <Button
                   variant={activeTab === 'list' ? 'primary' : 'outline'}
                   onClick={() => setActiveTab('list')}
-                  className="px-3 py-1.5 text-[11px] font-semibold sm:text-sm md:px-4 md:py-2"
+                  className="px-2.5 py-1.5 text-xs font-semibold sm:px-3 sm:py-2 sm:text-sm"
                 >
-                  List Gardu
+                  List
                 </Button>
               </div>
+
+              {/* Logout Button */}
               <Button
                 onClick={onLogout}
                 variant="outline"
-                className="px-3 py-1.5 text-[11px] font-semibold sm:text-sm md:px-4 md:py-2 text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center"
+                className="px-2.5 py-1.5 text-xs font-semibold sm:px-3 sm:py-2 sm:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
+                <span className="hidden xs:inline">Logout</span>
               </Button>
             </div>
           </div>
