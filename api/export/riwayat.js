@@ -102,8 +102,117 @@ export default async function handler(req, res) {
   let db;
   
   try {
+    const { month, year, action, measurementId: measurementIdParam } = req.query || {};
+    const measurementId = measurementIdParam ? parseInt(measurementIdParam, 10) : null;
+
+    // ============ UPDATE MEASUREMENT (PUT) ============
+    if (req.method === 'PUT' && measurementId) {
+      db = await initPrisma();
+
+      if (req.body?.unbalanced === undefined || req.body?.unbalanced === null) {
+        return res.status(400).json({ error: 'Field unbalanced wajib diisi' });
+      }
+
+      const { reason, changedBy = 'admin', unbalanced } = req.body;
+
+      // helper: find record in siang/malam
+      const findMeasurement = async (id) => {
+        let record = await db.measurementSiang.findUnique({ where: { id } });
+        if (record) return { record, type: 'siang' };
+        record = await db.measurementMalam.findUnique({ where: { id } });
+        if (record) return { record, type: 'malam' };
+        return null;
+      };
+
+      const measurementData = await findMeasurement(measurementId);
+      if (!measurementData) {
+        return res.status(404).json({ error: 'Measurement tidak ditemukan' });
+      }
+
+      const { record: oldRecord, type } = measurementData;
+
+      // mark old record as SUPERSEDED
+      if (type === 'siang') {
+        await db.measurementSiang.update({
+          where: { id: measurementId },
+          data: { status: 'SUPERSEDED' }
+        });
+      } else {
+        await db.measurementMalam.update({
+          where: { id: measurementId },
+          data: { status: 'SUPERSEDED' }
+        });
+      }
+
+      const newData = {
+        substationId: oldRecord.substationId,
+        month: oldRecord.month,
+        r: oldRecord.r,
+        s: oldRecord.s,
+        t: oldRecord.t,
+        n: oldRecord.n,
+        rn: oldRecord.rn,
+        sn: oldRecord.sn,
+        tn: oldRecord.tn,
+        pp: oldRecord.pp,
+        pn: oldRecord.pn,
+        row_name: oldRecord.row_name,
+        unbalanced: Number(unbalanced),
+        rata2: oldRecord.rata2,
+        kva: oldRecord.kva,
+        persen: oldRecord.persen,
+        status: 'ACTIVE'
+      };
+
+      const newRecord =
+        type === 'siang'
+          ? await db.measurementSiang.create({ data: newData })
+          : await db.measurementMalam.create({ data: newData });
+
+      const auditData = {
+        measurementId,
+        oldValue: oldRecord.unbalanced,
+        newValue: Number(unbalanced),
+        changedBy,
+        changeReason: reason || 'Update data pengukuran'
+      };
+
+      if (type === 'siang') {
+        await db.measurementSiangAuditLog.create({ data: auditData });
+      } else {
+        await db.measurementMalamAuditLog.create({ data: auditData });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Measurement updated successfully',
+        old_id: measurementId,
+        new_id: newRecord.id,
+        old_value: oldRecord.unbalanced,
+        new_value: newRecord.unbalanced
+      });
+    }
+
+    // ============ GET AUDIT LOG (GET) ============
+    if (req.method === 'GET' && action === 'audit-log' && measurementId) {
+      db = await initPrisma();
+      let auditLogs = await db.measurementSiangAuditLog.findMany({
+        where: { measurementId },
+        orderBy: { changedAt: 'desc' }
+      });
+
+      if (!auditLogs || auditLogs.length === 0) {
+        auditLogs = await db.measurementMalamAuditLog.findMany({
+          where: { measurementId },
+          orderBy: { changedAt: 'desc' }
+        });
+      }
+
+      return res.status(200).json(auditLogs);
+    }
+
     // ============ EXPORT RIWAYAT (GET) ============
-    if (req.method === 'GET' && req.url?.includes('/export/riwayat')) {
+    if (req.method === 'GET') {
       const { month, year } = req.query;
       
       console.log('📥 Export request with filters:', { month, year });

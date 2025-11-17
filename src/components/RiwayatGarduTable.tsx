@@ -153,7 +153,7 @@ const HistoryModal = ({
     setLoading(true);
     setErrorMessage(null);
     try {
-      const response = await fetch(`/api/measurements/${measurementId}/audit-log`);
+      const response = await fetch(`/api/export/riwayat?action=audit-log&measurementId=${measurementId}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Gagal memuat riwayat perubahan');
@@ -399,7 +399,7 @@ export const RiwayatGarduTable: React.FC = () => {
   // Handle update measurement
   const handleUpdateMeasurement = async (updateData: any) => {
     try {
-      const response = await fetch(`/api/measurements/${updateData.id}`, {
+      const response = await fetch(`/api/export/riwayat?measurementId=${updateData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
