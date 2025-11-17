@@ -141,6 +141,7 @@ const HistoryModal = ({
 }) => {
   const [auditLog, setAuditLog] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && measurementId) {
@@ -150,12 +151,18 @@ const HistoryModal = ({
 
   const loadHistory = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const response = await fetch(`/api/measurements/${measurementId}/audit-log`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Gagal memuat riwayat perubahan');
+      }
       const data = await response.json();
       setAuditLog(data);
     } catch (error) {
       console.error('Error loading history:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Tidak dapat memuat riwayat perubahan');
     } finally {
       setLoading(false);
     }
@@ -174,22 +181,27 @@ const HistoryModal = ({
         </div>
 
         {loading ? (
-          <div className="text-center py-4">Loading...</div>
+          <div className="text-center py-4">Memuat riwayat...</div>
+        ) : errorMessage ? (
+          <p className="text-red-500 text-center">{errorMessage}</p>
         ) : (
           <div className="space-y-4">
             {auditLog.length === 0 ? (
-              <p className="text-gray-500 text-center">Tidak ada riwayat perubahan</p>
+              <p className="text-gray-500 text-center">Belum ada riwayat perubahan untuk measurement ini.</p>
             ) : (
               auditLog.map((log, idx) => (
-                <div key={log.id} className="border rounded p-3 bg-gray-50">
+                <div key={log.id || idx} className="border rounded p-3 bg-gray-50">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold">
-                        Perubahan #{idx + 1}: {log.old_value}% → {log.new_value}%
+                        Perubahan #{idx + 1}: {log.oldValue ?? log.old_value}% → {log.newValue ?? log.new_value}%
                       </p>
-                      <p className="text-sm text-gray-600">Alasan: {log.change_reason}</p>
+                      <p className="text-sm text-gray-600">
+                        Alasan: {log.changeReason ?? log.change_reason ?? '-'}
+                      </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {log.changed_by} • {new Date(log.changed_at).toLocaleString('id-ID')}
+                        {(log.changedBy ?? log.changed_by) || 'admin'} •{' '}
+                        {new Date(log.changedAt ?? log.changed_at).toLocaleString('id-ID')}
                       </p>
                     </div>
                   </div>
