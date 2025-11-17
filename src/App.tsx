@@ -175,9 +175,15 @@ function App() {
         };
       
       case 'critical':
-        // 🔧 Temporarily return undefined untuk avoid error
-        // Akan ditampilkan semua data sampai kita fix issue
-        return undefined;
+        return (substation: SubstationData) => {
+          try {
+            if (!substation) return false;
+            return substation?.status === 'critical';
+          } catch (e) {
+            console.error('Error in critical filter:', e);
+            return false;
+          }
+        };
       
       case 'ugb-active':
         return (substation: SubstationData) => {
