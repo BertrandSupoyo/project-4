@@ -64,7 +64,15 @@ export default async function handler(req, res) {
         where,
         take: safeLimit,
         skip: (safePage - 1) * safeLimit,
-        orderBy: { no: 'asc' }
+        orderBy: { no: 'asc' },
+        include: {
+          measurements_siang: {
+            where: { status: 'ACTIVE' }
+          },
+          measurements_malam: {
+            where: { status: 'ACTIVE' }
+          }
+        }
       });
 
       // Ensure photoUrl columns exist and merge into results (best-effort; ignore permission errors)

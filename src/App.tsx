@@ -178,7 +178,12 @@ function App() {
         return (substation: SubstationData) => {
           try {
             if (!substation) return false;
-            return substation?.status === 'critical';
+            // Cek berdasarkan unbalanced > 80% (siang atau malam)
+            const siang = substation.measurements_siang || [];
+            const malam = substation.measurements_malam || [];
+            const hasCriticalSiang = siang.some(m => m.unbalanced !== null && m.unbalanced !== undefined && Number(m.unbalanced) > 80);
+            const hasCriticalMalam = malam.some(m => m.unbalanced !== null && m.unbalanced !== undefined && Number(m.unbalanced) > 80);
+            return hasCriticalSiang || hasCriticalMalam;
           } catch (e) {
             console.error('Error in critical filter:', e);
             return false;
