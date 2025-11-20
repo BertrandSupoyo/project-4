@@ -47,7 +47,7 @@ function App() {
   } = useAuth();
 
   const [selectedModal, setSelectedModal] = useState<{
-    type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | null;
+    type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | 'normal' | 'warning' | null;
     isOpen: boolean;
   }>({
     type: null,
@@ -60,6 +60,8 @@ function App() {
     nonActive: 1,
     critical: 1,
     ugbActive: 1,
+    normal: 1,
+    warning: 1,
   });
 
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -106,17 +108,19 @@ function App() {
       nonActive: 1,
       critical: 1,
       ugbActive: 1,
+      normal: 1,
+      warning: 1,
     });
   };
 
-  const handleStatsCardClick = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active') => {
+  const handleStatsCardClick = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | 'normal' | 'warning') => {
     setSelectedModal({
       type,
       isOpen: true
     });
   };
 
-  const handleSetModalPage = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active', page: number) => {
+  const handleSetModalPage = (type: 'total' | 'active' | 'non-active' | 'critical' | 'ugb-active' | 'normal' | 'warning', page: number) => {
     setModalPages(prev => ({ 
       ...prev, 
       [type === 'non-active' ? 'nonActive' : type === 'ugb-active' ? 'ugbActive' : type]: page 
@@ -141,6 +145,10 @@ function App() {
         return 'Daftar Gardu dengan Masalah Kritis';
       case 'ugb-active':
         return 'Daftar Gardu UGB Aktif';
+      case 'normal':
+        return 'Daftar Gardu Normal';
+      case 'warning':
+        return 'Daftar Gardu Warning';
       default:
         return '';
     }
@@ -197,6 +205,28 @@ function App() {
             return substation?.ugb === 1;
           } catch (e) {
             console.error('Error in ugb-active filter:', e);
+            return false;
+          }
+        };
+      
+      case 'normal':
+        return (substation: SubstationData) => {
+          try {
+            if (!substation) return false;
+            return substation?.status === 'normal';
+          } catch (e) {
+            console.error('Error in normal filter:', e);
+            return false;
+          }
+        };
+      
+      case 'warning':
+        return (substation: SubstationData) => {
+          try {
+            if (!substation) return false;
+            return substation?.status === 'warning';
+          } catch (e) {
+            console.error('Error in warning filter:', e);
             return false;
           }
         };
@@ -420,22 +450,38 @@ function App() {
                 <div className="bg-white p-6 rounded-lg shadow">
                   <h3 className="text-lg font-semibold mb-4">Status Distribusi</h3>
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center">
+                    <div 
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                      onClick={() => handleStatsCardClick('normal')}
+                    >
                       <span className="text-gray-600">Gardu Normal</span>
                       <span className="font-semibold text-green-600">
                         {substations.filter(s => s.status === 'normal').length}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div 
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                      onClick={() => handleStatsCardClick('warning')}
+                    >
                       <span className="text-gray-600">Gardu Warning</span>
                       <span className="font-semibold text-yellow-600">
                         {substations.filter(s => s.status === 'warning').length}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div 
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                      onClick={() => handleStatsCardClick('critical')}
+                    >
                       <span className="text-gray-600">Gardu Critical</span>
                       <span className="font-semibold text-red-600">
-                        {substations.filter(s => s.status === 'critical').length}
+                        {substations.filter(s => {
+                          // Gunakan logika yang sama dengan filter critical
+                          const siang = s.measurements_siang || [];
+                          const malam = s.measurements_malam || [];
+                          const hasCriticalSiang = siang.some(m => m.unbalanced !== null && m.unbalanced !== undefined && Number(m.unbalanced) > 80);
+                          const hasCriticalMalam = malam.some(m => m.unbalanced !== null && m.unbalanced !== undefined && Number(m.unbalanced) > 80);
+                          return hasCriticalSiang || hasCriticalMalam;
+                        }).length}
                       </span>
                     </div>
                   </div>
@@ -468,7 +514,11 @@ function App() {
                 title={getModalTitle()}
                 substations={substations}
                 filter={getModalFilter()}
-                currentPage={modalPages[selectedModal.type === 'non-active' ? 'nonActive' : selectedModal.type === 'ugb-active' ? 'ugbActive' : selectedModal.type || 'total']}
+                currentPage={modalPages[
+                  selectedModal.type === 'non-active' ? 'nonActive' 
+                  : selectedModal.type === 'ugb-active' ? 'ugbActive' 
+                  : selectedModal.type || 'total'
+                ]}
                 onPageChange={(page) => handleSetModalPage(selectedModal.type!, page)}
                 onUpdateSubstation={handleUpdateSubstation}
               />
