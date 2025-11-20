@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { SubstationData } from '../types';
 import { SubstationMaps } from './SubstationMaps';
-import { ApiService, API_BASE_URL } from '../services/api';
+import { ApiService } from '../services/api';
 import { exportSubstationToExcel } from './ExportSubstationExcel';
 
 interface SubstationDetailModalProps {
@@ -33,7 +33,6 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const [siangMeasurements, setSiangMeasurements] = useState<any[]>([]);
   const [malamMeasurements, setMalamMeasurements] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [isEditingTanggal, setIsEditingTanggal] = useState(false);
   const [editedTanggal, setEditedTanggal] = useState('');
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
@@ -310,63 +309,13 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   );
 
   const handleExportExcel = async () => {
-    if (!substation?.id) return;
-    setIsExporting(true);
-    const substationId = substation.id;
-
-    const downloadBlob = (blob: Blob, filename: string) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    };
-
+    if (!substation) return;
     try {
-      // Coba gunakan endpoint server agar layout identical dengan export bulk
-      const baseUrl = API_BASE_URL.replace(/\/$/, '');
-      const response = await fetch(`${baseUrl}/export/substation-detail?id=${encodeURIComponent(substationId)}`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const blob = await response.blob();
-      downloadBlob(blob, `detail_gardu_${substation.noGardu || substation.id}.xlsx`);
-      return;
-    } catch (apiError) {
-      console.warn('Export via API gagal, fallback ke export lokal:', apiError);
-
-      // Fallback: pastikan measurements lengkap lalu generate via util lokal
-      try {
-        let detail = substation;
-        const needFreshMeasurements =
-          !detail.measurements_siang?.length ||
-          !detail.measurements_malam?.length;
-
-        if (needFreshMeasurements) {
-          try {
-            const refreshed = await ApiService.getSubstationById(substationId);
-            if (refreshed) {
-              detail = refreshed;
-            }
-          } catch (fetchErr) {
-            console.warn('Gagal mengambil detail gardu terbaru, menggunakan data saat ini', fetchErr);
-          }
-        }
-
-        await exportSubstationToExcel(
-          detail,
-          detail.measurements_siang || siangMeasurements,
-          detail.measurements_malam || malamMeasurements
-        );
-      } catch (fallbackError) {
-        console.error('Export failed:', fallbackError);
-        window.alert('Gagal mengunduh file Excel!');
-      }
-    } finally {
-      setIsExporting(false);
+      // Gunakan utilitas client-side untuk membuat file Excel individu
+      await exportSubstationToExcel(substation, siangMeasurements, malamMeasurements);
+    } catch (err) {
+      console.error('Export failed:', err);
+      window.alert('Gagal mengunduh file Excel!');
     }
   };
 
@@ -601,14 +550,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
           {!isReadOnly && (
             <div className="flex justify-end space-x-3">
               <Button onClick={onClose}>Tutup</Button>
-              <Button
-                onClick={handleExportExcel}
-                className="ml-2"
-                variant="outline"
-                disabled={isExporting}
-              >
-                {isExporting ? 'Mengunduh...' : 'Export Excel'}
-              </Button>
+              <Button onClick={handleExportExcel} className="ml-2" variant="outline">Export Excel</Button>
             </div>
           )}
 
