@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { SubstationData } from '../types';
 import { SubstationMaps } from './SubstationMaps';
-import { ApiService } from '../services/api';
+import { ApiService, API_BASE_URL } from '../services/api';
 import { exportSubstationToExcel } from './ExportSubstationExcel';
 
 interface SubstationDetailModalProps {
@@ -327,7 +327,8 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
 
     try {
       // Coba gunakan endpoint server agar layout identical dengan export bulk
-      const response = await fetch(`/api/export/substation-detail?id=${substationId}`);
+      const baseUrl = API_BASE_URL.replace(/\/$/, '');
+      const response = await fetch(`${baseUrl}/export/substation-detail?id=${encodeURIComponent(substationId)}`);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
