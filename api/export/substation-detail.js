@@ -3,6 +3,101 @@ import { PrismaClient } from '../../../prisma/app/generated/prisma-client/index.
 import { withAccelerate } from '@prisma/extension-accelerate'
 import ExcelJS from 'exceljs'
 
+// ============ CONSTANTS ============
+const CONSTANTS = {
+  MEASUREMENT_ROWS: ['INDUK', '1', '2', '3', '4'],
+  TOTAL_COLUMNS: 40,
+  HEADER_ROWS: 5,
+  IDENTITY_COLS: 13,
+  STATUS: {
+    ACTIVE: 'ACTIVE',
+    SUPERSEDED: 'SUPERSEDED'
+  },
+  EXCEL: {
+    FONT_NAME: 'Calibri',
+    FONT_SIZE: 11,
+    SHEET_NAME: 'Detail Gardu'
+  }
+};
+
+const HEADER_CONFIG = {
+  row1: ['', '', '', '', 'DATA GARDU', '', '', '', '', '', '', '', '', '', '', 'PENGUKURAN SIANG', '', '', '', '', '', '', '', '', '', 'PENGUKURAN MALAM', '', '', '', '', '', '', '', '', '', 'BEBAN', '', '', '', '', '', '', '', ''],
+  row2: ['NO', 'ULP', 'NO. GARDU', 'NAMA / LOKASI', '', '', '', '', '', '', '', '', '', 'TANGGAL', 'JURUSAN', 'ARUS', '', '', '', 'TEGANGAN', '', '', '', '', 'ARUS', '', '', '', 'TEGANGAN', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+  row3: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'R', 'S', 'T', 'N', '', 'PANGKAL', '', '', 'UJUNG', '', '', 'R', 'S', 'T', 'N', 'PANGKAL', '', '', 'UJUNG', '', '', 'SIANG', '', '', 'MALAM', '', '', '', ''],
+  row4: ['', '', '', '', 'JENIS', 'MERK', 'DAYA', 'TAHUN', 'PHASA', 'TAP TRAFO (MAX TAP)', 'ARAH SEQUENCE', 'PENYULANG', '', '', '', '', '', '', 'P-N', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+  row5: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'R', 'S', 'T', 'N', 'R-N', 'S-N', 'T-N', 'P-P', 'P-N', '', 'R', 'S', 'T', 'N', 'R-N', 'S-N', 'T-N', 'P-P', 'P-N', '', 'RATA2', 'KVA', '%', 'RATA2', 'KVA', '%', '', '']
+};
+
+const HEADER_MERGES = [
+  { s: { r: 1, c: 5 }, e: { r: 2, c: 12 }, value: 'DATA GARDU' },
+  { s: { r: 1, c: 15 }, e: { r: 1, c: 23 }, value: 'PENGUKURAN SIANG' },
+  { s: { r: 1, c: 24 }, e: { r: 1, c: 32 }, value: 'PENGUKURAN MALAM' },
+  { s: { r: 1, c: 33 }, e: { r: 2, c: 38 }, value: 'BEBAN' },
+  { s: { r: 1, c: 1 }, e: { r: 5, c: 1 }, value: 'NO' },
+  { s: { r: 1, c: 2 }, e: { r: 5, c: 2 }, value: 'ULP' },
+  { s: { r: 1, c: 3 }, e: { r: 5, c: 3 }, value: 'NO. GARDU' },
+  { s: { r: 1, c: 4 }, e: { r: 5, c: 4 }, value: 'NAMA / LOKASI' },
+  { s: { r: 1, c: 13 }, e: { r: 5, c: 13 }, value: 'TANGGAL' },
+  { s: { r: 1, c: 14 }, e: { r: 5, c: 14 }, value: 'JURUSAN' },
+  { s: { r: 1, c: 39 }, e: { r: 5, c: 39 }, value: 'UNBALANCED SIANG' },
+  { s: { r: 1, c: 40 }, e: { r: 5, c: 40 }, value: 'UNBALANCED MALAM' },
+  { s: { r: 2, c: 15 }, e: { r: 2, c: 18 }, value: 'ARUS' },
+  { s: { r: 2, c: 19 }, e: { r: 2, c: 23 }, value: 'TEGANGAN' },
+  { s: { r: 2, c: 24 }, e: { r: 2, c: 27 }, value: 'ARUS' },
+  { s: { r: 2, c: 28 }, e: { r: 2, c: 32 }, value: 'TEGANGAN' },
+  { s: { r: 3, c: 15 }, e: { r: 5, c: 15 }, value: 'R' },
+  { s: { r: 3, c: 16 }, e: { r: 5, c: 16 }, value: 'S' },
+  { s: { r: 3, c: 17 }, e: { r: 5, c: 17 }, value: 'T' },
+  { s: { r: 3, c: 18 }, e: { r: 5, c: 18 }, value: 'N' },
+  { s: { r: 3, c: 19 }, e: { r: 3, c: 22 }, value: 'PANGKAL' },
+  { s: { r: 3, c: 23 }, e: { r: 3, c: 23 }, value: 'UJUNG' },
+  { s: { r: 3, c: 24 }, e: { r: 5, c: 24 }, value: 'R' },
+  { s: { r: 3, c: 25 }, e: { r: 5, c: 25 }, value: 'S' },
+  { s: { r: 3, c: 26 }, e: { r: 5, c: 26 }, value: 'T' },
+  { s: { r: 3, c: 27 }, e: { r: 5, c: 27 }, value: 'N' },
+  { s: { r: 3, c: 28 }, e: { r: 3, c: 31 }, value: 'PANGKAL' },
+  { s: { r: 3, c: 32 }, e: { r: 3, c: 32 }, value: 'UJUNG' },
+  { s: { r: 3, c: 33 }, e: { r: 4, c: 35 }, value: 'SIANG' },
+  { s: { r: 3, c: 36 }, e: { r: 4, c: 38 }, value: 'MALAM' },
+  { s: { r: 3, c: 5 }, e: { r: 5, c: 5 }, value: 'JENIS' },
+  { s: { r: 3, c: 6 }, e: { r: 5, c: 6 }, value: 'MERK' },
+  { s: { r: 3, c: 7 }, e: { r: 5, c: 7 }, value: 'DAYA' },
+  { s: { r: 3, c: 8 }, e: { r: 5, c: 8 }, value: 'TAHUN' },
+  { s: { r: 3, c: 9 }, e: { r: 5, c: 9 }, value: 'PHASA' },
+  { s: { r: 3, c: 10 }, e: { r: 5, c: 10 }, value: 'TAP TRAFO (MAX TAP)' },
+  { s: { r: 3, c: 11 }, e: { r: 5, c: 11 }, value: 'ARAH SEQUENCE' },
+  { s: { r: 3, c: 12 }, e: { r: 5, c: 12 }, value: 'PENYULANG' },
+  { s: { r: 4, c: 19 }, e: { r: 4, c: 21 }, value: 'P-N' },
+  { s: { r: 4, c: 28 }, e: { r: 4, c: 30 }, value: 'P-N' },
+  { s: { r: 5, c: 19 }, e: { r: 5, c: 19 }, value: 'R-N' },
+  { s: { r: 5, c: 20 }, e: { r: 5, c: 20 }, value: 'S-N' },
+  { s: { r: 5, c: 21 }, e: { r: 5, c: 21 }, value: 'T-N' },
+  { s: { r: 4, c: 22 }, e: { r: 5, c: 22 }, value: 'P-P' },
+  { s: { r: 4, c: 23 }, e: { r: 5, c: 23 }, value: 'P-N' },
+  { s: { r: 5, c: 28 }, e: { r: 5, c: 28 }, value: 'R-N' },
+  { s: { r: 5, c: 29 }, e: { r: 5, c: 29 }, value: 'S-N' },
+  { s: { r: 5, c: 30 }, e: { r: 5, c: 30 }, value: 'T-N' },
+  { s: { r: 4, c: 31 }, e: { r: 5, c: 31 }, value: 'P-P' },
+  { s: { r: 4, c: 32 }, e: { r: 5, c: 32 }, value: 'P-N' },
+  { s: { r: 5, c: 33 }, e: { r: 5, c: 33 }, value: 'RATA2' },
+  { s: { r: 5, c: 34 }, e: { r: 5, c: 34 }, value: 'KVA' },
+  { s: { r: 5, c: 35 }, e: { r: 5, c: 35 }, value: '%' },
+  { s: { r: 5, c: 36 }, e: { r: 5, c: 36 }, value: 'RATA2' },
+  { s: { r: 5, c: 37 }, e: { r: 5, c: 37 }, value: 'KVA' },
+  { s: { r: 5, c: 38 }, e: { r: 5, c: 38 }, value: '%' }
+];
+
+const HEADER_COLORS = [
+  { startCol: 1, endCol: 4, color: 'FFB6E7C9' },
+  { startCol: 5, endCol: 13, color: 'FFB6E7C9' },
+  { startCol: 14, endCol: 14, color: 'FFB6E7C9' },
+  { startCol: 15, endCol: 23, color: 'FFFFF59D' },
+  { startCol: 24, endCol: 32, color: 'FFFFCC80' },
+  { startCol: 33, endCol: 40, color: 'FF90CAF9' }
+];
+
+// ============ PRISMA CLIENT ============
+
 let prisma;
 
 async function initPrisma() {
@@ -20,8 +115,286 @@ async function initPrisma() {
   return prisma;
 }
 
+// ============ VALIDATION FUNCTIONS ============
+
+function validateId(id) {
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    throw new Error('Parameter id wajib diisi');
+  }
+  return id.trim();
+}
+
+// ============ FORMATTING FUNCTIONS ============
+
+function formatDate(dateObj) {
+  if (!dateObj) return '';
+
+  try {
+    const d = new Date(dateObj);
+    if (isNaN(d.getTime())) return '';
+
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.warn('⚠️  Date formatting error:', error);
+    return '';
+  }
+}
+
+function formatPercentage(value) {
+  if (value === undefined || value === null) return '';
+  return `${Number(value).toFixed(1)}%`;
+}
+
+function formatNumeric(value) {
+  return value ?? '';
+}
+
+function generateFilename(noGardu, id) {
+  const base = (noGardu ?? id ?? 'gardu');
+  const sanitized = String(base).trim().replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+  return `detail_gardu_${sanitized || 'export'}`;
+}
+
+// ============ STYLE FUNCTIONS ============
+
+function getBoldCenterStyle() {
+  return {
+    font: { bold: true, name: CONSTANTS.EXCEL.FONT_NAME, size: CONSTANTS.EXCEL.FONT_SIZE },
+    alignment: { vertical: 'middle', horizontal: 'center', wrapText: true }
+  };
+}
+
+function getCellBorder() {
+  return {
+    top: { style: 'thin' },
+    left: { style: 'thin' },
+    bottom: { style: 'thin' },
+    right: { style: 'thin' }
+  };
+}
+
+function getCellAlignment() {
+  return {
+    vertical: 'middle',
+    horizontal: 'center',
+    wrapText: true
+  };
+}
+
+// ============ EXCEL BUILDER FUNCTIONS ============
+
+function setupHeaderRows(sheet) {
+  console.log('📋 Setting up header rows...');
+  const boldCenter = getBoldCenterStyle();
+
+  const allRows = [
+    HEADER_CONFIG.row1,
+    HEADER_CONFIG.row2,
+    HEADER_CONFIG.row3,
+    HEADER_CONFIG.row4,
+    HEADER_CONFIG.row5
+  ];
+
+  // Ensure all rows have correct length
+  allRows.forEach(row => { row.length = CONSTANTS.TOTAL_COLUMNS; });
+
+  // Write header rows
+  for (let r = 0; r < allRows.length; r++) {
+    for (let c = 0; c < allRows[r].length; c++) {
+      const cell = sheet.getCell(r + 1, c + 1);
+      cell.value = allRows[r][c];
+      Object.assign(cell, boldCenter);
+    }
+  }
+
+  console.log('🔗 Applying cell merges...');
+  // Apply merges and colors
+  HEADER_MERGES.forEach(merge => {
+    try {
+      sheet.mergeCells(merge.s.r, merge.s.c, merge.e.r, merge.e.c);
+      const cell = sheet.getCell(merge.s.r, merge.s.c);
+      cell.value = merge.value;
+      Object.assign(cell, boldCenter);
+
+      const colorBlock = HEADER_COLORS.find(block =>
+        merge.s.c >= block.startCol && merge.s.c <= block.endCol
+      );
+
+      if (colorBlock) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: colorBlock.color }
+        };
+      }
+    } catch (error) {
+      console.warn(`⚠️  Error merging cells [${merge.s.r}, ${merge.s.c}]:`, error.message);
+    }
+  });
+
+  console.log('✅ Header setup complete');
+}
+
+function fillSubstationData(sheet, substation, startRow) {
+  console.log('📝 Filling substation data...');
+
+  const {
+    ulp = '',
+    noGardu = '',
+    namaLokasiGardu = '',
+    jenis = '',
+    merek = '',
+    daya = '',
+    tahun = '',
+    phasa = '',
+    tap_trafo_max_tap = '',
+    arahSequence = '',
+    penyulang = '',
+    tanggal
+  } = substation;
+
+  sheet.getCell(startRow, 1).value = 1;
+  sheet.getCell(startRow, 2).value = ulp;
+  sheet.getCell(startRow, 3).value = noGardu;
+  sheet.getCell(startRow, 4).value = namaLokasiGardu;
+  sheet.getCell(startRow, 5).value = jenis;
+  sheet.getCell(startRow, 6).value = merek;
+  sheet.getCell(startRow, 7).value = daya;
+  sheet.getCell(startRow, 8).value = tahun;
+  sheet.getCell(startRow, 9).value = phasa;
+  sheet.getCell(startRow, 10).value = tap_trafo_max_tap;
+  sheet.getCell(startRow, 11).value = arahSequence;
+  sheet.getCell(startRow, 12).value = penyulang;
+  sheet.getCell(startRow, 13).value = formatDate(tanggal);
+
+  console.log(`✅ Substation data filled: ${noGardu}`);
+}
+
+function fillMeasurementData(sheet, substation, startRow) {
+  console.log('📊 Filling measurement data...');
+
+  const siangMeasurements = substation.measurements_siang || [];
+  const malamMeasurements = substation.measurements_malam || [];
+  const rows = CONSTANTS.MEASUREMENT_ROWS;
+
+  for (let r = 0; r < rows.length; r++) {
+    const rowIdx = startRow + r;
+
+    sheet.getCell(rowIdx, 14).value = rows[r];
+
+    const mSiang = siangMeasurements.find(
+      x => x.row_name?.toLowerCase() === rows[r].toLowerCase()
+    ) || {};
+
+    const mMalam = malamMeasurements.find(
+      x => x.row_name?.toLowerCase() === rows[r].toLowerCase()
+    ) || {};
+
+    // Siang ARUS (15-18)
+    sheet.getCell(rowIdx, 15).value = formatNumeric(mSiang.r);
+    sheet.getCell(rowIdx, 16).value = formatNumeric(mSiang.s);
+    sheet.getCell(rowIdx, 17).value = formatNumeric(mSiang.t);
+    sheet.getCell(rowIdx, 18).value = formatNumeric(mSiang.n);
+
+    // Siang TEGANGAN (19-23)
+    sheet.getCell(rowIdx, 19).value = formatNumeric(mSiang.rn);
+    sheet.getCell(rowIdx, 20).value = formatNumeric(mSiang.sn);
+    sheet.getCell(rowIdx, 21).value = formatNumeric(mSiang.tn);
+    sheet.getCell(rowIdx, 22).value = formatNumeric(mSiang.pp);
+    sheet.getCell(rowIdx, 23).value = formatNumeric(mSiang.pn);
+
+    // Malam ARUS (24-27)
+    sheet.getCell(rowIdx, 24).value = formatNumeric(mMalam.r);
+    sheet.getCell(rowIdx, 25).value = formatNumeric(mMalam.s);
+    sheet.getCell(rowIdx, 26).value = formatNumeric(mMalam.t);
+    sheet.getCell(rowIdx, 27).value = formatNumeric(mMalam.n);
+
+    // Malam TEGANGAN (28-32)
+    sheet.getCell(rowIdx, 28).value = formatNumeric(mMalam.rn);
+    sheet.getCell(rowIdx, 29).value = formatNumeric(mMalam.sn);
+    sheet.getCell(rowIdx, 30).value = formatNumeric(mMalam.tn);
+    sheet.getCell(rowIdx, 31).value = formatNumeric(mMalam.pp);
+    sheet.getCell(rowIdx, 32).value = formatNumeric(mMalam.pn);
+
+    // Beban SIANG (33-35)
+    sheet.getCell(rowIdx, 33).value = formatNumeric(mSiang.rata2);
+    sheet.getCell(rowIdx, 34).value = formatNumeric(mSiang.kva);
+    sheet.getCell(rowIdx, 35).value = formatPercentage(mSiang.persen);
+
+    // Beban MALAM (36-38)
+    sheet.getCell(rowIdx, 36).value = formatNumeric(mMalam.rata2);
+    sheet.getCell(rowIdx, 37).value = formatNumeric(mMalam.kva);
+    sheet.getCell(rowIdx, 38).value = formatPercentage(mMalam.persen);
+
+    // Unbalanced (39-40)
+    sheet.getCell(rowIdx, 39).value = formatPercentage(mSiang.unbalanced);
+    sheet.getCell(rowIdx, 40).value = formatPercentage(mMalam.unbalanced);
+  }
+
+  console.log(`✅ Measurement data filled for ${rows.length} rows`);
+}
+
+function applyCellStyles(sheet, startRow, endRow) {
+  console.log('🎨 Applying cell styles...');
+
+  const border = getCellBorder();
+  const alignment = getCellAlignment();
+  const font = { name: CONSTANTS.EXCEL.FONT_NAME, size: CONSTANTS.EXCEL.FONT_SIZE };
+
+  for (let r = startRow; r <= endRow; r++) {
+    for (let c = 1; c <= CONSTANTS.TOTAL_COLUMNS; c++) {
+      const cell = sheet.getCell(r, c);
+      cell.border = border;
+      if (!cell.style.font) cell.font = font;
+      if (!cell.alignment) cell.alignment = alignment;
+    }
+  }
+
+  console.log(`✅ Styles applied to rows ${startRow}-${endRow}`);
+}
+
+function setColumnWidths(sheet) {
+  console.log('📏 Setting column widths...');
+
+  for (let c = 1; c <= CONSTANTS.TOTAL_COLUMNS; c++) {
+    let width = 8;
+
+    if (c >= 1 && c <= 4) width = 10;
+    else if (c >= 5 && c <= 13) width = 12;
+    else if (c === 14) width = 15;
+    else if (c === 15) width = 10;
+    else if (c >= 16 && c <= 35) width = 8;
+    else if (c >= 36 && c <= 40) width = 10;
+
+    sheet.getColumn(c).width = width;
+  }
+
+  console.log('✅ Column widths set');
+}
+
+function mergeIdentityColumns(sheet, startRow, endRow) {
+  console.log('🔗 Merging identity columns...');
+
+  for (let c = 1; c <= CONSTANTS.IDENTITY_COLS; c++) {
+    try {
+      sheet.mergeCells(startRow, c, endRow, c);
+    } catch (error) {
+      console.warn(`⚠️  Error merging column ${c}:`, error.message);
+    }
+  }
+
+  console.log('✅ Identity columns merged');
+}
+
+// ============ MAIN HANDLER ============
+
 export default async function handler(req, res) {
-  // Enable CORS
+  console.log(`\n📨 ${new Date().toISOString()} - New request`);
+
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -31,367 +404,129 @@ export default async function handler(req, res) {
   );
 
   if (req.method === 'OPTIONS') {
+    console.log('✅ OPTIONS request handled');
     res.status(200).end();
     return;
   }
 
   if (req.method !== 'GET') {
-    return res.status(405).json({ 
+    console.log(`❌ Invalid method: ${req.method}`);
+    return res.status(405).json({
       success: false,
       error: 'Method not allowed',
-      message: 'Hanya metode GET yang diperbolehkan' 
+      message: 'Hanya metode GET yang diperbolehkan'
     });
   }
 
   let db;
-  
+
   try {
-    // ✅ EXTRACT & VALIDATE ID
+    console.log('🔍 Validating request parameters...');
     const { id } = req.query;
-    
-    if (!id || typeof id !== 'string' || id.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid parameter',
-        message: 'Parameter id wajib diisi'
-      });
-    }
-    
-    console.log('📥 Single export request for ID:', id);
-    
-    // ✅ INITIALIZE DATABASE
+    const validatedId = validateId(id);
+    console.log(`✅ ID validated: ${validatedId}`);
+
     db = await initPrisma();
-    
-    // ✅ FETCH SINGLE SUBSTATION
+
+    console.log(`🔎 Fetching substation with ID: ${validatedId}`);
     let substation;
+
     try {
       substation = await db.substation.findUnique({
-        where: { id },
+        where: { id: validatedId },
         include: {
           measurements_siang: {
+            where: { status: CONSTANTS.STATUS.ACTIVE },
             orderBy: { row_name: 'asc' }
           },
           measurements_malam: {
+            where: { status: CONSTANTS.STATUS.ACTIVE },
             orderBy: { row_name: 'asc' }
           }
         }
       });
     } catch (dbError) {
-      console.error('❌ Database query error:', dbError);
+      console.error('❌ Database query failed:', dbError);
       throw new Error(`Gagal mengambil data dari database: ${dbError.message}`);
     }
 
-    // ✅ VALIDATE DATA EXISTS
     if (!substation) {
-      return res.status(404).json({ 
+      console.log(`❌ Substation not found: ${validatedId}`);
+      return res.status(404).json({
         success: false,
-        error: 'Not found', 
-        message: `Data gardu dengan ID ${id} tidak ditemukan`,
-        id
+        error: 'Not found',
+        message: `Data gardu dengan ID ${validatedId} tidak ditemukan`,
+        id: validatedId
       });
     }
 
-    console.log(`📊 Found substation: ${substation.noGardu}`);
+    console.log(`✅ Substation found: ${substation.noGardu}`);
 
-    // ✅ CREATE WORKBOOK
-    console.log('📝 Generating Excel workbook...');
+    // Create workbook
+    console.log('📚 Creating Excel workbook...');
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Detail Gardu');
-    
-    const rows = ['INDUK', '1', '2', '3', '4'];
+    const sheet = workbook.addWorksheet(CONSTANTS.EXCEL.SHEET_NAME);
 
-    const boldCenter = {
-      font: { bold: true, name: 'Calibri', size: 11 },
-      alignment: { vertical: 'middle', horizontal: 'center', wrapText: true }
-    };
+    setupHeaderRows(sheet);
 
-    // --- HEADER SETUP (sama seperti export riwayat) ---
-    const headerRow1Values = ['', '', '', '', 'DATA GARDU', '', '', '', '', '', '', '', '', '', '', 'PENGUKURAN SIANG', '', '', '', '', '', '', '', '', '', 'PENGUKURAN MALAM', '', '', '', '', '', '', '', '', '', 'BEBAN', '', '', '', '', '', '', '', ''];
-    const headerRow2Values = ['NO', 'ULP', 'NO. GARDU', 'NAMA / LOKASI', '', '', '', '', '', '', '', '', '', 'TANGGAL', 'JURUSAN', 'ARUS', '', '', '', 'TEGANGAN', '', '', '', '', 'ARUS', '', '', '', 'TEGANGAN', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-    const headerRow3Values = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'R', 'S', 'T', 'N', '', 'PANGKAL', '', '', 'UJUNG', '', '', 'R', 'S', 'T', 'N', 'PANGKAL', '', '', 'UJUNG', '', '', 'SIANG', '', '', 'MALAM', '', '', '', ''];
-    const headerRow4Values = ['', '', '', '', 'JENIS', 'MERK', 'DAYA', 'TAHUN', 'PHASA', 'TAP TRAFO (MAX TAP)', 'ARAH SEQUENCE', 'PENYULANG', '', '', '', '', '', '', 'P-N', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-    const headerRow5Values = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'R', 'S', 'T', 'N', 'R-N', 'S-N', 'T-N', 'P-P', 'P-N', '', 'R', 'S', 'T', 'N', 'R-N', 'S-N', 'T-N', 'P-P', 'P-N', '', 'RATA2', 'KVA', '%', 'RATA2', 'KVA', '%', '', ''];
-    
-    const allHeaderRows = [headerRow1Values, headerRow2Values, headerRow3Values, headerRow4Values, headerRow5Values];
-    
-    const headerMerges = [
-      { s: { r: 1, c: 5 }, e: { r: 2, c: 12 }, value: 'DATA GARDU' },
-      { s: { r: 1, c: 15 }, e: { r: 1, c: 23 }, value: 'PENGUKURAN SIANG' },
-      { s: { r: 1, c: 24 }, e: { r: 1, c: 32 }, value: 'PENGUKURAN MALAM' },
-      { s: { r: 1, c: 33 }, e: { r: 2, c: 38 }, value: 'BEBAN' },
-      { s: { r: 1, c: 1 }, e: { r: 5, c: 1 }, value: 'NO' },
-      { s: { r: 1, c: 2 }, e: { r: 5, c: 2 }, value: 'ULP' },
-      { s: { r: 1, c: 3 }, e: { r: 5, c: 3 }, value: 'NO. GARDU' },
-      { s: { r: 1, c: 4 }, e: { r: 5, c: 4 }, value: 'NAMA / LOKASI' },
-      { s: { r: 1, c: 13 }, e: { r: 5, c: 13 }, value: 'TANGGAL' },
-      { s: { r: 1, c: 14 }, e: { r: 5, c: 14 }, value: 'JURUSAN' },
-      { s: { r: 1, c: 39 }, e: { r: 5, c: 39 }, value: 'UNBALANCED SIANG' },
-      { s: { r: 1, c: 40 }, e: { r: 5, c: 40 }, value: 'UNBALANCED MALAM' },
-      { s: { r: 2, c: 15 }, e: { r: 2, c: 18 }, value: 'ARUS' },
-      { s: { r: 2, c: 19 }, e: { r: 2, c: 23 }, value: 'TEGANGAN' },
-      { s: { r: 2, c: 24 }, e: { r: 2, c: 27 }, value: 'ARUS' },
-      { s: { r: 2, c: 28 }, e: { r: 2, c: 32 }, value: 'TEGANGAN' },
-      { s: { r: 3, c: 15 }, e: { r: 5, c: 15 }, value: 'R' },
-      { s: { r: 3, c: 16 }, e: { r: 5, c: 16 }, value: 'S' },
-      { s: { r: 3, c: 17 }, e: { r: 5, c: 17 }, value: 'T' },
-      { s: { r: 3, c: 18 }, e: { r: 5, c: 18 }, value: 'N' },
-      { s: { r: 3, c: 19 }, e: { r: 3, c: 22 }, value: 'PANGKAL' },
-      { s: { r: 3, c: 23 }, e: { r: 3, c: 23 }, value: 'UJUNG' },
-      { s: { r: 3, c: 24 }, e: { r: 5, c: 24 }, value: 'R' },
-      { s: { r: 3, c: 25 }, e: { r: 5, c: 25 }, value: 'S' },
-      { s: { r: 3, c: 26 }, e: { r: 5, c: 26 }, value: 'T' },
-      { s: { r: 3, c: 27 }, e: { r: 5, c: 27 }, value: 'N' },
-      { s: { r: 3, c: 28 }, e: { r: 3, c: 31 }, value: 'PANGKAL' },
-      { s: { r: 3, c: 32 }, e: { r: 3, c: 32 }, value: 'UJUNG' },
-      { s: { r: 3, c: 33 }, e: { r: 4, c: 35 }, value: 'SIANG' },
-      { s: { r: 3, c: 36 }, e: { r: 4, c: 38 }, value: 'MALAM' },
-      { s: { r: 3, c: 5 }, e: { r: 5, c: 5 }, value: 'JENIS' },
-      { s: { r: 3, c: 6 }, e: { r: 5, c: 6 }, value: 'MERK' },
-      { s: { r: 3, c: 7 }, e: { r: 5, c: 7 }, value: 'DAYA' },
-      { s: { r: 3, c: 8 }, e: { r: 5, c: 8 }, value: 'TAHUN' },
-      { s: { r: 3, c: 9 }, e: { r: 5, c: 9 }, value: 'PHASA' },
-      { s: { r: 3, c: 10 }, e: { r: 5, c: 10 }, value: 'TAP TRAFO (MAX TAP)' },
-      { s: { r: 3, c: 11 }, e: { r: 5, c: 11 }, value: 'ARAH SEQUENCE' },
-      { s: { r: 3, c: 12 }, e: { r: 5, c: 12 }, value: 'PENYULANG' },
-      { s: { r: 4, c: 19 }, e: { r: 4, c: 21 }, value: 'P-N' },
-      { s: { r: 4, c: 28 }, e: { r: 4, c: 30 }, value: 'P-N' },
-      { s: { r: 5, c: 19 }, e: { r: 5, c: 19 }, value: 'R-N' },
-      { s: { r: 5, c: 20 }, e: { r: 5, c: 20 }, value: 'S-N' },
-      { s: { r: 5, c: 21 }, e: { r: 5, c: 21 }, value: 'T-N' },
-      { s: { r: 4, c: 22 }, e: { r: 5, c: 22 }, value: 'P-P' },
-      { s: { r: 4, c: 23 }, e: { r: 5, c: 23 }, value: 'P-N' },
-      { s: { r: 5, c: 28 }, e: { r: 5, c: 28 }, value: 'R-N' },
-      { s: { r: 5, c: 29 }, e: { r: 5, c: 29 }, value: 'S-N' },
-      { s: { r: 5, c: 30 }, e: { r: 5, c: 30 }, value: 'T-N' },
-      { s: { r: 4, c: 31 }, e: { r: 5, c: 31 }, value: 'P-P' },
-      { s: { r: 4, c: 32 }, e: { r: 5, c: 32 }, value: 'P-N' },
-      { s: { r: 5, c: 33 }, e: { r: 5, c: 33 }, value: 'RATA2' },
-      { s: { r: 5, c: 34 }, e: { r: 5, c: 34 }, value: 'KVA' },
-      { s: { r: 5, c: 35 }, e: { r: 5, c: 35 }, value: '%' },
-      { s: { r: 5, c: 36 }, e: { r: 5, c: 36 }, value: 'RATA2' },
-      { s: { r: 5, c: 37 }, e: { r: 5, c: 37 }, value: 'KVA' },
-      { s: { r: 5, c: 38 }, e: { r: 5, c: 38 }, value: '%' },
-    ];
-    
-    const headerColors = [
-      { startCol: 1, endCol: 4, color: 'FFB6E7C9' },
-      { startCol: 5, endCol: 13, color: 'FFB6E7C9' },
-      { startCol: 14, endCol: 14, color: 'FFB6E7C9' },
-      { startCol: 15, endCol: 23, color: 'FFFFF59D' },
-      { startCol: 24, endCol: 32, color: 'FFFFCC80' },
-      { startCol: 33, endCol: 40, color: 'FF90CAF9' },
-    ];
+    console.log('📐 Calculating data layout...');
+    const startDataRow = CONSTANTS.HEADER_ROWS + 1;
+    const rowCount = CONSTANTS.MEASUREMENT_ROWS.length;
+    const endDataRow = startDataRow + rowCount - 1;
 
-    // Ensure all header rows have correct length
-    headerRow1Values.length = 40;
-    headerRow2Values.length = 40;
-    headerRow3Values.length = 40;
-    headerRow4Values.length = 40;
-    headerRow5Values.length = 40;
+    console.log(`📍 Data will occupy rows ${startDataRow} to ${endDataRow}`);
 
-    // Write header rows
-    for (let r = 0; r < allHeaderRows.length; r++) {
-      const currentRowValues = allHeaderRows[r];
-      for (let c = 0; c < currentRowValues.length; c++) {
-        const cell = sheet.getCell(r + 1, c + 1);
-        cell.value = currentRowValues[c];
-        Object.assign(cell, boldCenter);
-      }
-    }
+    mergeIdentityColumns(sheet, startDataRow, endDataRow);
+    fillSubstationData(sheet, substation, startDataRow);
+    fillMeasurementData(sheet, substation, startDataRow);
 
-    // Apply merges and colors
-    headerMerges.forEach(merge => {
-      sheet.mergeCells(merge.s.r, merge.s.c, merge.e.r, merge.e.c);
-      const cell = sheet.getCell(merge.s.r, merge.s.c);
-      cell.value = merge.value;
-      Object.assign(cell, boldCenter);
-      
-      const colorBlock = headerColors.find(block => 
-        merge.s.c >= block.startCol && merge.s.c <= block.endCol
-      );
-      
-      if (colorBlock) {
-        cell.fill = { 
-          type: 'pattern', 
-          pattern: 'solid', 
-          fgColor: { argb: colorBlock.color } 
-        };
-      }
-    });
+    applyCellStyles(sheet, 1, endDataRow);
+    setColumnWidths(sheet);
 
-    // --- DATA ROWS (SINGLE SUBSTATION) ---
-    console.log('📝 Writing data rows...');
-    const currentRow = 6;
-    const siangMeasurements = substation.measurements_siang || [];
-    const malamMeasurements = substation.measurements_malam || [];
-    
-    // Merge identity columns vertically
-    for (let c = 1; c <= 13; c++) {
-      sheet.mergeCells(currentRow, c, currentRow + rows.length - 1, c);
-    }
-    
-    // Fill identity data
-    sheet.getCell(currentRow, 1).value = 1; // Always 1 for single export
-    sheet.getCell(currentRow, 2).value = substation.ulp || '';
-    sheet.getCell(currentRow, 3).value = substation.noGardu || '';
-    sheet.getCell(currentRow, 4).value = substation.namaLokasiGardu || '';
-    sheet.getCell(currentRow, 5).value = substation.jenis || '';
-    sheet.getCell(currentRow, 6).value = substation.merek || '';
-    sheet.getCell(currentRow, 7).value = substation.daya || '';
-    sheet.getCell(currentRow, 8).value = substation.tahun || '';
-    sheet.getCell(currentRow, 9).value = substation.phasa || '';
-    sheet.getCell(currentRow, 10).value = substation.tap_trafo_max_tap || '';
-    sheet.getCell(currentRow, 11).value = substation.arahSequence || '';
-    sheet.getCell(currentRow, 12).value = substation.penyulang || '';
-    
-    // Format date
-    if (substation.tanggal) {
-      try {
-        const d = new Date(substation.tanggal);
-        if (!isNaN(d.getTime())) {
-          const day = String(d.getDate()).padStart(2, '0');
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const year = d.getFullYear();
-          sheet.getCell(currentRow, 13).value = `${day}/${month}/${year}`;
-        } else {
-          sheet.getCell(currentRow, 13).value = '';
-        }
-      } catch (dateError) {
-        console.warn('⚠️  Invalid date for gardu:', substation.noGardu);
-        sheet.getCell(currentRow, 13).value = '';
-      }
-    } else {
-      sheet.getCell(currentRow, 13).value = '';
-    }
-    
-    // Fill measurement data
-    for (let r = 0; r < rows.length; r++) {
-      const rowIdx = currentRow + r;
-      
-      // JURUSAN
-      sheet.getCell(rowIdx, 14).value = rows[r];
-      
-      // Siang Measurements
-      const mSiang = siangMeasurements.find(
-        x => x.row_name?.toLowerCase() === rows[r].toLowerCase()
-      ) || {};
-      
-      sheet.getCell(rowIdx, 15).value = mSiang.r ?? '';
-      sheet.getCell(rowIdx, 16).value = mSiang.s ?? '';
-      sheet.getCell(rowIdx, 17).value = mSiang.t ?? '';
-      sheet.getCell(rowIdx, 18).value = mSiang.n ?? '';
-      sheet.getCell(rowIdx, 19).value = mSiang.rn ?? '';
-      sheet.getCell(rowIdx, 20).value = mSiang.sn ?? '';
-      sheet.getCell(rowIdx, 21).value = mSiang.tn ?? '';
-      sheet.getCell(rowIdx, 22).value = mSiang.pp ?? '';
-      sheet.getCell(rowIdx, 23).value = mSiang.pn ?? '';
-      
-      // Malam Measurements
-      const mMalam = malamMeasurements.find(
-        x => x.row_name?.toLowerCase() === rows[r].toLowerCase()
-      ) || {};
-      
-      sheet.getCell(rowIdx, 24).value = mMalam.r ?? '';
-      sheet.getCell(rowIdx, 25).value = mMalam.s ?? '';
-      sheet.getCell(rowIdx, 26).value = mMalam.t ?? '';
-      sheet.getCell(rowIdx, 27).value = mMalam.n ?? '';
-      sheet.getCell(rowIdx, 28).value = mMalam.rn ?? '';
-      sheet.getCell(rowIdx, 29).value = mMalam.sn ?? '';
-      sheet.getCell(rowIdx, 30).value = mMalam.tn ?? '';
-      sheet.getCell(rowIdx, 31).value = mMalam.pp ?? '';
-      sheet.getCell(rowIdx, 32).value = mMalam.pn ?? '';
-      
-      // Beban Results
-      sheet.getCell(rowIdx, 33).value = mSiang?.rata2 ?? '';
-      sheet.getCell(rowIdx, 34).value = mSiang?.kva ?? '';
-      sheet.getCell(rowIdx, 35).value = mSiang?.persen !== undefined 
-        ? `${Number(mSiang.persen).toFixed(1)}%` 
-        : '';
-      sheet.getCell(rowIdx, 36).value = mMalam?.rata2 ?? '';
-      sheet.getCell(rowIdx, 37).value = mMalam?.kva ?? '';
-      sheet.getCell(rowIdx, 38).value = mMalam?.persen !== undefined 
-        ? `${Number(mMalam.persen).toFixed(1)}%` 
-        : '';
-      
-      // Unbalanced
-      sheet.getCell(rowIdx, 39).value = mSiang?.unbalanced !== undefined 
-        ? `${Number(mSiang.unbalanced).toFixed(1)}%` 
-        : '';
-      sheet.getCell(rowIdx, 40).value = mMalam?.unbalanced !== undefined 
-        ? `${Number(mMalam.unbalanced).toFixed(1)}%` 
-        : '';
-    }
+    // Generate filename and send response
+    const filename = generateFilename(substation.noGardu, substation.id);
+    console.log(`📄 Filename generated: ${filename}.xlsx`);
 
-    // ✅ STYLE ALL CELLS
-    console.log('🎨 Applying styles...');
-    const lastRow = currentRow + rows.length - 1;
-    for (let r = 1; r <= lastRow; r++) {
-      for (let c = 1; c <= 40; c++) {
-        const cell = sheet.getCell(r, c);
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
-        if (!cell.style.font) cell.font = { name: 'Calibri', size: 11 };
-        if (!cell.alignment) cell.alignment = { 
-          vertical: 'middle', 
-          horizontal: 'center', 
-          wrapText: true 
-        };
-      }
-    }
-
-    // ✅ SET COLUMN WIDTHS
-    for (let c = 1; c <= 40; c++) {
-      if (c >= 1 && c <= 4) sheet.getColumn(c).width = 10;
-      else if (c >= 5 && c <= 13) sheet.getColumn(c).width = 12;
-      else if (c === 14) sheet.getColumn(c).width = 15;
-      else if (c === 15) sheet.getColumn(c).width = 10;
-      else if (c >= 16 && c <= 35) sheet.getColumn(c).width = 8;
-      else if (c >= 36 && c <= 40) sheet.getColumn(c).width = 10;
-      else sheet.getColumn(c).width = 10;
-    }
-
-    // ✅ GENERATE FILENAME
-    const safeNoGardu = ((substation.noGardu ?? substation.id ?? 'gardu') + '').trim();
-    const filename = `detail_gardu_${safeNoGardu.length ? safeNoGardu.replace(/[^a-zA-Z0-9]/g, '_') : 'gardu'}`;
-    
-    // ✅ WRITE TO RESPONSE
-    console.log(`📤 Sending file: ${filename}.xlsx`);
+    console.log(`📤 Preparing response...`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
-    
+
+    console.log('✍️  Writing workbook to response stream...');
     await workbook.xlsx.write(res);
     res.end();
 
-    console.log(`✅ Single Excel exported successfully: ${filename}.xlsx`);
+    console.log(`✅ Export completed successfully: ${filename}.xlsx`);
+    console.log(`⏱️  Total data rows: ${rowCount}`);
 
   } catch (error) {
-    console.error('💥 Export error:', error);
-    
-    // Don't send response if headers already sent
+    console.error('💥 Error occurred:', error);
+
     if (res.headersSent) {
       console.error('⚠️  Headers already sent, cannot send error response');
+      console.error('⚠️  Error details:', error.message);
       return;
     }
-    
-    res.status(500).json({
+
+    const errorStatus = error.message.includes('wajib') ? 400 : 500;
+
+    res.status(errorStatus).json({
       success: false,
       error: 'Gagal export data',
       details: error.message,
-      hint: 'Periksa log server untuk detail error'
+      hint: 'Periksa log server untuk detail error',
+      timestamp: new Date().toISOString()
     });
+
   } finally {
-    // ✅ CLEANUP: Disconnect database
     if (db) {
       try {
         await db.$disconnect();
         console.log('🔌 Database disconnected');
       } catch (disconnectError) {
-        console.warn('⚠️  Failed to disconnect database:', disconnectError);
+        console.warn('⚠️  Failed to disconnect database:', disconnectError.message);
       }
     }
+
+    console.log('✨ Request processing completed\n');
   }
 }
