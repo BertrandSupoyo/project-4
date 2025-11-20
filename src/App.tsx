@@ -339,7 +339,6 @@ function App() {
 
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
-  console.log('isAdmin:', isAdmin, 'user:', user);
 
   return (
     <>

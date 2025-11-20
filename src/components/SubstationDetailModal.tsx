@@ -33,6 +33,7 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   const [siangMeasurements, setSiangMeasurements] = useState<any[]>([]);
   const [malamMeasurements, setMalamMeasurements] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isEditingTanggal, setIsEditingTanggal] = useState(false);
   const [editedTanggal, setEditedTanggal] = useState('');
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
@@ -309,13 +310,36 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   );
 
   const handleExportExcel = async () => {
-    if (!substation) return;
+    if (!substation?.id) return;
+    setIsExporting(true);
     try {
-      // Gunakan utilitas client-side untuk membuat file Excel individu
-      await exportSubstationToExcel(substation, siangMeasurements, malamMeasurements);
+      let detail = substation;
+      
+      const needFreshMeasurements =
+        !detail.measurements_siang?.length ||
+        !detail.measurements_malam?.length;
+
+      if (needFreshMeasurements) {
+        try {
+          const refreshed = await ApiService.getSubstationById(detail.id);
+          if (refreshed) {
+            detail = refreshed;
+          }
+        } catch (fetchErr) {
+          console.warn('Gagal mengambil detail gardu terbaru, menggunakan data saat ini', fetchErr);
+        }
+      }
+
+      await exportSubstationToExcel(
+        detail,
+        detail.measurements_siang || siangMeasurements,
+        detail.measurements_malam || malamMeasurements
+      );
     } catch (err) {
       console.error('Export failed:', err);
       window.alert('Gagal mengunduh file Excel!');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -550,7 +574,14 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
           {!isReadOnly && (
             <div className="flex justify-end space-x-3">
               <Button onClick={onClose}>Tutup</Button>
-              <Button onClick={handleExportExcel} className="ml-2" variant="outline">Export Excel</Button>
+              <Button
+                onClick={handleExportExcel}
+                className="ml-2"
+                variant="outline"
+                disabled={isExporting}
+              >
+                {isExporting ? 'Mengunduh...' : 'Export Excel'}
+              </Button>
             </div>
           )}
 
