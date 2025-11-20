@@ -6,6 +6,7 @@ import { Badge } from './ui/Badge';
 import { SubstationData } from '../types';
 import { SubstationMaps } from './SubstationMaps';
 import { ApiService } from '../services/api';
+import { exportSubstationToExcel } from './ExportSubstationExcel';
 
 interface SubstationDetailModalProps {
   substation: SubstationData | null;
@@ -308,19 +309,10 @@ export const SubstationDetailModal: React.FC<SubstationDetailModalProps> = ({
   );
 
   const handleExportExcel = async () => {
-    if (!substation?.id) return;
+    if (!substation) return;
     try {
-      const response = await fetch(`/api/export/substation-detail?id=${substation.id}`);
-      if (!response.ok) throw new Error('Gagal mengunduh file Excel');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `RekapGardu_${substation.noGardu || substation.id}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      // Gunakan utilitas client-side untuk membuat file Excel individu
+      await exportSubstationToExcel(substation, siangMeasurements, malamMeasurements);
     } catch (err) {
       console.error('Export failed:', err);
       window.alert('Gagal mengunduh file Excel!');
