@@ -604,13 +604,12 @@ export const RiwayatGarduTable: React.FC = () => {
                 <th className="px-4 py-2 border">Status</th>
                 <th className="px-4 py-2 border">Unbalance Siang</th>
                 <th className="px-4 py-2 border">Unbalance Malam</th>
-                <th className="px-4 py-2 border">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {processedData.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-8 text-gray-500">
+                  <td colSpan={8} className="text-center py-8 text-gray-500">
                     {selectedMonth && selectedYear
                       ? `Tidak ada data untuk ${getMonthName(selectedMonth)} ${selectedYear}`
                       : 'Silakan pilih bulan dan tahun'}
@@ -637,58 +636,6 @@ export const RiwayatGarduTable: React.FC = () => {
                       </td>
                       <td className={`px-4 py-2 border text-center ${row.unbMalamClass}`}>
                         {row.unbMalam}
-                      </td>
-                      <td className="px-4 py-2 border text-center">
-                        <div className="flex gap-1 justify-center">
-                          {siangMeasurement && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  setSelectedMeasurement(siangMeasurement);
-                                  setEditModalOpen(true);
-                                }}
-                                className="p-1 text-blue-500 hover:bg-blue-50 rounded"
-                                title="Edit Siang"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedMeasurementForHistory(siangMeasurement.id!);
-                                  setHistoryModalOpen(true);
-                                }}
-                                className="p-1 text-green-500 hover:bg-green-50 rounded"
-                                title="History Siang"
-                              >
-                                <History size={16} />
-                              </button>
-                            </>
-                          )}
-                          {malamMeasurement && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  setSelectedMeasurement(malamMeasurement);
-                                  setEditModalOpen(true);
-                                }}
-                                className="p-1 text-blue-500 hover:bg-blue-50 rounded"
-                                title="Edit Malam"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedMeasurementForHistory(malamMeasurement.id!);
-                                  setHistoryModalOpen(true);
-                                }}
-                                className="p-1 text-green-500 hover:bg-green-50 rounded"
-                                title="History Malam"
-                              >
-                                <History size={16} />
-                              </button>
-                            </>
-                          )}
-                        </div>
                       </td>
                     </tr>
                   );
