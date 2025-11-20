@@ -355,7 +355,8 @@ export default async function handler(req, res) {
     }
 
     // ✅ GENERATE FILENAME
-    const filename = `detail_gardu_${substation.noGardu.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const safeNoGardu = ((substation.noGardu ?? substation.id ?? 'gardu') + '').trim();
+    const filename = `detail_gardu_${safeNoGardu.length ? safeNoGardu.replace(/[^a-zA-Z0-9]/g, '_') : 'gardu'}`;
     
     // ✅ WRITE TO RESPONSE
     console.log(`📤 Sending file: ${filename}.xlsx`);
