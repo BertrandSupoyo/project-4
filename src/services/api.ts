@@ -1,7 +1,14 @@
 import { SubstationData } from '../types';
 
+const resolveDefaultApiBase = () => {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:3001/api';
+};
+
 // Konfigurasi API base URL - sesuaikan dengan endpoint database Anda
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || resolveDefaultApiBase()).replace(/\/$/, '');
 
 console.log('API_BASE_URL:', API_BASE_URL);
 
