@@ -55,20 +55,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({
             </p>
           </div>
 
-          {/* Tombol Login sebagai Petugas */}
-          <div className="mb-6">
-            <Button
-              onClick={onPetugasLogin}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 text-base"
-              disabled={loading}
-            >
-              <Briefcase className="w-5 h-5 mr-2" />
-              Login sebagai Petugas
-            </Button>
-            <p className="text-sm md:text-xs text-gray-500 mt-2 text-center">
-              Masuk sebagai petugas lapangan untuk mengelola data gardu
-            </p>
-          </div>
+           {/* Tombol Login sebagai Petugas */}
+          
 
           {/* Divider */}
           <div className="relative mb-6">
